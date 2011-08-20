@@ -27,6 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 // RatingEngine
+
 #include "global.h"
 #include "h\_00_hfiles.h"
 #include "h\utilities.h"
