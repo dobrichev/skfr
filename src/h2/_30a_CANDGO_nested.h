@@ -27,7 +27,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
-/* Dynamic search in nested mode for a candidate
+/* 
+Dynamic search in nested mode for a candidate
    do both contradiction, 
    direct  a -> x and a -> ~x so 'a' is false
    indirect x -> ~a   and ~x -> ~a  'a' is false
