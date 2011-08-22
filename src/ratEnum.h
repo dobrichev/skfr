@@ -70,7 +70,11 @@ enum SolvingTechnique {
     MultipleForcingChain=80,
     DynamicForcingChain=85,
     DynamicForcingChainPlus=90,
-    NestedForcingChain=95
+    NestedForcingChain=95,
+	NestedLevel3=100,
+	NestedLevel4=105,
+	NesttedLevel5=110
+
 };
 
 
