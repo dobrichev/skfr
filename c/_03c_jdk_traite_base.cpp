@@ -117,7 +117,13 @@ if(Op.oexclude<1)
       {  EE.Enl("entry base 95 std");
 		  Op.Step(NestedForcingChain); if(Op.ir>1)return Op.ir; else if(Op.ir)continue;
        if(jdk.Rating_baseNest(95)){Op.SetEr();continue;}  //9.5
-	  }
+/*
+	   EE.Enl("entry base 100 multi chaines dynamic");
+		  Op.Step(NestedForcingChain); if(Op.ir>1)return Op.ir; else if(Op.ir)continue;
+       if(jdk.Rating_baseNest(95)){Op.SetEr();continue;}  //9.5
+*/
+	 
+	 }
 	 } // end if <4
 	} // end if <3
   } // end if <2
