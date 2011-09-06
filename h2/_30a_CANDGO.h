@@ -35,7 +35,7 @@ class CANDGO
  USHORT aig,ret_code,npas;
  int opp;
  short tsets[640];
- USHORT tx[50][100],itx[50];
+ USHORT tx[50][200],itx[50];
  USHORT tret[300],pasret[300],itret;
  BFTAG steps[50],cumsteps[50],allsteps, * to;  
  BFTAG  *cum ,* step; 
@@ -49,10 +49,17 @@ class CANDGO
  void GoSets();
  int GoBack(USHORT tag,int pr);  // compute the length for one chain 
  int GoBackNested(USHORT tag,int pr);  // compute the length for one chain 
+ void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
  int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
+ int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
+ int GoNestedCase2_3(USHORT base      // locate the contradiction  
+	                 ,USHORT tag,USHORT target);  // case 2 or case 3
  void GoNestedWhile(USHORT tag,USHORT base);
+ void GoNestedWhileShort(USHORT tag,USHORT base);
  void Gen_dpn(USHORT tag);
+ void Gen_dpnShort(USHORT tag);
  void NestedForcing(BFTAG & elims);
+ void NestedForcingShort(BFTAG & elims);
  void NestedMulti(BFTAG & elims);
 };
 
