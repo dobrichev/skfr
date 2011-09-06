@@ -126,7 +126,7 @@ for(int ie=1;ie<zcx.izc;ie++)
  // zcf.h_one.dp.Image();dpn.Image();
   BFTAG elims; 
   NestedForcing(elims); 
-  
+  if(opp && Op.ot) elims.Image("netforcing recap",0);
   BFTAG x=elims.Inverse() - hdp[tag];
   if(x.IsNotEmpty()) // force false so use elims.inverse()
   {(*step)  |= x; // flag it in the BFTAG and load in new
@@ -134,12 +134,38 @@ for(int ie=1;ie<zcx.izc;ie++)
    hdp[tag] |= x;
    USHORT ty[100],ity=0; x.String(ty,ity);
    for(int i=0;i<ity;i++) tb[itb++]=ty[i];
-   aig=1;}    
-
-
-	  
+   aig=1;}    	  
 }
 
+
+
+/*  create a reduced tdb without
+    the candidate sutdied
+	all candidates forced or cleared if the candidate studied is true
+	including all new strong links generated
+	and eliminations depending on the level
+*/
+
+void CANDGO::Gen_dpn(USHORT tag)
+{          // create the reduced set of tags check tagelim empty 
+ dpn.Init(); 
+// BFTAG tt=zcf.h.d.t[tag] ,      * tdp=zcf.h.dp.t;
+ BFTAG tt=allsteps ,      * tdp=zcf.h.dp.t;
+
+
+ for (int j=2;j<col;j++) 
+	{if(j==tag) continue; // don't process the start point
+	 if(tt.On(j)) continue; // that tag is defined
+	 if(tt.On(j^1)) continue; // that tag is defined as well (to check)
+      dpn.t[j]=tdp[j]-tt; // reduce the primary weak links
+	 }
+  if(op0) {tt.Image("allsteps at gen time",0);
+	       zcf.h.d.t[tag].Image("zcf.h.d.t[tag]",0);
+		   zcf.h.dp.Image();
+		   dpn.Image();
+          }
+
+ }
 
 
 //--------------------------------------------------
@@ -216,33 +242,6 @@ return itret + nestedlength;}
 
 
 
-/*  create a reduced tdb without
-    the candidate sutdied
-	all candidates forced or cleared if the candidate studied is true
-	including all new strong links generated
-	and eliminations depending on the level
-*/
-
-void CANDGO::Gen_dpn(USHORT tag)
-{          // create the reduced set of tags check tagelim empty 
- dpn.Init(); 
- BFTAG tt=zcf.h.d.t[tag] ,      * tdp=zcf.h.dp.t,
-	   tti=tt.Inverse(); 
-
- for (int j=2;j<col;j++) 
-	{if(j==tag) continue; // don't process the start point
-	 if(tti.On(j)) continue; // that tag is defined
-	 if(tti.On(j^1)) continue; // that tag is defined as well (to check)
-      dpn.t[j]=tdp[j]-tt; // reduce the primary weak links
-	 }
- }
-
-
-
-
-
-
-
 /* looking for fresh forcing chain
    we have to find
    the equivalent length
@@ -260,14 +259,17 @@ void CANDGO::NestedForcing(BFTAG & elims)
  for(int i=2;i<col;i+=2)
   if(allsteps.Off(i^1) && dn.Is(i,i^1)   )  // a forcing chain found, find the length
    { if(tcandgo.itt>50) continue; // provisoire pour comprendre
-	   
+	 if(opp)  {zpln.ImageTag(i); EE.Enl("search  nested forcing chain");  } 
 	   BFTAG wch=dpn.t[i],bfs; 
 
      int npasch=wch.SearchChain(dpn.t,i,i^1);
      if(!npasch) continue; // should never happen
 	 if(npasch>40) continue; // should never happen either
-
-	 // must add the source fo the new strong links
+     if (opp)  {dpn.t[i].Image("dpn",0);
+           dn.t[i].Image("dn",0);
+		   wch.Image("wch",0);
+	       EE.E(" npasch="); EE.Enl(npasch);  } 
+	 // must add the source of the new strong links
 	 USHORT tt[50],itt=npasch+2; 
      if(wch.TrackBack(dpn.t,i,i^1,tt,itt,i^1)) // intercept error for debugging
 	 {

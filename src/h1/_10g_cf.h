@@ -51,7 +51,7 @@ class TZCF
 {  class PHASE{public: TDB d,dp; int icf;
                void Init(){d.Init();dp=d;}};
 
-   public:  PHASE h,hstart,h_one;
+   public:  PHASE h,hstart,h_one,h_nest;
    TDB dpbase;
    USHORT ic, iphase,ic_one,
 	      ic1;   // value of ic at the end of the common loading phase

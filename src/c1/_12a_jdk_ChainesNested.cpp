@@ -34,20 +34,27 @@ level 4 base 10.5  lev 3 + dynamic forcing chains authorized
 
 //==============================================
 // 95 is the first level for nesting  follows an empty step 90
+
+// first expand each candidate depending on the level
+// then look for one of the following eliminatons
+//
+// a) a => x and a=> ~x  a not valid  (a true state)
+// b) x=> ~a and ~x => ~a   a not valid 
+// c) set {x;y;z} (cell or region set) x=> ~a  y=>~a z=>~a a not valid
+//
+// if a non valid condition is found, a second run is done keeping data for length computation
+
+
 // consider each  candidate as start (must have ~ active if valid) 
 // search for new bi values. If none, skip it
 // look for new false depending on the nested level
 // and check if now not eliminated
 
-
 int JDK::Rating_baseNest(USHORT base)
 {tchain.SetMaxLength(base);
- BFTAG * tdp=zcf.h.dp.t; // must include the new strong links
- zcf.h.dp=zcf.dpbase; // but not all derived weak links
- // so we store dpbase and d fully extended
+// BFTAG * tdp=zcf.h.dp.t; // must include the new strong links
  if(Op.ot) {EE.E("start  nested levels base =");EE.Enl(base );}
- // lock the start situation
- zcf.LockNestedOne(); zcx.LockNestedOne();zcxb.LockNestedOne();
+ zcf.h_nest=zcf.h_one; // create the start for that nested level
  for(int i=1;i<zpln.ip;i++) 
   {// nothing to do if part of the solution and no direct start for "false"
    USHORT tag=i<<1;
@@ -56,8 +63,6 @@ int JDK::Rating_baseNest(USHORT base)
    if(zpln.candtrue.On(i) && (!ttc)) continue;
    zcf.StartNestedOne(); zcx.StartNestedOne();zcxb.StartNestedOne();
    CANDGO candgo; candgo.GoNested(i,ttc,base);
-
-
 
  } // end i
   return Rating_end(200);} 

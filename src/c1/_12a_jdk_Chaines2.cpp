@@ -121,7 +121,7 @@ int JDK::Rating_base_90()
   zcf.ResetOne(); // restore the index in zcf  
   tevent.LoadAll();
   zcf.CloseOne(); // store the index and basic weak links
-//  zcf.dpbase.Image();
+
   zcf.h.d.ExpandShort(zcf.h.dp,2);
   BFCAND bf0; // init to no candidate found 
   zcf.DeriveCycle(3,4,7,2); // one cycle;

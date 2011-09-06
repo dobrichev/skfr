@@ -42,6 +42,75 @@ Dynamic search in nested mode for a candidate
    zcf.h.dp follows the dynamic forward process 
      each new link is loaded in the dp table
 */
+int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
+{ opp=0;//(Op.ot && jdk.couprem>4);
+ USHORT tag=cand<<1; 
+ zcf.StartNestedOne(); zcx.StartNestedOne();zcxb.StartNestedOne();
+ BFTAG tt=zcf.h.d.t[tag] ; 
+ to=zcf.h_one.dp.t; //forward and back tracking table
+
+
+  if(op0)
+    {EE.E("go nested for cand "); zpln.Image(cand);EE.Enl(); }
+ 
+  tcandgo.Init(); // intital storage for strong links and nested eliminations
+  tstore.Init(); // start with an empty table of chains stored
+ 
+      //now go forward  till nothing or a contradiction
+
+ to=zcf.dpbase.t; // we use the table without derivations
+ for(int i=0;i<640;i++) tsets[i]=0;
+ npas=0;
+ steps[0].SetAll_0(); steps[0].Set(tag); 
+ allsteps=cumsteps[0]=steps[0];  
+ tx[0][0]=tag; itx[0]=1; // initial is tag to go forward
+
+ ret_code=0;   aig=1;
+ int maxpas=50;  // will be reduced to "one more" if something found
+
+       //--------------------- loop  forward
+ while(aig && npas++<=maxpas)  
+ {	 aig=0; 
+ cum = &cumsteps[npas-1]; step=&steps[npas]; step->SetAll_0();
+ ta=tx[npas-1];tb=tx[npas];    ita=itx[npas-1];itb=0;
+
+  GoNestedWhile(tag,base);                    // while cycle
+  if(op0)
+        {EE.E("fin step=");EE.E(npas);
+                   step->Image("step ",0); }
+  cumsteps[npas]=cumsteps[npas-1] | (*step);
+  itx[npas]=itb;
+
+
+  // check for a contradiction in that lot (stop at first)
+  for(int i=0;i<itb;i++) 
+  {USHORT tgx=tb[i];
+   if(allsteps.On(tgx) && allsteps.On(tgx^1))
+   {if(op0)
+      {EE.E("found active a -> x and a -> ~x");zpln.ImageTag(tgx);
+            EE.E(" step="); EE.Enl(npas);   
+            }
+	   // we compute back the length and show the sequence 
+    if(maxpas>npas) maxpas=npas; // limit the process to 1 more step
+    int l1=GoBackNested(tgx,0),l2=GoBackNested(tgx^1,0);
+	if((!l1) || (!l2)) continue; // should not be
+	int ratch=tchain.GetRating(l1+l2,tag>>1);
+    if(ratch) // chain is accepted load it (more comments in test mode)
+      {if(Op.ot) // this can be complex and will be developped later
+        { EE.E("chain plus killing "); zpln.Image(tag>>1);   EE.Enl();	     
+          EE.E("chain 1 ");   GoBackNested(tgx,1) ;
+		  EE.E("chain 2 ");  GoBackNested(tgx^1,1);
+		 }
+	   tchain.LoadChain(ratch,"chain plus",tag>>1);
+	  }// end case 1
+
+   }// end for i
+  }
+  if(op0 && !aig){EE.E("fin aig=0 pour step=");EE.Enl(npas);}
+ }// end while
+return ret_code;}
+
+
 
 int CANDGO::GoNested(USHORT cand,BFTAG * tagnot,USHORT base)
 { //opp=(Op.ot && jdk.couprem<5);
@@ -162,58 +231,4 @@ int CANDGO::GoNested(USHORT cand,BFTAG * tagnot,USHORT base)
   if(op0 && !aig){EE.E("fin aig=0 pour step=");EE.Enl(npas);}
  }// end while
 return ret_code;}
-
-/*  en cours
-void CANDGO::NestedMulti(BFTAG & elims)
-{TDB dn; dn.ExpandAll(dpn); // 
- 
-for(int ie=1;ie<zcx.izc;ie++)
-  {ZCHOIX chx=zcx.zc[ie];
-   int   nni=chx.ncd,aig2=0; 
-   BFTAG zt;zt.SetAll_1();
-   if(chx.type-CH_base) continue;
-    // must be  n false 
-   for(int i=0;i<nni;i++) // max one free 
-		{USHORT cd=chx.tcd[i],j=cd<<1; // candidate in tag form
-	     if(cum->On(j))  {aig2=1; break; }// set assigned
-	     if(cum->Off(j^1)) zt &= dn.t[j];
-		}
-	if (aig2 || zt.IsEmpty()) continue;	// if ok second round for action	
-   for(int i=3;i<col;i+=2) if(zt.On(i) && allsteps.Off(i) )
-	 {	elims.Set(i^1); 
-        BFTAG bfs;
-        USHORT istored=0,istoref=0,tot_count=0;
-		 for(int i2=0;i2<nni;i2++)  
-		{USHORT cd=chx.tcd[i2],j=cd<<1; // candidate in tag form
-		 if(cum->On(j^1)) {bfs.Set(j^1);continue;}// already false
-         
-		 BFTAG wch=dpn.t[j]; 
-		 int npasch=wch.SearchChain(dpn.t,j,i);	
-         if((!npasch )|| (npasch>40) )continue; // should never happen  
-	     USHORT tt[50],itt=npasch+2; 
-         if(wch.TrackBack(dpn.t,i,i^1,tt,itt,i^1)) // intercept error for debugging
-	           {EE.Enl("new nested multi chain bactrack error");		 continue  ;}
-	     // tt now contains the imply =>  sequence i => ....=> i^1
-        if(opp)  // print it it test mode
-	        {EE.Enl("new nested multi chain");	    zpln.PrintImply(tt,itt); }
-		   // must add the source for the new strong links
-  	    for (int j=1;j<itt-1;j++) // all strong links 
-	      { if((!(tt[j]&1)) || (tt[j+1]&1)) continue;
-		    CANDGOSTRONG * w=tcandgo.Get(tt[j],tt[j+1]);
-	        if(w) bfs |= w->source;// it is a new strong link		
-	        }
-		 istoref=tstore.AddChain(tt,itt);
-		 if(!istored) istored=istoref;
-		 tot_count+= npasch+1;
-	    }// end i
-       if(istored) //should always be
-	    {USHORT ii=tstore.AddMul(istored,istoref);
-	     tsets[i^1]=-tcandgo.itt; tcandgo.tt[tcandgo.itt++].Add(ii,bfs,tot_count); 
-	    }
-       } // end tag not anymore valid
-	 }// end ie
- 
-  
-}
-*/
 

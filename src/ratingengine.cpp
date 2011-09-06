@@ -228,6 +228,7 @@ char * Blancs(int n,int pastrait)
 #include "h2\_30a_CANDGO_nested.h"  // final process for nested 
 #include "c2\_30a_CANDGO_gosets.cpp"  // subfunction for candgo
 #include "c2\_30a_CANDGO_while_nested.cpp"  // subfunction for candgo nested 
+#include "c2\_30a_CANDGO_case2_3.cpp"  // subfunction for candgo nested 
 
 #include "c1\_10g_cf_chain_plus.cpp"
 #include "c1\_11m_choix.cpp"
