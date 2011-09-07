@@ -127,8 +127,8 @@ public:
 	void InitNested();
 	int Rating_baseNest(USHORT base,int quick);  // nesting  95 forcing chains
 	int Rating_base_95_Quick();  // quick nesting   
-	int Rating_baseNest(USHORT base);  // nesting  95 forcing chains
-	                              // 100 multi chains 110 nesting dynamic chains
+//	int Rating_baseNest(USHORT base);  // nesting  95 forcing chains
+//	                              // 100 multi chains 110 nesting dynamic chains
 	void Rating_Nested(USHORT base,USHORT * ttags,USHORT ntags,USHORT target);
 private:
 	int FaitGo(int i8,char c1,char c2);
