@@ -50,7 +50,7 @@ class CANDGO
  int GoBack(USHORT tag,int pr);  // compute the length for one chain 
  int GoBackNested(USHORT tag,int pr);  // compute the length for one chain 
  void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
- int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
+ //int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
  int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
  int GoNestedCase2_3(USHORT base      // locate the contradiction  
 	                 ,USHORT tag,USHORT target);  // case 2 or case 3

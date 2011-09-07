@@ -225,7 +225,7 @@ char * Blancs(int n,int pastrait)
 #include "c1\_10g_cf_cycle_chain.cpp"
 #include "h2\_30a_CANDGO.h"  // calle exclusively by chai_plus
 #include "h2\_30a_TCANDGO.h"  // calle exclusively by chai_plus
-#include "h2\_30a_CANDGO_nested.h"  // final process for nested 
+//#include "h2\_30a_CANDGO_nested.h"  // final process for nested 
 #include "c2\_30a_CANDGO_gosets.cpp"  // subfunction for candgo
 #include "c2\_30a_CANDGO_while_nested.cpp"  // subfunction for candgo nested 
 #include "c2\_30a_CANDGO_case2_3.cpp"  // subfunction for candgo nested 
@@ -239,6 +239,6 @@ char * Blancs(int n,int pastrait)
 #include "c1\_12a_jdk_ChainesNested_00_try.cpp"
 #include "c1\_12a_jdk_ChainesNested_01_quick.cpp"
 #include "c1\_12a_jdk_ChainesNested_quick.cpp"
-#include "c1\_12a_jdk_ChainesNested.cpp"
+//#include "c1\_12a_jdk_ChainesNested.cpp"
 #include "c1\_12a_jdk_AlignedTriplet.cpp"
 #include "c2\_20a_event.cpp"
