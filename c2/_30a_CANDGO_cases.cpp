@@ -42,14 +42,14 @@ Dynamic search in nested mode for a candidate
      each new link is loaded in the dp table
 */
 int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
-{ opp=0;//(Op.ot && jdk.couprem>4);
+{ opp=0;//(Op.ot && jdk.couprem>14);
  USHORT tag=cand<<1; 
  zcf.StartNestedOne(); zcx.StartNestedOne();zcxb.StartNestedOne();
  BFTAG tt=zcf.h.d.t[tag] ; 
  to=zcf.h_one.dp.t; //forward and back tracking table
 
 
-  if(op0)
+  if(opp)
     {EE.E("go nested for cand "); zpln.Image(cand);EE.Enl(); }
  
   tcandgo.Init(); // intital storage for strong links and nested eliminations
@@ -65,7 +65,7 @@ int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
  tx[0][0]=tag; itx[0]=1; // initial is tag to go forward
 
  ret_code=0;   aig=1;
- int maxpas=50;  // will be reduced to "one more" if something found
+ int maxpas=pasmax;  // will be reduced to "one more" if something found
 
        //--------------------- loop  forward
  while(aig && npas++<=maxpas)  
@@ -74,9 +74,11 @@ int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
  ta=tx[npas-1];tb=tx[npas];    ita=itx[npas-1];itb=0;
 
   GoNestedWhile(tag,base);                    // while cycle
-  if(op0)
+  if(opp)
         {EE.E("fin step=");EE.E(npas);
-                   step->Image("step ",0); }
+                   step->Image("step ",0); 
+        (*step).Image("all",0);
+        }
   cumsteps[npas]=cumsteps[npas-1] | (*step);
   itx[npas]=itb;
 
@@ -143,7 +145,7 @@ int CANDGO::GoNestedCase2_3(USHORT base,USHORT tag,USHORT target)
  tx[0][0]=tag; itx[0]=1; // initial is tag to go forward
 
  aig=1;
- int maxpas=50;  
+ int maxpas=pasmax;  
 
        //--------------------- loop  forward
  while(aig && npas++<=maxpas)  

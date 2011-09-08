@@ -55,7 +55,7 @@ zcf.h_nest=zcf.h_one; // create the start for that nested level
 
  for(int i=2;i<col;i++)  { CANDGO candgo; candgo.GoNestedTag(i,base);  }   
  
-//  zcf.h_nest.d.Image();
+//if(Op.ot && jdk.couprem==5)  zcf.h_nest.d.Image();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 // we have now fully expanded tags in zcf.h_nest.d
 // we look for potential eliminations
 
@@ -74,21 +74,25 @@ EE.Enl("start eliminations investigations");
    if(tw1.IsNotEmpty())  // case 1
    {elims1.Set(i);}
 }
- 
+
 // case 3, is there a set killing "a"
 USHORT tch[500],itch=0;
 for(int ie=1;ie<zcx.izc;ie++)
   {ZCHOIX chx=zcx.zc[ie];
    int   n=0,nni=chx.ncd; 
    if (chx.type-CH_base) continue;
-     {BFTAG bfw;
-	  for(int i=0;i<nni;i++)  bfw &= zcf.h_nest.d.t[chx.tcd[i]<<1] ;
-	  bfw=bfw.FalseState();	   
+   BFTAG bfw; bfw.SetAll_1();
+   for(int i=0;i<nni;i++)  bfw &= zcf.h_nest.d.t[chx.tcd[i]<<1] ;
+   if(Op.ot && 0)//jdk.couprem ==5)
+   {chx.Image();
+    bfw.Image("communs",0);
+   }
+	  bfw=bfw.FalseState();	 
 	  if(bfw.IsNotEmpty()) 
 	    {tchte[itch]=bfw;
 		 tch[itch++]=ie;
-	     elims3|=bfw;}	   
-	 } 
+	     elims3|=bfw;
+       }	   	  
    }// end case 3
 
 BFTAG elimt=elims1.Inverse() | elims2 | elims3;
@@ -196,7 +200,7 @@ void CANDGO::GoNestedTag(USHORT tag,USHORT base)
  steps[0]=tt; tt.String(tx[0],itx[0]);
  if(itx[0]>=200)itx[0]=200; // safety measure
   allsteps=cumsteps[0]=steps[0];  
- aig=1; int maxpas=20;  // should be enough in that mode
+ aig=1; int maxpas=30;  // should be enough in that mode
 
        //--------------------- loop  forward
  while(aig && npas++<=maxpas)  
@@ -307,11 +311,8 @@ for(int ie=1;ie<zcx.izc;ie++)
    }// end proc
 
 
-
-  // if the table of new links is not empty, process it
-  // if not, that step is over
-  if(aignl) return; // no new strong link
-  // if we have new links, we look for indirect hints
+  if((*step).IsNotEmpty()) return;
+  // we look for indirect hints
   // zcf.h_one.dp.Image();dpn.Image();
   Gen_dpnShort(tag);
   BFTAG elims; 

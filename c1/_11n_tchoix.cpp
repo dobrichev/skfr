@@ -97,7 +97,7 @@ void TZCHOIX::Derive(int min,int max,int maxs)
 {if(max>nmmax) max=nmmax;   if(min<nmmin) min=nmmin;if(maxs>nmmax) maxs=nmmax;
  int maxt=(max>maxs)?max:maxs;
 
- if(Op.ot)
+ if(Op.ot && 0)
   {EE.E("debut Derive min= ");EE.E(min);EE.E("  max= ");EE.E(max);;EE.E("  maxs= ");EE.E(maxs);
    EE.E("  zcf.ic= ");EE.Enl(zcf.ic); }  
 
@@ -110,10 +110,10 @@ void TZCHOIX::Derive(int min,int max,int maxs)
 	 case CH_set : if(nnm<=maxs)DeriveSet(zc[ie]); break;	
 	 }   
    }
-if(Op.ot)  {EE.E("end Derive  zcf.ic= ");EE.Enl(zcf.ic); }  
+if(Op.ot && 0)  {EE.E("end Derive  zcf.ic= ");EE.Enl(zcf.ic); }  
 }
 void TZCHOIX::DeriveBase(ZCHOIX & chx) // each candidate can be the target
-{if(op0){EE.E("on traite"); chx.Image(); EE.Enl();     }
+{if(0){EE.E("on traite"); chx.Image(); EE.Enl();     }
 
  USHORT * tcd=chx.tcd, nni=chx.ncd ; 
  BFTAG tcf2,tcf2f,tcft,bfset;   tcf2.SetAll_1(); tcft=tcf2;

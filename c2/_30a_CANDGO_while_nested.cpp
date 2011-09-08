@@ -42,10 +42,9 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base)
   
    for(int it=0;it<ita;it++)
      {BFTAG x=to[ta[it]]- allsteps;	  // still free and in the overall path
-      if(opp)
-		  x.Image("applied std" ,ta[it]);
       if(x.IsNotEmpty()) 
-        {(*step)  |= x; // flag it in the BFTAG and load in new
+        {if(opp)  x.Image("applied std" ,ta[it]);
+	  	(*step)  |= x; // flag it in the BFTAG and load in new
 	     allsteps |= x; // and in the total 
 		 hdp[tag] |= x;
          USHORT ty[30],ity=0; x.String(ty,ity);
@@ -91,7 +90,8 @@ for(int ie=1;ie<zcx.izc;ie++)
 				}
 		     }
 	   	if(opp && aig2)
-	      {EE.E("set derive actif ");chx.Image();EE.Enl();}
+	      {EE.E("set derive actif ");chx.Image();
+		   EE.E("  valid ");zpln.ImageTag(tb[itb-1]);EE.Enl();}
 	   }
 		    break;
 	  case CH_set : // in a set all components must be on
@@ -116,12 +116,10 @@ for(int ie=1;ie<zcx.izc;ie++)
 	 } // end switch
    }// end proc
 
+  if((*step).IsNotEmpty()) return;
 
-
-  // if the table of new links is not empty, process it
-  // if not, that step is over
-  if(aignl) return; // no new strong link
-  // if we have new links, we look for indirect hints
+ 
+  // we look for indirect hints
   Gen_dpn(tag);    // create a fresh reduced set of tags 
  // zcf.h_one.dp.Image();dpn.Image();
   BFTAG elims; 
@@ -259,13 +257,13 @@ void CANDGO::NestedForcing(BFTAG & elims)
  for(int i=2;i<col;i+=2)
   if(allsteps.Off(i^1) && dn.Is(i,i^1)   )  // a forcing chain found, find the length
    { if(tcandgo.itt>50) continue; // provisoire pour comprendre
-	 if(opp)  {zpln.ImageTag(i); EE.Enl("search  nested forcing chain");  } 
+	 if(op0)  {zpln.ImageTag(i); EE.Enl("search  nested forcing chain");  } 
 	   BFTAG wch=dpn.t[i],bfs; 
 
      int npasch=wch.SearchChain(dpn.t,i,i^1);
      if(!npasch) continue; // should never happen
 	 if(npasch>40) continue; // should never happen either
-     if (opp)  {dpn.t[i].Image("dpn",0);
+     if (op0)  {dpn.t[i].Image("dpn",0);
            dn.t[i].Image("dn",0);
 		   wch.Image("wch",0);
 	       EE.E(" npasch="); EE.Enl(npasch);  } 
@@ -276,7 +274,7 @@ void CANDGO::NestedForcing(BFTAG & elims)
 	 continue  ;}
 	 // tt now contains the imply =>  sequence i => ....=> i^1
     if(opp)  // print it it test mode
-	   {EE.Enl("new nested forcing chain");
+	   {EE.E("forcing chain ");
 	    zpln.PrintImply(tt,itt); }
 	 elims.Set(i); 
 	for (int j=1;j<itt-1;j++) // all strong links 
