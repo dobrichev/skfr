@@ -118,8 +118,7 @@ int BF81::io=0, BF81::jo=0;
 // BFTAG
 // global variable for class BFTAG
  int BFTAG::io=0, BFTAG::jo=0,BFTAG::isize=20,
-	 BFTAG::even=0x55555555, BFTAG::odd=BFTAG::even>>1;
-
+     BFTAG:: odd=0xaaaaaaaa, BFTAG::even=BFTAG::odd>>1;
 //  test function giving the list of candidates set to 1 in the BFTAG 
 //------
 void BFTAG::Image (char * lib, int mmd)
@@ -127,7 +126,7 @@ void BFTAG::Image (char * lib, int mmd)
  EE.E(lib);   
  if(mmd) zpln.ImageTag(mmd);
  EE.E(" : ");
- for(int i=0;i<col;i++) 
+ for(int i=2;i<col;i++) 
 		if(On(i)) 
 		{zpln.ImageTag(i);
 		 EE.Esp();

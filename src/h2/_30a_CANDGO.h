@@ -29,15 +29,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 /* an attempt to design an alternative process for the search 
 in dynamic mode and later
 */
-
+#define pasmax 70
 class CANDGO
 {public:
  USHORT aig,ret_code,npas;
  int opp;
  short tsets[640];
- USHORT tx[50][200],itx[50];
+ USHORT tx[pasmax][200],itx[pasmax];
  USHORT tret[300],pasret[300],itret;
- BFTAG steps[50],cumsteps[50],allsteps, * to;  
+ BFTAG steps[pasmax],cumsteps[pasmax],allsteps, * to;  
  BFTAG  *cum ,* step; 
  USHORT *ta,*tb,ita,itb;
  CANDGO(){opp=0;} // print option in nested
