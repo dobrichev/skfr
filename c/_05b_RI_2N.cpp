@@ -71,10 +71,10 @@ int CRIN::RID3()
 {if(nautres-1) return 0;
 BF81 zw; zw.SetAll_1();
 
-if(T81t[ia].v.ncand==3) zw &= t81f[ia].z;
-if(T81t[ib].v.ncand==3) zw &= t81f[ib].z;
-if(T81t[ic].v.ncand==3) zw &= t81f[ic].z;
-if(T81t[id].v.ncand==3) zw &= t81f[id].z;
+if(tr[ia].v.ncand==3) zw &= t81f[ia].z;
+if(tr[ib].v.ncand==3) zw &= t81f[ib].z;
+if(tr[ic].v.ncand==3) zw &= t81f[ic].z;
+if(tr[id].v.ncand==3) zw &= t81f[id].z;
 
 zw &=jdk.c[ch1];
 

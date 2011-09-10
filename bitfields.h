@@ -425,8 +425,8 @@ class BFTAG
 		io,		///<Used for translation of bitfield position to array index 
 		jo,		///<Used for translation of bitfield position to bit position in int
 		isize,	///<Number of 32 bits int realy used (a class parameter)
-		odd,	///<A 32 bits constant with all odd bit to 1, used as a mask
-		even;	///<A 32 bits constant with all even bit to 1, used as a mask
+		false32,///<A 32 bits constant with all false state for a candidate
+		true32;	///<A 32 bits constant with all true state for a candidate
 	void ij(int v) {io=v>>5;jo=v&31;};
 public:
 	BFTAG(){SetAll_0();}
@@ -447,7 +447,7 @@ public:
 	///\brief Clear bit in position <code>v</code> 
 	inline void Clear(int v)    {ij(v);if(On(v))f[io]^=(1<<jo);}
 	///\brief Exchange even and odd bits of parameter <code>i</code>
-	inline UINT FInv (UINT i) {return ( ((i & odd) >>1) | ((i&even)<<1));} 
+	inline UINT FInv (UINT i) {return ( ((i & false32) >>1) | ((i&true32)<<1));} 
 	///\brief And between odd and even bits of parameter <code>i</code>
 	inline int FLayer(UINT i) {return  i&FInv(i);}
 	void Clear(BFTAG & z2)  ;
