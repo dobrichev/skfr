@@ -50,9 +50,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
  * <li>--NoMul stop evaluation at "multi chains" (excluded) internal code 1</li> 
  * <li>--NoDyn stop evaluation at "dynamic" (excluded) internal code 2</li> 
  * <li>--NoDPlus stop evaluation at "dynamic plus" (excluded) internal code 3</li> 
- * <li>--NoNest1 stop evaluation at "Nested level 1" (excluded) internal code 4</li> 
- * <li>--NoNest2 stop evaluation at "Nested level 2" (excluded) internal code 5</li> 
- *
+ * <li>--NoNest1 stop evaluation at "Nested lvl 1 forcing chain" (excluded) internal code 4</li> 
+ * <li>--NoNest2 stop evaluation at "Nested lvl 2 multi chain" (excluded) internal code 5</li> 
+ * <li>--NoNest3 stop evaluation at "Nested lvl 3 dynami chain" (excluded) internal code 6</li> 
+  *
  * <li>-Q   Quick classification for nested level 10.5 11.0 11.5</li>
  *
  * <li>-t   allow printing of the solution (test mode)</li>

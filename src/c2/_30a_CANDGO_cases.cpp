@@ -92,7 +92,8 @@ int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
             EE.E(" step="); EE.Enl(npas);   
             }
 	   // we compute back the length and show the sequence 
-    if(maxpas>npas) maxpas=npas; // limit the process to 1 more step
+    if(maxpas>npas+2)		maxpas=npas+2; // limit the process to 2 more step
+	if(maxpas>pasmax) maxpas=pasmax;
     int l1=GoBackNested(tgx,0),l2=GoBackNested(tgx^1,0);
 	if((!l1) || (!l2)) continue; // should not be
 	int ratch=tchain.GetRating(l1+l2,tag>>1);

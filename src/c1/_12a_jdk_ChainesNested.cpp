@@ -47,9 +47,14 @@ void JDK::InitNested()  // common part before starting nested processing
 }
 
 int JDK::Rating_baseNest(USHORT base,int quick)
-{if(Op.ot){EE.E("start  nested levels base =");EE.Enl(base );
+{	
+if(Op.ot){EE.E("start  nested levels base =");EE.Enl(base );
            if(quick) EE.Enl("Quick mode is On");
 		   else EE.Enl("Quick mode is Off");}
+
+
+if(base>95) return 0; // provisoire en attente du code 
+
 tchain.SetMaxLength(base);
 zcf.h_nest=zcf.h_one; // create the start for that nested level
 
@@ -102,11 +107,10 @@ if(elimt.IsEmpty()) return 0;
 
 if(quick)
   {elimt.Image("quick elim potential",0);
-   int j=3,k=base+3;
-   if(elims1.IsEmpty())   {k++;if(elims2.IsEmpty())k++;}
+   int j=3;
    for(int i=3;i<col;i+=2) // first in tchain mode
-    if(elimt.On(i))  { j=i;
-                       tchain.LoadChain(k,"quick nested ",i>>1);
+   if(elimt.On(i))  { j=i;
+                       tchain.LoadChain(base+3,"quick nested ",i>>1);
                        elimt.Clear(i);break;}
    for(int i=j+2;i<col;i+=2) // others in direct mode
      if(elimt.On(i))  { zpln.Clear(i>>1);} 
@@ -329,7 +333,7 @@ for(int ie=1;ie<zcx.izc;ie++)
    for(int i=0;i<ity;i++) tb[itb++]=ty[i];
    aig=1;}    
 
-
+  if(base<100) return;
 	  
 }
 

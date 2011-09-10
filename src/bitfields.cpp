@@ -117,8 +117,11 @@ int BF81::io=0, BF81::jo=0;
 
 // BFTAG
 // global variable for class BFTAG
- int BFTAG::io=0, BFTAG::jo=0,BFTAG::isize=20,
-     BFTAG:: odd=0xaaaaaaaa, BFTAG::even=BFTAG::odd>>1;
+
+int BFTAG::io=0, BFTAG::jo=0,BFTAG::isize=20,
+    BFTAG:: false32=0xaaaaaaaa, BFTAG::true32=BFTAG::false32>>1;
+
+
 //  test function giving the list of candidates set to 1 in the BFTAG 
 //------
 void BFTAG::Image (char * lib, int mmd)
@@ -147,10 +150,10 @@ BFTAG BFTAG::Inverse()
 {BFTAG w;for(int i=0;i<col+2;i++)if(On(i))w.Set(i^1);  return w;};
 
 BFTAG BFTAG::TrueState()
-{BFTAG w=(*this);for(int i=0;i<isize;i++)w.f[i] &=even;  return w;};
+{BFTAG w=(*this);for(int i=0;i<isize;i++)w.f[i] &=true32;  return w;};
 
 BFTAG BFTAG::FalseState()
-{BFTAG w=(*this);for(int i=0;i<isize;i++)w.f[i] &=odd;  return w;};
+{BFTAG w=(*this);for(int i=0;i<isize;i++)w.f[i] &=false32;  return w;};
 
 //----
 void BFTAG::String(USHORT * r, USHORT &n)

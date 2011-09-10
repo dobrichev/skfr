@@ -132,7 +132,10 @@ for(int ie=1;ie<zcx.izc;ie++)
    hdp[tag] |= x;
    USHORT ty[100],ity=0; x.String(ty,ity);
    for(int i=0;i<ity;i++) tb[itb++]=ty[i];
-   aig=1;}    	  
+   aig=1;}    
+
+
+
 }
 
 
