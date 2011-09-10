@@ -31,15 +31,17 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 //! class storing  options of the command line
 /**
+ * warning: all commands using the signs < > must be given within " "  eg "-d<6.2"
+ *
  * <li>-d   stop if not diamond also --diamond</li>
  * <li>-p   stop if not pearl also --pearl</li>
  * <li>-D   same as diamond possible deviation 0.2</li>
  * <li>-P   same as pearl possible deviation 0.2</li>
- * <li>-dm  stop if ED lower than    -d&gtxx.y</li>
- * <li>-dl  stop if ED higher than   -d&ltxx.y</li>
- * <li>-pm  stop if EP lower than    -p&gtxx.y</li>
- * <li>-pl  stop if EP higher than   -p&ltxx.y</li>
- * <li>-rl  stop if ER higher than   -r&ltxx.y</li>  
+ * <li>-d>  stop if ED lower than    -d&gtxx.y</li>
+ * <li>-d<  stop if ED higher than   -d&ltxx.y</li>
+ * <li>-p>  stop if EP lower than    -p&gtxx.y</li>
+ * <li>-p<  stop if EP higher than   -p&ltxx.y</li>
+ * <li>-r<  stop if ER higher than   -r&ltxx.y</li>  
  *
  * only one of the following limitations should be given, 
  * the last one in the command line will act
@@ -48,8 +50,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
  * <li>--NoDPlus stop evaluation at "dynamic plus" (excluded) internal code 3</li> 
  * <li>--NoNest1 stop evaluation at "Nested level 1" (excluded) internal code 4</li> 
  * <li>--NoNest2 stop evaluation at "Nested level 2" (excluded) internal code 5</li> 
+ * <li>--NoNest3 stop evaluation at "Nested level 3" (excluded) internal code 5</li> 
  *
- * <li>-Q   Quick classification for nested level 10.5 11.0 11.5</li>
+ * <li>-Q   Quick classification for nested level </li>
  *
  * <li>-t   allow printing of the solution (test mode)</li>
  * <li>-n()xx.y  if after n cycles highest rating still lower than xx.y
