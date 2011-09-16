@@ -125,8 +125,21 @@ for(int ie=1;ie<zcx.izc;ie++)
   BFTAG elims; 
   NestedForcing(elims); 
   if(opp && Op.ot) elims.Image("netforcing recap",0);
-  BFTAG x=elims.Inverse() - hdp[tag];
-  if(x.IsNotEmpty()) // force false so use elims.inverse()
+  BFTAG x=elims;// - hdp[tag]; // elims in false state
+  if(x.IsNotEmpty()) 
+  {(*step)  |= x; // flag it in the BFTAG and load in new
+   allsteps |= x; // and in the total 
+   hdp[tag] |= x;
+   USHORT ty[100],ity=0; x.String(ty,ity);
+   for(int i=0;i<ity;i++) tb[itb++]=ty[i];
+   aig=1;}    
+ if(base<100) return;
+
+  BFTAG elims2; 
+  NestedMulti(elims2); 
+  if(opp && Op.ot) elims2.Image("multiforcing recap",0);
+  x=elims2;// - hdp[tag];  // elims in false state
+  if(x.IsNotEmpty())  
   {(*step)  |= x; // flag it in the BFTAG and load in new
    allsteps |= x; // and in the total 
    hdp[tag] |= x;
@@ -165,7 +178,7 @@ void CANDGO::Gen_dpn(USHORT tag)
 		   zcf.h.dp.Image();
 		   dpn.Image();
           }
-
+ dn.ExpandAll(dpn);
  }
 
 
@@ -256,8 +269,7 @@ return itret + nestedlength;}
 
 */
 void CANDGO::NestedForcing(BFTAG & elims)
-{TDB dn; dn.ExpandAll(dpn); // 	
- for(int i=2;i<col;i+=2)
+{for(int i=2;i<col;i+=2)
   if(allsteps.Off(i^1) && dn.Is(i,i^1)   )  // a forcing chain found, find the length
    { if(tcandgo.itt>50) continue; // provisoire pour comprendre
 	 if(op0)  {zpln.ImageTag(i); EE.Enl("search  nested forcing chain");  } 
@@ -279,7 +291,7 @@ void CANDGO::NestedForcing(BFTAG & elims)
     if(opp)  // print it it test mode
 	   {EE.E("forcing chain ");
 	    zpln.PrintImply(tt,itt); }
-	 elims.Set(i); 
+	 elims.Set(i^1); 
 	for (int j=1;j<itt-1;j++) // all strong links 
 	  { if((!(tt[j]&1)) || (tt[j+1]&1)) continue;
 		  CANDGOSTRONG * w=tcandgo.Get(tt[j],tt[j+1]);
@@ -300,12 +312,11 @@ and the source of all new strong links used
 */
 
 void CANDGO::NestedMulti(BFTAG & elims)
-{TDB dn; dn.ExpandAll(dpn); // 
- 
-for(int ie=1;ie<zcx.izc;ie++)
+{for(int ie=1;ie<zcx.izc;ie++)
   {ZCHOIX chx=zcx.zc[ie];
    int   nni=chx.ncd,aig2=0; 
-   BFTAG zt;zt.SetAll_1();
+   BFTAG zt;
+   zt.SetAll_1();zt=zt.FalseState()-allsteps;
    if(chx.type-CH_base) continue;
     // must be  n false 
    for(int i=0;i<nni;i++) // max one free 
@@ -314,8 +325,8 @@ for(int ie=1;ie<zcx.izc;ie++)
 	     if(cum->Off(j^1)) zt &= dn.t[j];
 		}
 	if (aig2 || zt.IsEmpty()) continue;	// if ok second round for action	
-   for(int i=3;i<col;i+=2) if(zt.On(i) && allsteps.Off(i) )
-	 {	elims.Set(i^1); 
+   for(int i=3;i<col;i+=2) if(zt.On(i) )
+	 {	elims.Set(i); 
         BFTAG bfs;
         USHORT istored=0,istoref=0,tot_count=0;
 		 for(int i2=0;i2<nni;i2++)  
