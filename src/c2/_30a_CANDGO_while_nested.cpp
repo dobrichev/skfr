@@ -312,8 +312,9 @@ and the source of all new strong links used
 */
 
 void CANDGO::NestedMulti(BFTAG & elims)
-{for(int ie=1;ie<zcx.izc;ie++)
-  {ZCHOIX chx=zcx.zc[ie];
+{ if(op0) allsteps.Image("allsteps",0);
+  for(int ie=1;ie<zcx.izc;ie++)
+    {ZCHOIX chx=zcx.zc[ie];
    int   nni=chx.ncd,aig2=0; 
    BFTAG zt;
    zt.SetAll_1();zt=zt.FalseState()-allsteps;
@@ -332,13 +333,24 @@ void CANDGO::NestedMulti(BFTAG & elims)
 		 for(int i2=0;i2<nni;i2++)  
 		{USHORT cd=chx.tcd[i2],j=cd<<1; // candidate in tag form
 		 if(cum->On(j^1)) {bfs.Set(j^1);continue;}// already false
+
+		 // here can be direct and this is not done in search chain
+		 // dummy cycle if direct to have common process
          
 		 BFTAG wch=dpn.t[j]; 
-		 int npasch=wch.SearchChain(dpn.t,j,i);	
-         if((!npasch )|| (npasch>40) )continue; // should never happen  
-	     USHORT tt[50],itt=npasch+2; 
-         if(wch.TrackBack(dpn.t,i,i^1,tt,itt,i^1)) // intercept error for debugging
-	           {EE.Enl("new nested multi chain bactrack error");		 continue  ;}
+		 USHORT tt[50],itt=2; tt[0]=j;tt[1]=i;
+		 if(wch.Off(i))
+		     {int npasch=wch.SearchChain(dpn.t,j,i);	
+             if((!npasch )|| (npasch>40) )continue; // should never happen  
+		     itt=npasch+2; 
+             if(wch.TrackBack(dpn.t,j,i,tt,itt,i)) // intercept error for debugging
+	           {EE.E ("new nested multi chain bactrack error");
+		        dpn.t[j].Image("dpn",0);
+                dn.t[j].Image("dn",0);
+		        wch.Image("wch",0);
+	            EE.E(" npasch="); EE.Enl(npasch);   EE.Enl();		 
+		        continue  ;}
+		     }
 	     // tt now contains the imply =>  sequence i => ....=> i^1
         if(opp)  // print it it test mode
 	        {EE.Enl("new nested multi chain");	    zpln.PrintImply(tt,itt); }
@@ -350,7 +362,7 @@ void CANDGO::NestedMulti(BFTAG & elims)
 	        }
 		 istoref=tstore.AddChain(tt,itt);
 		 if(!istored) istored=istoref;
-		 tot_count+= npasch+1;
+		 tot_count+= itt;
 	    }// end i
        if(istored) //should always be
 	    {USHORT ii=tstore.AddMul(istored,istoref);
