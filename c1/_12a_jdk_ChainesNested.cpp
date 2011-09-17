@@ -47,13 +47,9 @@ void JDK::InitNested()  // common part before starting nested processing
 }
 
 int JDK::Rating_baseNest(USHORT base,int quick)
-{	
-if(Op.ot){EE.E("start  nested levels base =");EE.Enl(base );
+{if(Op.ot){EE.E("start  nested levels base =");EE.Enl(base );
            if(quick) EE.Enl("Quick mode is On");
 		   else EE.Enl("Quick mode is Off");}
-
-
-if(base>95) return 0; // provisoire en attente du code 
 
 tchain.SetMaxLength(base);
 zcf.h_nest=zcf.h_one; // create the start for that nested level
@@ -319,6 +315,7 @@ for(int ie=1;ie<zcx.izc;ie++)
   // we look for indirect hints
   // zcf.h_one.dp.Image();dpn.Image();
   Gen_dpnShort(tag);
+ 
   BFTAG elims; 
   NestedForcingShort(elims); 
   
@@ -334,7 +331,21 @@ for(int ie=1;ie<zcx.izc;ie++)
    aig=1;}    
 
   if(base<100) return;
-	  
+	
+
+  BFTAG elims2; 
+  NestedMultiShort(elims2); 
+  if(opp && Op.ot) elims2.Image("multiforcing recap short ",0);
+  x=elims2;// - hdp[tag];  // elims in false state
+  if(x.IsNotEmpty())  
+  {(*step)  |= x; // flag it in the BFTAG and load in new
+   allsteps |= x; // and in the total 
+   hdp[tag] |= x;
+   USHORT ty[200],ity=0; x.String(ty,ity);
+   for(int i=0;i<ity;i++) tb[itb++]=ty[i];
+   aig=1;}    
+
+
 }
 
 void CANDGO::Gen_dpnShort(USHORT tag)
@@ -350,13 +361,43 @@ void CANDGO::Gen_dpnShort(USHORT tag)
 	 }
 if(op0){EE.Enl("image dpn de dpnshort");
         dpn.Image();}
+
+ dn.ExpandAll(dpn); // 	
+
  }
 
 
 void CANDGO::NestedForcingShort(BFTAG & elims)
-{TDB dn; dn.ExpandAll(dpn); // 	
- for(int i=2;i<col;i+=2)
+{for(int i=2;i<col;i+=2)
   if(allsteps.Off(i^1) && dn.Is(i,i^1)   )  // a forcing chain found, find the length
    elims.Set(i); 
  
+}
+
+/*
+
+Now looking for multi chains eliminations if any
+the bfs must contain all candidates killed by the main assumption
+and the source of all new strong links used
+
+*/
+
+void CANDGO::NestedMultiShort(BFTAG & elims)
+{for(int ie=1;ie<zcx.izc;ie++)
+  {ZCHOIX chx=zcx.zc[ie];
+   int   nni=chx.ncd,aig2=1; 
+   BFTAG zt;
+   zt.SetAll_1();zt=zt.FalseState()-allsteps;
+   if(chx.type-CH_base) continue;
+    // must be  n false 
+   for(int i=0;i<nni;i++) // max one free 
+		{USHORT cd=chx.tcd[i],j=cd<<1; // candidate in tag form
+	     if(cum->On(j))  {aig2=0; break; }// set assigned
+	     if(cum->Off(j^1)) zt &= dn.t[j];
+		}
+   	if(aig2) elims|= zt; 
+      
+	}// end ie
+ 
+  
 }

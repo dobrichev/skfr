@@ -72,8 +72,9 @@ int JDK::Rating_base_80()
  if(zcx.Interdit_Base80() ) return 1;; 
  return Rating_end(200);} 
 
+
+/* killed for the new one
 //==============================================
-//    NestedForcingChain=95
 // 85 is DynamicForcingChain
 	// at least the derived weak links from direct weak links
 	// we do that once for ever till the end
@@ -107,14 +108,38 @@ int JDK::Rating_base_85()
  	   }
 
  return Rating_end(200);}
+ */ 
 
+/* 85 new process
+   expand completely the tags, but try to do it to catch the shortest
+   first steps are not standard
+   finish with standard expansion
+   then look for elimintaions
+   */
+//==============================================
+// 85 is DynamicForcingChain
+
+
+int JDK::Rating_base_85()
+{ if(Op.ot) EE.Enl("start rating base 8.5 dynamic forcing chain");
+ tchain.SetMaxLength(85);
+ BFCAND bf0; // init to no candidate found 
+ zcf.CloseOne(); // store the index and basic weak links
+ zcx.DeriveDirect();  // start with only equivalence to pointing claiming
+ zcf.DeriveCycle(3,3,0,4); // one cycle short sets
+ zcf.DeriveCycle(3,7,0,10); // one more limited to set of 7 candidates
+ while(zcf.DeriveCycle(3,9,0)){} // and full expansion
+ zcf.ChainPlus(bf0);
+ return Rating_end(200);}
+
+/* old process cancelled
 //==============================================
 // 90 is DynamicForcingChainPlus
 // all "events"  claiming, pointing, pair, hidden pair, XWing
 // follows an empty step 85
 // consider each false candidate as start
 // search for new bi values. If none, skip it
-// look for new alse thru basic sets
+// look for new false thru basic sets
 int JDK::Rating_base_90()
 {if(Op.ot) EE.Enl("start rating base 9.0 dynamic forcing chains plus");
  tchain.SetMaxLength(90);
@@ -136,5 +161,30 @@ int JDK::Rating_base_90()
 		if(tchain.IsOK(97+iw) )return Rating_end(97+iw);
 	   }
  return Rating_end(200);} 
+*/
 
+/* as in dynamic forcing chains,
+   first a full controlled expansion
+   then the search for the shortest
+   */
+//==============================================
+// 90 is DynamicForcingChainPlus
+// all "events"  claiming, pointing, pair, hidden pair, XWing
+// follows an empty step 85
+// consider each false candidate as start
+// search for new bi values. If none, skip it
+// look for new false thru basic sets
+int JDK::Rating_base_90()
+{if(Op.ot) EE.Enl("start rating base 9.0 dynamic forcing chains plus");
+ tchain.SetMaxLength(90);
+  zcf.ResetOne(); // restore the index in zcf  
+  tevent.LoadAll();
+  zcf.CloseOne(); // store the index and basic weak links
 
+  zcf.h.d.ExpandShort(zcf.h.dp,2);
+  BFCAND bf0; // init to no candidate found 
+  zcf.DeriveCycle(3,4,7,2); // one cycle;
+  zcf.DeriveCycle(3,7,7,10); // one cycle;  
+  while(zcf.DeriveCycle(3,9,7)  ){}
+  zcf.ChainPlus(bf0);
+  return Rating_end(200);} 

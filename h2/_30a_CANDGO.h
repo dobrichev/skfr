@@ -61,6 +61,7 @@ class CANDGO
  void NestedForcing(BFTAG & elims);
  void NestedForcingShort(BFTAG & elims);
  void NestedMulti(BFTAG & elims);
+ void NestedMultiShort(BFTAG & elims);
 };
 
 /* here weknow that a contradiction must occur 
