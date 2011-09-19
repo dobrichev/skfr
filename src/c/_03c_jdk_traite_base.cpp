@@ -113,13 +113,18 @@ if(Op.oexclude-1)
        if(jdk.Rating_baseNest(95,Op.oq)){Op.SetEr();continue;}  //9.5
  
 	   if(Op.oexclude-5)	
-	    {EE.Enl("entry base 100 multi chaines dynamic");
-		  Op.Step(NestedLevel3); if(Op.ir>1)return Op.ir; else if(Op.ir)continue;
-          if(jdk.Rating_baseNest(100,Op.oq)){Op.SetEr();continue;}  //100
-		}// end if >4
+	    {Op.Step(NestedLevel3); if(Op.ir>1)return Op.ir; else if(Op.ir)continue;
+         if(jdk.Rating_baseNest(100,Op.oq)){Op.SetEr();continue;}  //100
+		 if(Op.oexclude-6)
+		  {Op.Step(NestedLevel4); if(Op.ir>1)return Op.ir; else if(Op.ir)continue;
+          if(jdk.Rating_baseNest(105,Op.oq)){Op.SetEr();continue;}  //105
+		  
+		  }// end level4
+
+		}// end level 3 and more
 
 	 
-	  } // end if >3
+	  } // end level 2 and more
 	} // end if >2
   } // end if >1
 } // end if oexclude
