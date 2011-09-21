@@ -162,7 +162,7 @@ int Search_long(char * ww)
 {
 	char * cc[]={"diamond" ,  "pearl" , "input=" , "split" ,
                "elapsed" , "test",  "NoMul",
-			   "NoDyn", "NoDPlus","NoNest1","NoNest2","NoNest3"};
+			   "NoDyn", "NoDPlus","NoLevel2","NoLevel3","NoLevel4"};
 	char wt[20]; 
 	for(int i=0;i<12;i++) // loop on the 11 possible commands
 	{
