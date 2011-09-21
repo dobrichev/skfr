@@ -50,7 +50,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
  * <li>--NoDPlus stop evaluation at "dynamic plus" (excluded) internal code 3</li> 
  * <li>--NoNest1 stop evaluation at "Nested level 1" (excluded) internal code 4</li> 
  * <li>--NoNest2 stop evaluation at "Nested level 2" (excluded) internal code 5</li> 
- * <li>--NoNest3 stop evaluation at "Nested level 3" (excluded) internal code 5</li> 
+ * <li>--NoNest3 stop evaluation at "Nested level 3" (excluded) internal code 6</li> 
  *
  * <li>-Q   Quick classification for nested level </li>
  *
