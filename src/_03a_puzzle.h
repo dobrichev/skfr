@@ -27,6 +27,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 #pragma once
+
+#include "wa_puzzle.h"
+
 class JDK
 {
 public:
@@ -43,39 +46,28 @@ public:
     int cycle, 
 		coup,
 		coupMM,
-		couprem, 
-		cas,
-		fixes,
-		ecrit,
-		compte;
+		couprem; 
     char fix[81],
 		fixt[81],
 		*solution;
-    USHORT nfix,
-		nmin,
-		p81min,
-		erreur,
-		erreurv,
-		bloc,
-		aigboucler;
+    USHORT nfix;
+
 
 	JDK();
-    void Initial(); 
+    //void Initial(); 
 	void cInit(int un=0);
 	void Copie_T_c();
     void cFixer(int ich,int i8);
     void cReport();   
     void TReport();   
     void Actifs();
-    void Influence (BF81 &zd,BF81 zo);
-    BF81 Points(int el,BF16 po);
     int CheckChange(int i, int ch);
     int ChangeSauf(int elem,BF16 pos,BF16 chiffres );
     int Keep(int elem,BF16 pos,BF16 chiffres );
-    int Keep(int ch,BF81 zk); // éliminer ailleurs en objets contenant
-    int Keep(int ch,USHORT p1,USHORT p2); // éliminer ailleurs de deux points
+    int Keep(int ch, const BF81 &zk); // éliminer ailleurs en objets contenant
+    int Keep(int ch, USHORT p1, USHORT p2); // éliminer ailleurs de deux points
     int NonFixesEl(int e);
-    void FixerAdd(int i,char c,int elt)
+    void FixerAdd(int i, char c, int elt)
     {
 		fix[i]=c;
 		fixt[i]=(char)elt;
@@ -96,18 +88,20 @@ public:
 	int Traite_c();
     int Directs();             
 	int FaitDirects(int type);
- 	int FaitGoA(int i8,char c1,char c2)
-	{
-		int ir=FaitGo(i8,c1,c2);
-		cReport();return ir;
+ 	int FaitGoA(int i8, char c1, char c2) {
+		int ir = FaitGo(i8, c1, c2);
+		cReport();
+		return ir;
 	}
-
     int TraiteLocked(int rating);  // start for locked in row,cil,box
-    int TraiteLocked2(int eld,int elf); // detail for ratings 2.6  2.8
-    void PKInit(){couprem=0;pointK.SetAll_0();}
+    int TraiteLocked2(int eld, int elf); // detail for ratings 2.6  2.8
+    void PKInit() {
+		couprem = 0;
+		pointK.SetAll_0();
+	}
     void PointK();
     void UsePK(USHORT i);
-// tagging process added here in that version
+	// tagging process added here in that version
     void TaggingInit();
 	void GenCellBivalues();
 	void GenYBivalues();
@@ -115,7 +109,7 @@ public:
 	void BiValues(USHORT ch);
     int AlignedPairN();
 	int AlignedTripletN();
-	void Chaining(int option,int chain_level,int base);
+	void Chaining(int option, int chain_level, int base);
 	int Rating_end(int next);
 	int Rating_base_65();  // x or y cycles
 	int Rating_base_66();  // x or y cycles
@@ -125,14 +119,13 @@ public:
 	int Rating_base_85();  // multiple chains
 	int Rating_base_90();  // dynamic plus 
 	void InitNested();
-	int Rating_baseNest(USHORT base,int quick);  // nesting  95 forcing chains
+	int Rating_baseNest(USHORT base, int quick);  // nesting  95 forcing chains
 	int Rating_base_95_Quick();  // quick nesting   
-//	int Rating_baseNest(USHORT base);  // nesting  95 forcing chains
-//	                              // 100 multi chains 110 nesting dynamic chains
-	void Rating_Nested(USHORT base,USHORT * ttags,USHORT ntags,USHORT target);
+	void Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target);
 private:
 	int FaitGo(int i8,char c1,char c2);
 };
+
 
 
 //That class is dedicated to the processing of algorithms building 
@@ -318,8 +311,5 @@ public:
 		return 0;
 	}
 };
-
-
-
 
 

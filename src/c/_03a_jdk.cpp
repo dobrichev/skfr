@@ -30,9 +30,7 @@ JDK::JDK()
 {solution=un_jeu.ggf.pg;  
  T81=&tp8N;T81C=&tp8N_cop;T81t=T81->t81;T81tc=T81C->t81;}
 
-void JDK::Initial()
-{// tzg.PG54Init();         en attente      <========================<<<<<<<<<
-}
+
 void JDK::Copie_T_c()
 {tp8N_cop=tp8N;for(int i=0;i<9;i++) c_cop[i]=c[i];}
 
@@ -137,7 +135,7 @@ int JDK::Keep(int elem,BF16 pos,BF16 chiffres )
 {int ir=0; for(int i=0;i<9;i++)
   {if(pos.On(i)) ir+=T81t[divf.el81[elem][i]].Keep(chiffres) ; }
 return ir; }
-
+/*
 //------                  on a un ou sature objet
 int JDK::Keep(int ch1,BF81 zk)
 {int ir=0; // on cherche les objets contenant
@@ -145,7 +143,7 @@ int JDK::Keep(int ch1,BF81 zk)
    {BF81 ze=divf.elz81[il]^zk; ze=ze&c[ch1];
     if(ze.IsNotEmpty()){ir+= T81->Clear(ze,ch1);} }
 return ir;}
-
+*/
 //------                  ou simple deux points quelconques
 int JDK::Keep(int ch1,USHORT p1,USHORT p2)
 {BF81 ze=t81f[p1].z & t81f[p2].z & c[ch1];

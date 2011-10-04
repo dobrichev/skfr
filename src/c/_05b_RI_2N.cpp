@@ -27,16 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
-int TP81::RIN(int aig)       // look for unique rectangle 
-{int ir=0; urt.Init();
- for(int i0=0;i0<3;i0++) // band/stack 1 to 3
- for(int i1=0;i1<2;i1++)for(int i2=i1+1;i2<3;i2++) // 2 rows  
- for(int j1=0;j1<2;j1++)for(int j2=j1+1;j2<3;j2++) // boxes   12 13 23
-  for(int j3=0;j3<3;j3++)for(int j4=0;j4<3;j4++)  // 2 cols  
-   //analysing band and stack, main diagonal symmetry
-   {int l1=3*i0+i1,l2=3* i0+i2,c1=3*j1+j3,c2=3*j2+j4;
-    if (ur.RID(l1,l2,c1,c2)||ur.RID(c1,c2,l1,l2)) ir++;  }
-return ir;}
+
 
 // one posible location for a UR;
 // no assigned position, 2 and only 2 common digits

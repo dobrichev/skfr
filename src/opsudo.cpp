@@ -31,13 +31,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "global.h"
 #include "bitfields.h"
 #include "flog.h"
-#include "finout.h"
+
+//includes above  to be replaced later by (mladen)
+//#include "ratingengine.h"
+
 #include "opsudo.h"
 
 
-extern FOUTPUT  foutput;
-extern FOUTPUT se_refus;
-extern FINPUT finput;
 
 OPSUDO::OPSUDO()  // constructor, overall initial values for command line
     {   delta=0;		
@@ -70,10 +70,13 @@ void OPSUDO::SetEr()   // something found at the last difficulty level
 int OPSUDO::Is_ed_ep_go()  // is the ed or  condition fullfilled
 {switch(o1)
   {case 0: return 0;       // nothing to do
+ 
      // if -d command, other filters ignored  
    case 1: if((ermax- edmax)>delta)  
 		      {ermax=0;epmax=0;return 1;}  // not diamond
 		   return 0;// continue if still ed
+
+
      // if -p command, similar results
    case 2: if(!assigned) return 0;   // -p command
 	       if((ermax- epmax)>delta)
@@ -81,19 +84,23 @@ int OPSUDO::Is_ed_ep_go()  // is the ed or  condition fullfilled
 	       return 0;// continue if still ep
   }	
 	
-// now, we have no -d no -p command but at least one filter is on	
-// give priority to the -n() command
+     // now, we have no -d no -p command but at least one filter is on	
+     // give priority to the -n() command
+
 if(filters.On(3) )// -n() command
 	if(ermax >= miner) {ermax=0;return 3;} // finished
       else if(cycle>edcycles) return 4;
-//then all max conditions
+
+	  //then all max conditions
 if(edmax>=maxed || epmax>=maxep || ermax>=maxer)
 	     {ermax=0;return 3;} // finished
-// and finally min ED and min EP
+
+     // and finally min ED and min EP
 if(edmax<=mined)  {ermax=0;return 3;} // finished
 if(assigned && epmax<=minep)  {ermax=0;return 3;} // finished
 if(!os)return 0; // finish with split ok
-// that sequence should work for any combinaison of filters.
+
+     // that sequence should work for any combinaison of filters.
 if((filters.f&7) ==1) return 4; // ed ok for split   	
 if(assigned && ((filters.f&6) ==2))  return 4; // ep ok for split   	
 
@@ -107,23 +114,37 @@ return 0;}
 //             1 process cancelled
 //             2 ignore (er<x.y) these routines
 
-void OPSUDO::Step(SolvingTechnique dif)    // analyse what to do at that level
-{//E$.E("step=");E$.Enl(dif );
-ir=0;difficulty=dif;   
-if(o1<2) return; //nothing to do for -d command
-// if -p command, stop if we pass maxep
-if(o1==2)
-	if(assigned && difficulty>maxep)
-	   {ermax=0;ir=1;return;} 
-	else return;
-// now  other special filters 
-// -n()  active if we pass the limit
-if(filters.On(3)  )    // -n() command
-	if(difficulty >= miner) {ermax=0;ir=3;return;}  // finished
-if(difficulty>=maxer) {ermax=0;ir=2;return;} // filter on maxer cancelling high rating
+void OPSUDO::Step(SolvingTechnique dif) {   // analyse what to do at that level
+	ir = 0;
+	difficulty = dif;
+	if(o1 < 2)
+		return; //nothing to do for -d command
+	// if -p command, stop if we pass maxep
+	if(o1 == 2) {
+		if(assigned && difficulty > maxep) {
+			ermax = 0;
+			ir = 1;
+			return;
+		} 
+		else
+			return;
+	}
+	// now other special filters 
+	// -n() active if we pass the limit
+	if(filters.On(3)) {    // -n() command
+		if(difficulty >= miner) {
+			ermax = 0;
+			ir = 3;
+			return;
+		}  // finished
+	}
+	if(difficulty >= maxer) {
+		ermax = 0;
+		ir = 2;
+		return;
+	} // filter on maxer cancelling high rating
 
-/*
-if(difficulty>maxed || difficulty>maxep ){maxer=0; ir=1;return;}
-*/
+	/*
+	if(difficulty>maxed || difficulty>maxep ){maxer=0; ir=1;return;}
+	*/
 }
-

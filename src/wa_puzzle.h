@@ -46,7 +46,10 @@ TP81 the table of 81 P81 and associated function
 OBBI
 
 */
+
+
 #pragma once
+
 //! Short class to define and handle a 9x9 or 81 char field 
 /**
  *This is the classical storage for a puzzle.<br>
@@ -54,10 +57,13 @@ OBBI
  * <code>NBlancs</code> and <code>Nfix</code>.
  */
 
+#include <string.h>
 
+#include "skfrtype.h"
+#include "bitfields.h"
+//#include "ratingengine.h"
 
-class GG
-{
+class GG {
 public:
 	// a grid with clues (givens)
 	char g [9][9],	///<The grid
@@ -66,11 +72,17 @@ public:
 
 	GG();		// constructor
 
-	inline char * Getpg() {return pg;}
+	inline char * Getpg() {
+		return pg;
+	}
 	//! Copy the grid value
-	inline void Copie(GG & ge) { strcpy_s(pg,82,ge.pg);}// copie 81 caractères
+	inline void Copie(GG & ge) {
+		strcpy_s(pg, 82, ge.pg);
+	} // copie 81 caractères
 	
-	inline void operator =(GG &ge){ strcpy_s(pg,82,ge.pg);}
+	inline void operator =(GG &ge) {
+		strcpy_s(pg,82,ge.pg);
+	}
 	//! Get the empty cell count
 	int NBlancs();
 	  
@@ -93,28 +105,31 @@ public:
 // Boite(i,j) -> box index 0;9 for row i, column j
 // PosBoite(i,j) -> box relative position 0;9 same row;column
 
-class I81
-{public:
- static inline USHORT Pos(int i,int j) {return ((i<<3)+i+j);}
- static inline USHORT Mod3(int i) {if(i<3) return i;  if(i<6) return i-3;  return i-6;}
- static inline USHORT Div3(int i) {if(i<3) return 0;  if(i<6) return 1;  return 2;}
- static inline USHORT Div9(int i)      {return i/9;     }
- static inline USHORT Boite(int i,int j)
-      {int jj=Div3(j); if(i<3) return jj; if(i<6) return (3+jj); else return (6+jj);}
- static inline USHORT PosBoite(int i,int j) { return 3*Mod3(i)+Mod3(j);}
- // similar function in group mode (54), 
- // but no use of the 81 cells function authorised 
+class I81 {
+public:
+	static inline USHORT Pos(int i, int j) {
+		return ((i << 3) + i + j);
+	}
+	static inline USHORT Mod3(int i) {
+		if(i < 3)
+			return i;
+		if(i < 6)
+			return i - 3;
+		return i - 6;
+	}
+	static inline USHORT Div3(int i) {if(i<3) return 0;  if(i<6) return 1;  return 2;}
+	static inline USHORT Div9(int i)      {return i/9;     }
+	static inline USHORT Boite(int i,int j)
+	{int jj=Div3(j); if(i<3) return jj; if(i<6) return (3+jj); else return (6+jj);}
+	static inline USHORT PosBoite(int i,int j) { return 3*Mod3(i)+Mod3(j);}
+	// similar function in group mode (54), 
+	// but no use of the 81 cells function authorised 
 
- static inline USHORT Box54(USHORT x) {USHORT a=3*(x/9),b=x%3; return (a+b);}
-};
-//mi81
-
-
-
+	static inline USHORT Box54(USHORT x) {USHORT a=3*(x/9),b=x%3; return (a+b);}
+}; //mi81
 
 //!Small class containing the permanent data for a cell
-class P81F   
-{
+class P81F {
 public:
 	USHORT 
 		i8,		///< cell index (0-80)
@@ -147,27 +162,28 @@ public:
 	}  
 
 	//! is the cell <code>p8</code> visible from <code>this</code>
-	int ObjCommun(P81F* p8){return((el==p8->el)||(pl==p8->pl)||  eb==p8->eb);}
-   
+	int ObjCommun(P81F* p8) {
+		return((el == p8->el) || (pl == p8->pl) || eb == p8->eb);
+	}
+
 	int BugParite(int ch);  // utilise aztob
 };
 
 //! Table containing the fix data for the 81 cells
-class TP81F 
-{  
+class TP81F {  
 public:
 	P81F t81f[81]; 
-	
+
 	// constructor making all initialisations 
-	TP81F()  
-	{
-		int i,j; 
+	TP81F() {
+		int i, j; 
 		for(i=0;i<81;i++)		// initialize all data except influence zone
 			t81f[i].init(i);
-        for(i=0;i<81;i++)		// initialize influence zone
-	    {	BF81 z;  
-	        for(j=0;j<81;j++) 
-				if((i-j)&& t81f[i].ObjCommun(&t81f[j]))z.Set(j);
+		for(i=0;i<81;i++) {		// initialize influence zone
+			BF81 z;  
+			for(j=0;j<81;j++) 
+				if((i-j)&& t81f[i].ObjCommun(&t81f[j]))
+					z.Set(j);
 			t81f[i].z=z;	 
 			t81f[i].Initpi();	// initialize array from bitfield
 		}
@@ -177,7 +193,7 @@ public:
 	{
 		if(t81f[p1].el==t81f[p2].el) 
 			return t81f[p1].el;
-        if(t81f[p1].pl==t81f[p2].pl)
+		if(t81f[p1].pl==t81f[p2].pl)
 			return (t81f[p1].pl+9);
 		return -1;
 	}
@@ -189,8 +205,7 @@ public:
  * This class gives the list of cells for each house as an array of cell index 
  * or as a bitfield
  */
-class DIVF 
-{
+class DIVF {
 public:
 	USHORT el81[27][9]; ///< House (0-26) to 9 cells (0-80) as array of cell indexes
 	BF81 elz81[27];    ///< House (0-26) to 9 cells (0-80) as a bit field
@@ -199,7 +214,7 @@ public:
 	
 	//! Are all cells defined by <code>ze</code> in House with index <code>i</code>
 	/** \return 1 if yes, 0 if no */
-	int IsObjetI (BF81 &ze,int i);
+	int IsObjetI (const BF81 & ze, int i);
 
 	//! Is there a house that contains all cells defined by <code>ze</code>
 	/** \return 1 if there is one, 0 if none */
@@ -233,8 +248,7 @@ public:
 /**
  * These data are candidates, number of candidates and status of the cell (free, given or assigned)
  */
-class UNP
-{
+class UNP {
 public:  
 	USHORT ncand;	///< number of candidates
 	USHORT typ;		///< status of the cell : 0 free  2 given  1 assigned
@@ -260,12 +274,11 @@ public:
 
 	//! Clear a candidate for this cell
 	/** \return 0 if the candidate was already Off */
-	inline int Clear (int i)
-    {
+	inline int Clear (int i) {
 		if(cand.On(i))
 		{
 			ncand--;	// one candidate less
-			cand.f^=(1<<i); // clear bit
+			cand.f ^= (1<<i); // clear bit
 			return 1;
 		}
 		return 0;
@@ -273,11 +286,10 @@ public:
 
 	//!Get first candidate On
 	/**
-	 * <b>BUG :</b> There is a problem in this method. It returns 0 
-	 * if position 0 is On or if none ! 
-	 */
-	USHORT GetCand()
-	{
+	* <b>BUG :</b> There is a problem in this method. It returns 0 
+	* if position 0 is On or if none ! 
+	*/
+	USHORT GetCand() {
 		for(USHORT i=0;i<9;i++)
 			if(cand.On(i))
 				return i;
@@ -291,32 +303,56 @@ public:
 //   UNP  non permanant data
 // data remaining are related to tagging printing
 // the main table is the basic entry to eliminate candidates
-class P81 
- {public:   
+class P81 {
+public:   
    char scand[10];         // printing data
    P81F * f; UNP v;
    void Init(){v.Init();}     // at the start
    int Change (int ch) ;      // clear one candate
-   int Change (BF16 cb9)     // clear candidates 
-                 { int ir=0;for(int i=0;i<9;i++) 
-			     if(cb9.On(i))ir+= Change (i);   return ir;}
-   int Keep (BF16 cb9)       // clear candidates others than
-               {int ir=0;      for(int i=0;i<9;i++)
-                if(v.cand.On(i) && cb9.Off(i)) { Change (i);ir=1;}       return ir;}
-   int Keep(int ch1,int ch2)  // clear candidates others than
-               {int ir=0;     for(int i=0;i<9;i++)
-                if(v.cand.On(i) && (i-ch1)&&(i-ch2)) { Change (i);ir=1;}    return ir;}
-   int ObjCommun(P81* p8) {return f->ObjCommun(p8->f);}   // same row, column or box
+   int Change (BF16 cb9) {    // clear candidates 
+	   int ir=0;
+	   for(int i=0; i < 9; i++) 
+		   if(cb9.On(i))
+			   ir += Change(i);
+	   return ir;
+   }
+   int Keep (BF16 cb9) {       // clear candidates others than
+	   int ir=0;
+	   for(int i = 0; i < 9; i++) {
+		   if(v.cand.On(i) && !cb9.On(i)) {
+			   Change(i);
+			   ir=1;
+		   }
+	   }
+	   return ir;
+   }
+   int Keep(int ch1,int ch2) { // clear candidates others than
+	   int ir = 0;
+	   for(int i = 0; i < 9; i++) {
+		   if(v.cand.On(i) && (i - ch1) && (i - ch2)) {
+			   Change(i);
+			   ir = 1;
+		   }
+	   }
+	   return ir;
+   }
+   int ObjCommun(P81* p8) {
+	   return f->ObjCommun(p8->f);
+   }   // same row, column or box
 
-   void Fixer(UCHAR type,UCHAR ch) // force digit as valid in the solution
-                {v.Fixer(type,ch);
-                 scand[1]=0;scand[0]='1'+ch;}
-   char * strcol(){return scand;} // no tagging in print
-	};
+   void Fixer(UCHAR type,UCHAR ch) { // force digit as valid in the solution
+	   v.Fixer(type, ch);
+	   scand[1] = 0;
+	   scand[0] = '1' + ch;
+   }
+   char * strcol() {
+	   return scand;
+   } // no tagging in print
+};
+
 // class collecting all datas for the cells and managing a cell oriented process
 
-class TP81 
-{ 
+class TP81 { 
 public:
 	P81 t81[81];       
 
@@ -330,23 +366,20 @@ public:
 	BF16   GenCandTyp01(BF81 & z);
 	void Actifs(BF81 & z);
 	int RIN(int aig=0);
-	void Candidats(){ if(Op.ot)CandidatsT();}
-	void Candidatsz() 
-	{
-		if(!Op.ot)return;
-	    EE.Enl("justificatif a posteriori"); 
-        CandidatsT();
+	void Candidats() {
+		//if(Op.ot)
+			CandidatsT();
 	}
+	//void Candidatsz() 
+	//{
+	//	if(!Op.ot)return;
+	//	EE.Enl("justificatif a posteriori"); 
+	//	CandidatsT();
+	//}
 	
 private: 	
 	void CandidatsT();
 };
-extern TP81 T81dep;
-
-extern TP81 * T81,*T81C;		//standard names for main objects of the class
-extern P81 * T81t,*T81tc;		//and corresponding tables of cells  
-                      // the corresponding tables are located in class JDK
-
 
 // several small classes to work on a view per object/pos/digit
 //                                         or  object/digit/pos
@@ -357,9 +390,8 @@ extern P81 * T81t,*T81tc;		//and corresponding tables of cells
  * <b>QUESTION : </b> Is there an other use like <br>
  * for one cell candidates and number of candidates see OBBITD::Genpo
  */
-class OBBITD    
-{
-public: 
+class OBBITD {
+public:
 	BF16 b;  //< bitfield for 9 positions
 	USHORT n; //< number of postions
 	//! Set everything to 0
@@ -371,18 +403,16 @@ public:
 };
 
 //! vector for 9 cells or 9 digits  
-class OBBIEL 
-{
+class OBBIEL {
 public: 
 	OBBITD eld [9];
 	//! TO EXPLAIN
 	/** Defined in file ecs.cpp */
-	int tiroir(BF16 fd,int iold,int irang);
+	int tiroir(BF16 fd, int iold, int irang);
 };
 
 //! grouping the 27 regions : rows/cols/boxes
-class TOBBIT   
-{
+class TOBBIT {
 public: 
 	OBBIEL el[27];  //< possible position of each digit for each region
 };
@@ -392,21 +422,11 @@ public:
  * There is a unique instance of this class 
  * Positions are updated once per cycle
  */
-class ZTOB 
-{
+class ZTOB {
 public: 
 	TOBBIT tpobit;  // entry region -> position -> digit
 	TOBBIT tchbit;  // entry region -> digit -> position
 
     void Genere();  // update
 };
-
-
-//**** global variable to put in ;cpp *****
-
-//! other indexes for canddidates region -> position -> digit;aztob.tchbit.el[  region -> digit -> position
-
-
-
-
 

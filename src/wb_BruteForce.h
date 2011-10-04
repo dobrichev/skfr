@@ -27,7 +27,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 #pragma once
-class UN_JEU;
+//class UN_JEU;
+#include "wa_puzzle.h"
 
 //! This class provide a brute force solver
 /**
@@ -44,10 +45,8 @@ class UN_JEU;
 class UNPAS 
 {
 public:   
-	static ULONG nsol,
-		cptlx;				
-	static UINT cp1,
-		cp2;
+	static ULONG nsol; 
+
 	UNP tu[81];			//< candidate and status of cells
 	GG gg;				//< puzzle as a string
 	char * gr;			//< pointer on puzzle string that will evolve to the solution
@@ -128,21 +127,17 @@ public:
 	/**
 	 * <b>NOTA :</b>This method is not used in the SEclone !
 	 */
-	BF81 GetZ()
-	{
+	BF81 GetZ() {
 		BF81 zw;
-		for(int i=0;i<81;i++) 
-			if(gr[i]-'0') 
+		for(int i = 0; i < 81; i++) 
+			if(gr[i] - '0')
 				zw.Set(i);
         return zw;
 	}
 
 };
 
-// **** static member should be put in .ccp ****
-ULONG UNPAS::nsol, UNPAS::cptlx;    
-UINT UNPAS::cp1, UNPAS::cp2;
- 
+
 //!A class to check uniqueness
 /**
  * That was a class from "Gerard Penet" to handle recursive tasks as <ul>
@@ -151,18 +146,16 @@ UINT UNPAS::cp1, UNPAS::cp2;
  * This class has been reduced here to a minimal form for uniquenss verification
  */
 
-class UN_JEU
-{
+class UN_JEU {
 public: 
 	UNPAS dep;		//< to invoke brute force solver
-	GG gg ,			//< puzzle initial string
+	GG gg,			//< puzzle initial string
 		ggf;		//< solution as a string
 	char *gn;		//< pointer to puzzle string
 	
 	// constructor
-	UN_JEU()
-	{
-		gn=gg.pg;
+	UN_JEU() {
+		gn = gg.pg;
 	}
 	//! get number of solutions (0,1 or 2)
 	/**
@@ -170,22 +163,20 @@ public:
 	 * uniqueness of puzzle solution
 	 * \return 0,1 or 2 (2 means that the puzzle has several solutions)
 	 */
-	long Analyse(GG & ge)
-    {
+	long Analyse(GG & ge) {
 		gg.Copie(ge);
 		dep.Init(gg);
-        for(int i=0;i<81;i++)
-        {
-			char c=gg.pg[i];
-			if(c>'0' && c<='9')
-				dep.Fixer(i,c-'1');
+        for(int i = 0; i < 81; i++) {
+			char c = gg.pg[i];
+			if(c > '0' && c <= '9')
+				dep.Fixer(i, c - '1');
 		}
-        dep.NsolPas(); return dep.nsol;
+        dep.NsolPas();
+		return dep.nsol;
 	}
     
 	//! has this puzzle one and only one solution
-	int  Unicite(GG & ge)
-	{
-		return(Analyse(ge)==1);
+	int  Unicite(GG & ge) {
+		return(Analyse(ge) == 1);
 	}
 };
