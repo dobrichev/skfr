@@ -127,24 +127,3 @@ if(difficulty>maxed || difficulty>maxep ){maxer=0; ir=1;return;}
 */
 }
 
-/* only for debugging
-should not be used in the final program
-*/
-int  OPSUDO::pctl()  
-	// contrôle print on console for test purpose
-	// evaluate filters bitfield if min or max required
-	// also check command line compatibility (between min and max)
-	{
-		// split option is exclusively for special "filters"
-		cout << "summary of parsing in opsudo"<<endl;
-		cout << "o1="<<o1<<endl;
-		cout << "ot="<<ot<<endl;
-		cout << "maxed="<<maxed<<endl;
-		cout << "mined="<<mined<<endl;
-		cout << "maxep="<<maxep<<endl;
-		cout << "minep="<<minep<<endl; 
-		cout << "maxer="<<maxer<<endl;
-		if(ptime) cout << "print time"<<endl;
-		if(os) cout << "split mode active filters="<<filters.f<<endl;
-		if(oexclude) cout << "process limitation code="<<oexclude<<endl;
-	return 0;}

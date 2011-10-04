@@ -69,7 +69,9 @@ int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
 
        //--------------------- loop  forward
  while(aig && npas++<=maxpas)  
- {	 aig=0; 
+ {
+
+  aig=0; 
  cum = &cumsteps[npas-1]; step=&steps[npas]; step->SetAll_0();
  ta=tx[npas-1];tb=tx[npas];    ita=itx[npas-1];itb=0;
 
@@ -77,7 +79,7 @@ int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
   if(opp)
         {EE.E("fin step=");EE.E(npas);
                    step->Image("step ",0); 
-        (*step).Image("all",0);
+        allsteps.Image("all",0);
         }
   cumsteps[npas]=cumsteps[npas-1] | (*step);
   itx[npas]=itb;
@@ -87,10 +89,13 @@ int CANDGO::GoNestedCase1(USHORT cand,USHORT base)
   for(int i=0;i<itb;i++) 
   {USHORT tgx=tb[i];
    if(allsteps.On(tgx) && allsteps.On(tgx^1))
-   {if(op0)
+   {if(opp)
       {EE.E("found active a -> x and a -> ~x");zpln.ImageTag(tgx);
             EE.E(" step="); EE.Enl(npas);   
-            }
+       EE.E("Tcango index  itt  its  ise ise2");
+	   EE.E( tcandgo.itt);EE.Esp();EE.E(tcandgo.its);EE.Esp();
+	   EE.E(tstore.ise);EE.Esp();EE.E(tstore.ise2);EE.Enl();
+        opp=0;    }
 	   // we compute back the length and show the sequence 
     if(maxpas>npas+2)		maxpas=npas+2; // limit the process to 2 more step
 	if(maxpas>pasmax) maxpas=pasmax;

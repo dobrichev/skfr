@@ -57,8 +57,7 @@ TIR yt;
 CRIN ur;
 CRINT urt;
 
-int PrintOptionsOpsudo()
-{return Op.pctl();}
+
 void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,UINT filt){
 	Op.mined = mined;
 	Op.maxed = maxed;
