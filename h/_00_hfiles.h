@@ -9,9 +9,9 @@
 
 #include "wa_puzzle.h"
 #include "wb_bruteforce.h"
-#include "h\_03a_jdk.h"                  // general class to solve a puzzle
-#include "h\_04b_tir.h"                // class for processing of locked sets and fishes
-#include "h\_04d_paires.h"
+#include "_03a_puzzle.h"                  // general class to solve a puzzle
+//#include "h\_04b_tir.h"                // class for processing of locked sets and fishes
+//#include "h\_04d_paires.h"
 #include "h\_05a_RIN.h"
 
 

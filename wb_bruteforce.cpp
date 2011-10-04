@@ -27,6 +27,18 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABI
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
+
+// to see later, added by mladen
+//#include "wb_BruteForce.h"
+//#include "ratingengine.h"
+
+
+
+// **** static member to send later in PUZZLE ****
+ULONG UNPAS::nsol; 
+
+
+
 void UNPAS::Clear(int i8,USHORT  ch )
 {
 	P81F *wf=&t81f[i8];			// t81f global variable giving influence zone of all cells
@@ -66,8 +78,8 @@ int UNPAS::Avance()
 			for(USHORT p=0;p<9;p++)	// loop on cell of the house
 			{ 
 				USHORT i81=pel[p];	// cell index
-				if(libres.Off(i81))
-					or|=tu[i81].cand;    //force double
+				if(!libres.On(i81))
+					or |= tu[i81].cand;    //force double
 				BF16 w=tu[i81].cand & or; // & between 2 bitfields
 				deux |=w;
 				or|=tu[i81].cand;
@@ -108,7 +120,8 @@ void UNPAS::NsolPas()
 	USHORT max=10,iw; 
 	for(int i=0;i<81;i++)  // loop on empty cells
 	{ 
-		if(libres.Off(i)) continue;     
+		if(!libres.On(i))
+			continue;     
 		iw=tu[i].ncand;		// number of candidates
 		if(iw<2)continue;	// should not happen
 		if(iw<max)

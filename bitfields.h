@@ -108,49 +108,97 @@ public:
 */
 
 //! a 9 bitfield to give position of candidate in a house and similar functions
-class BF16
-{
+class BF16 {
 public:
 	//! bitfield
 	USHORT f;
 	// constructors
-	BF16() {f=0;}               
-	BF16(int i1) {f=1<<i1;}
-	BF16(int i1,int i2) {f=(1<<i1) | (1<<i2);}
-	BF16(int i1,int i2,int i3) {f=(1<<i1) | (1<<i2) | (1<<i3);}
-	BF16(int i1,int i2,int i3,int i4) {f=(1<<i1) | (1<<i2) | (1<<i3) | (1<<i4) ;}
-	BF16(int i1,int i2,int i3,int i4,int i5) 
-         {f=(1<<i1) | (1<<i2) | (1<<i3) | (1<<i4) | (1<<i5);}
+	BF16() {
+		f = 0;
+	}               
+	BF16(int i1) {
+		f = 1 << i1;
+	}
+	BF16(int i1, int i2) {
+		f = (1 << i1) | (1 << i2);
+	}
+	BF16(int i1, int i2, int i3) {
+		f = (1 << i1) | (1 << i2) | (1 << i3);
+	}
+	BF16(int i1, int i2, int i3, int i4) {
+		f = (1 << i1) | (1 << i2) | (1 << i3) | (1 << i4);
+	}
+	BF16(int i1, int i2, int i3, int i4, int i5) {
+		f = (1 << i1) | (1 << i2) | (1 << i3) | (1 << i4) | (1 << i5);
+	}
 
 	//! set all 9 bits to 0
-    inline void SetAll_0(){f=0;} 
+    inline void SetAll_0() {
+		f = 0;
+	} 
 	//! set all 9 bits to 1
-	inline void SetAll_1() {f=0x1ff;}			
-
+	inline void SetAll_1() {
+		f = 0x1ff;
+	}			
 	//! indicate if all bits are 0
-    inline int isEmpty() {return (f==0);}
+    inline int isEmpty() {
+		return (f == 0);
+	}
 	//! indicate if at least one bit is on
-    inline int isNotEmpty() {return f;}
+    inline int isNotEmpty() {
+		return f;
+	}
 	//! is bit at ch position on
-	inline int On(int ch)  {return ((f & (1<<ch))); }		
+	inline int On(int ch) {
+		return ((f & (1 << ch)));
+	}		
 	//! is bit at ch position off
-	inline int Off(int ch)  {return (!(f & (1<<ch))); }	
-
+	inline int Off(int ch) {
+		return (!(f & (1 << ch)));
+	}	
 	//! set bit at ch position
-	inline void Set(USHORT ch) {f|=(1<<ch);}	
+	inline void Set(USHORT ch) {
+		f |= (1 << ch);
+	}	
 	//! reset bit at ch position
-	inline void Clear(USHORT ch) {f&=~(1<<ch) ;}
-
-
-	inline BF16 operator &(BF16 & e){BF16 w; w.f=f&e.f;  return w;}
-	inline BF16 operator |(BF16 & e){BF16 w; w.f=f|e.f;  return w;}
-  inline BF16 operator ^(BF16 & e){BF16 w; w.f=f^e.f;  return w;}
-  inline BF16 operator -(BF16 & e){BF16 w; w.f=f^(e.f&f);  return w;}
-  inline int  operator ==(BF16 & e){return(e.f==f);}
-  inline void operator &=(BF16 & e){f&=e.f; }
-  inline void operator |=(BF16 & e){f|=e.f; }
-  inline void operator ^=(BF16 & e){f^=e.f; }
-  inline void operator -=(BF16 & e) {f^=(f&e.f); }
+	inline void Clear(USHORT ch) {
+		f &= ~(1 << ch);
+	}
+	inline BF16 operator &(BF16 & e) {
+		BF16 w;
+		w.f = f & e.f;
+		return w;
+	}
+	inline BF16 operator |(BF16 & e) {
+		BF16 w;
+		w.f = f | e.f;
+		return w;
+	}
+	inline BF16 operator ^(BF16 & e) {
+		BF16 w;
+		w.f = f ^ e.f;
+		return w;
+	}
+	inline BF16 operator -(BF16 & e) {
+		BF16 w;
+		w.f = f ^ (e.f & f);
+		return w;
+	}
+	inline int  operator ==(BF16 & e) {
+		return(e.f == f);
+	}
+	inline void operator &=(BF16 & e) {
+		f &= e.f;
+	}
+	inline void operator |=(BF16 & e) {
+		f |= e.f;
+	}
+	inline void operator ^=(BF16 & e) {
+		f ^= e.f;
+	}
+	inline void operator -=(BF16 & e) {
+		f ^= (f & e.f);
+	}
 	/*
 	  inline USHORT GetOne() // valable pour un seul en mode très rapide pas de sécurité 
 	  { if (f>16) {if(f>64) {if(f&128) return 8; else return 9;}
@@ -160,40 +208,50 @@ public:
 	*/
 	//! give the first on bit position
 	/** \return the position or 9 if there is no bit on */
-	int  First(){for( int i=0;i<9;i++) if(On(i)) return i; return 9;}
+	int  First() {
+		for(int i = 0; i < 9; i++)
+			if(On(i))
+				return i;
+		return 9;
+	}
 	// optimisable avec un tableau de 512 bytes
-
 	//! get count of on bits
-	USHORT QC (){USHORT n=0;for(int i=0 ;i<9;i++) if(On(i)) n++; return n;} 
-	// optimisable avec un tableau de 512 bytes
-
-	//! is it a pair of position
-	int paire(){return (QC()==2);};     
-
-	//! get count of on bits and a string of their positions 1-9
-	USHORT CountEtString(char *s)
-	{
-		USHORT n=0;
-		for (int i=0 ;i<9;i++)
-			if(On(i)) 
-				s[n++]=(char)(i+'1');   
-		s[n]=0; 
+	USHORT QC() {
+		USHORT n = 0;
+		for(int i = 0 ; i < 9; i++) {
+			if(On(i))
+				n++;
+		}
 		return n;
 	}
-
+	// optimisable avec un tableau de 512 bytes
+	//! is it a pair of position
+	int paire() {
+		return (QC() == 2);
+	}     
+	//! get count of on bits and a string of their positions 1-9
+	USHORT CountEtString(char *s) {
+		USHORT n = 0;
+		for (int i = 0 ;i < 9; i++) {
+			if(On(i))
+				s[n++]=(char)(i+'1');
+		}
+		s[n] = 0; 
+		return n;
+	}
 	//! get a string representing the positions of on bit. 
 	/**
 	 * The string contains letters A-I or figures 1-9.
 	 * \param lettre if 0 use letter A-I, if 1 use figures 1-9
 	 */
-	char * String(int lettre=0)
-	{
-		static char ws[10]; 
-		int n=0;
-        for (int i=0 ;i<9;i++)  
-			if(On(i)) 
-				ws[n++]=(char)(lettre?i+'A':i+'1');
-        ws[n]=0;  
+	char * String(int lettre = 0) {
+		static char ws[10];
+		int n = 0;
+		for (int i = 0; i < 9; i++) {
+			if(On(i))
+				ws[n++] = (char)(lettre ? i + 'A' : i + '1');
+		}
+        ws[n] = 0;
 		return ws;
 	}
 }; // BF16
@@ -204,21 +262,37 @@ public:
 
 
 //! a class for bitfield (limited to 32 bits) and set of functions and operators
-class BF32
- {public:  UINT f;   // bitfield
-  BF32() {f=0;}               // constructor
+class BF32 {
+public:
+	UINT f;   // bitfield
+	BF32() {               // constructor
+		f = 0;
+	}
 	/// is bit at ch position on
-	inline int On(int ch)  {return ((f & (1<<ch))); }
+	inline int On(int ch) {
+		return ((f & (1 << ch)));
+	}
 	/// is bit at ch position off
-	inline int Off(int ch)  {return (!(f & (1<<ch))); }
+	inline int Off(int ch) {
+		return (!(f & (1 << ch)));
+	}
 	/// set bit at ch position
-	inline void Set(USHORT ch) {f|=(1<<ch);}
+	inline void Set(USHORT ch) {
+		f |= (1 << ch);
+	}
 	/// clear bit at ch position
-	inline void Clear(USHORT ch) {f&=~(1<<ch) ;}
+	inline void Clear(USHORT ch) {
+		f &= ~(1 << ch);
+	}
 	/// invert bit at ch position
-	inline void Inv(USHORT ch) {f^=(1<<ch) ;}
-	
-	inline BF32 operator -(BF32 & e) {BF32 w; w.f=f^(e.f&f);  return w;}
+	inline void Inv(USHORT ch) {
+		f ^= (1 << ch);
+	}
+	inline BF32 operator -(BF32 & e) {
+		BF32 w;
+		w.f = f ^ (e.f & f);
+		return w;
+	}
 };
 
 /* BIT81 is, with BIT16 a key bit field in that program.
@@ -238,10 +312,8 @@ class BF32
  * the grid<br> Using logical operations enable to identify pairs or 
  * triplet for instance
  */
-class BF81
-{
-private:  	
-	static int io,jo;
+class BF81 {
+	static int io, jo;
 	//! Split position in 2 index
 	/** To calculate which int in <code>i0</code> and 
 	 * which position in this int in <code>j0</code> for a global position<br>
@@ -249,83 +321,185 @@ private:
 	 */
     void ij(int v) 
 	{
-		io=v>>5;
-		jo=v&0x1F;
+		io = v >> 5;
+		jo = v & 0x1F;
 	};   //v/32  v%32
 public:  
 	unsigned  int f[3];   // bitfield
 
     BF81(){SetAll_0();}
-    BF81(int i1){SetAll_0();Set(i1);}
-    BF81(int i1, int i2){SetAll_0();Set(i1);Set(i2);}
+    BF81(int i1) {
+		SetAll_0();
+		Set(i1);
+	}
+    BF81(int i1, int i2) {
+		SetAll_0();
+		Set(i1);
+		Set(i2);
+	}
 	//!Set all bits to 1
-    inline void SetAll_1(){f[0]=f[1]=-1;f[2]=0x1ffff;}
+    inline void SetAll_1() {
+		f[0] = f[1] =-1;
+		f[2]=0x1ffff;
+	}
 	//!Set all bits to 0
-    inline void SetAll_0() {f[0]=f[1]=f[2]=0;}
+    inline void SetAll_0() {
+		f[0] = f[1] = f[2] = 0;
+	}
 	//!Is position <code>v</code> On
-    inline int On(int v) {ij(v);return (f[io]& (1<<jo));}
-	//!Is position <code>v</code> Off
-    inline int Off(int v) {ij(v);return (!(f[io]& (1<<jo)));}
+    inline int On(int v) const {
+		int io = v >> 5;
+		int jo = v & 0x1F;
+		//ij(v);
+		return (f[io] & (1 << jo));
+	}
+	////!Is position <code>v</code> Off
+	inline int Off(int v) {
+		ij(v);
+		return (!(f[io] & (1 << jo)));
+	}
 	//!Set position <code>v</code> to On
-    inline void Set(int v) {ij(v);f[io]|=1<<jo;}
+    inline void Set(int v) {
+		ij(v);
+		f[io] |= 1 << jo;
+	}
 	//!Clear position <code>v</code>
-    inline void Clear(int v) {ij(v);    f[io]&=~(1<<jo);}
+    inline void Clear(int v) {
+		ij(v);
+		f[io] &= ~(1 << jo);
+	}
 	//!Is there any bit On
-    inline int IsNotEmpty(){ return (f[0]||f[1]||f[2]);}
+    inline int IsNotEmpty() const {
+		return (f[0] || f[1] || f[2]);
+	}
 	//! Is there no bit On
-    inline int IsEmpty(){ return ((f[0]|f[1]|f[2])==0);}
+    inline int IsEmpty() const {
+		return ((f[0] | f[1] | f[2]) == 0);
+	}
 
-    BF81 operator |(BF81 & b){BF81 w; w.f[0]=f[0]|b.f[0];
-		     w.f[1]=f[1]|b.f[1]; w.f[2]=f[2]|b.f[2];   return w; }
+	BF81 operator | (const BF81 & b) const {
+		BF81 w;
+		w.f[0] = f[0] | b.f[0];
+		w.f[1] = f[1] | b.f[1];
+		w.f[2] = f[2] | b.f[2];
+		return w;
+	}
 
-    void operator |=(BF81 & b){f[0]|=b.f[0];f[1]|=b.f[1];f[2]|=b.f[2];}
+    void operator |= (const BF81 & b) {
+		f[0] |= b.f[0];
+		f[1] |= b.f[1];
+		f[2] |= b.f[2];
+	}
 
-    BF81 operator &(BF81 & b){BF81 w; w.f[0]=f[0]&b.f[0];
-		      w.f[1]=f[1]&b.f[1]; w.f[2]=f[2]&b.f[2];   return w; }
+	BF81 operator & (const BF81 & b) const {
+		BF81 w;
+		w.f[0] = f[0] & b.f[0];
+		w.f[1] = f[1] & b.f[1];
+		w.f[2] = f[2] & b.f[2];
+		return w;
+	}
 
-    void operator &=(BF81 & b){f[0]&=b.f[0];f[1]&=b.f[1];f[2]&=b.f[2];}
+    void operator &= (const BF81 & b) {
+		f[0] &= b.f[0];
+		f[1] &= b.f[1];
+		f[2] &= b.f[2];
+	}
 
-    BF81 operator ^(BF81 & b){BF81 w; w.f[0]=f[0]^b.f[0];
-		              w.f[1]=f[1]^b.f[1]; w.f[2]=f[2]^b.f[2];   return w; }
+	BF81 operator ^ (const BF81 & b) const {
+		BF81 w;
+		w.f[0] = f[0] ^ b.f[0];
+		w.f[1] = f[1] ^ b.f[1];
+		w.f[2] = f[2] ^ b.f[2];
+		return w;
+	}
 
-    void operator ^=(BF81 & b){f[0]^=b.f[0];f[1]^=b.f[1];f[2]^=b.f[2];}
+    void operator ^= (const BF81 & b) {
+		f[0] ^= b.f[0];
+		f[1] ^= b.f[1];
+		f[2] ^= b.f[2];
+	}
 
-    BF81 operator -(BF81 & b) {BF81 w; for(int i=0;i<3;i++)
-			                w.f[i]=	f[i]^(f[i]&b.f[i]); return w; }
-    void operator -=(BF81 & b) {for(int i=0;i<3;i++)f[i]^=(f[i]&b.f[i]);  }
+	BF81 operator -(const BF81 & b) const {
+		BF81 w;
+		for(int i = 0; i < 3; i++)
+			w.f[i] = f[i] ^ (f[i]&b.f[i]);
+		return w;
+	}
+    void operator -=(const BF81 & b) {
+		for(int i = 0; i < 3; i++)
+			f[i] ^= (f[i] & b.f[i]);
+	}
 
-    BF81 operator ~(){BF81 w;  w.f[0]=~f[0];
-				        w.f[1]=~f[1]; w.f[2]=~f[2];   return w;  }
+	BF81 operator ~() const {
+		BF81 w;
+		w.f[0] = ~f[0];
+		w.f[1] = ~f[1];
+		w.f[2] = ~f[2];
+		return w;
+	}
 
-    int operator ==(BF81 & b){ return ((f[0]==b.f[0])
-		                        &&(f[1]==b.f[1])&&(f[2]==b.f[2])); }
+    int operator ==(const BF81 & b) const {
+		return ((f[0] == b.f[0]) && (f[1] == b.f[1]) && (f[2] == b.f[2]));
+	}
 
-    int EstDans(BF81 & fe){return (((*this)&fe )==(*this));}
+    int EstDans(const BF81 &fe) const {
+		return (((*this) & fe ) == (*this));
+	}
 
-    BF81 Inverse()	{BF81 w;  w.f[0]=f[0]^(-1);w.f[1]=f[1]^(-1);
-				               w.f[2]=f[2]^0x1ffff;   return w;  }
+	BF81 Inverse() {
+		BF81 w;
+		w.f[0] = f[0] ^ (-1);
+		w.f[1] = f[1] ^ (-1);
+		w.f[2] = f[2] ^ 0x1ffff;
+		return w;
+	}
 	//! Is position <code>i</code> on, and clear it before returning
-    int NextI(int i){ if(On(i)){Clear(i); return 1;}return 0;}
+	int NextI(int i) {
+		if(On(i)) {
+			Clear(i);
+			return 1;
+		}
+		return 0;
+	}
 
 	//! Clear all position that are on in <code>z</code>
-    void Clear(BF81 & z) {for (int i=0;i<3;i++)  f[i]^=(f[i]&z.f[i]); }
+    void Clear(const BF81 & z) {
+		for(int i = 0; i < 3; i++)
+			f[i] ^= (f[i] & z.f[i]);
+	}
 
 	//! Find the first position on, and clear it
 	/** \return found position or 128 if none */
-	int Next() {for(int i=0;i<81;i++) if(NextI(i)) return i;return 128;}
+	int Next() {
+		for(int i = 0; i < 81; i++)
+			if(NextI(i))
+				return i;
+		return 128;
+	}
 
 	//! Find the first position on
 	/** \return found position or 128 if none */
-	int First(){for(int i=0;i<81;i++) if(On(i)) return i;return 128;}     
+	int First() const {
+		for(int i = 0; i < 81; i++)
+			if(On(i))
+				return i;
+		return 128;
+	}     
 
 	//! Count the on bits
-    int Count(){int n=0;for(int i=0 ;i<81;i++) if(On(i)) n++; return n;}
+    int Count() {
+		int n = 0;
+		for(int i = 0; i < 81; i++)
+			if(On(i))
+				n++;
+		return n;
+	}
 
 	//! TO BE DOCUMENTED !
 	// provides a print form of the cells iset to 1  in the field
 	// combine rows and column when possible eg : r12c3 r5c678
     void ImagePoints();  
-  };
+ };
 
 
 /* with BFCAND, we enter in a new kind of bit fields.
@@ -343,46 +517,82 @@ public:
 
    storing candidates contributing to a path
    storing defined links candidate to candidate
-  
- 
 */
 
 //bitfield 320 bits used to store candidates used in a path
 
 #define BFCAND_size 10
-
 #define BFCAND_BitSize 10*32
-class BFCAND
-{UINT f[BFCAND_size];     // the bit field
- static int     io,jo,odd,even;
- void ij(int v) {io=v>>5;jo=v&31;};
- public:
 
- BFCAND(){SetAll_0();}
- BFCAND(int a,int b) {SetAll_0();Set(a);Set(b);}
- BFCAND(BFCAND & old) {(*this)=old;}
-
- void SetAll_0(){for(int i=0;i<BFCAND_size;i++) f[i]=0; } 
- inline int On(int v)     {ij(v);return (f[io]&(1<<jo));}
- inline int Off(int v)     {ij(v);return ((f[io]&(1<<jo))==0);}
- inline void Set(int v)      {ij(v);f[io]|=(1<<jo);}
- inline void Clear(int v)    {ij(v);if(On(v))f[io]^=(1<<jo);}
- BFCAND operator & (BFCAND  z2);
- BFCAND operator | (BFCAND  z2);
- BFCAND operator ^ (BFCAND  z2);
- BFCAND operator - (BFCAND  z2);
- void operator &= (BFCAND  z2);
- void operator |= (BFCAND  z2);
- void operator ^= (BFCAND  z2);
- void operator -= (BFCAND  z2);
- int operator == (BFCAND  z2);
- int IsNotEmpty(){for(int i=0;i<BFCAND_size;i++) if(f[i])return 1;return 0; }     
- int IsEmpty(){for(int i=0;i<BFCAND_size;i++) if(f[i])return 0;return 1; }
- int Count();
-// void String(USHORT *tr,int &n);
- void ImageCand(char * lib);
- void GetCells(BF81 & cells);
- };
+class BFCAND {
+	UINT f[BFCAND_size];     // the bit field
+	static int io, jo, odd, even;
+	void ij(int v) {
+		io = v >> 5;
+		jo = v & 31;
+	};
+public:
+	BFCAND() {
+		SetAll_0();
+	}
+	BFCAND(int a, int b) {
+		SetAll_0();
+		Set(a);
+		Set(b);
+	}
+	BFCAND(const BFCAND &old) {
+		(*this) = old;
+	}
+	void SetAll_0() {
+		for(int i = 0; i < BFCAND_size; i++)
+			f[i] = 0;
+	} 
+	inline int On(int v) const {
+		int io = v >> 5;
+		int jo = v & 31;
+		//ij(v);
+		return (f[io] & (1 << jo));
+	}
+	inline int Off(int v) const {
+		int io = v >> 5;
+		int jo = v & 31;
+		//ij(v);
+		return ((f[io] & (1 << jo)) == 0);
+	}
+	inline void Set(int v) {
+		ij(v);
+		f[io] |= (1 << jo);
+	}
+	inline void Clear(int v) {
+		ij(v);
+		if(On(v))
+			f[io] ^= (1 << jo);
+	}
+	BFCAND operator & (const BFCAND &z2) const;
+	BFCAND operator | (const BFCAND &z2) const;
+	BFCAND operator ^ (const BFCAND &z2) const;
+	BFCAND operator - (const BFCAND &z2) const;
+	void operator &= (const BFCAND &z2);
+	void operator |= (const BFCAND &z2);
+	void operator ^= (const BFCAND &z2);
+	void operator -= (const BFCAND &z2);
+	int operator == (const BFCAND &z2) const;
+	int IsNotEmpty() const {
+		for(int i = 0; i < BFCAND_size; i++)
+			if(f[i])
+				return 1;
+		return 0;
+	}     
+	int IsEmpty() const {
+		for(int i = 0; i < BFCAND_size; i++)
+			if(f[i])
+				return 0;
+		return 1;
+	}
+	int Count() ;
+	void ImageCand(char * lib) const;
+	void GetCells(BF81 & cells) const;
+};
 
 /* BFTAG is the key bitfield in the tagging process.
    Each candidates has 2 corresponding tags
@@ -418,86 +628,114 @@ class BFCAND
 /// method. <br>
 /// 2 - All method are not thread safe due to the usage of static member as temporary variables BFTAG::io and
 /// BFTAG::jo.
-class BFTAG
-{
+class BFTAG {
 	UINT f[BFTAG_size];     // the bit field
-	static int     
-		io,		///<Used for translation of bitfield position to array index 
-		jo,		///<Used for translation of bitfield position to bit position in int
-		isize,	///<Number of 32 bits int realy used (a class parameter)
-		false32,///<A 32 bits constant with all false state for a candidate
-		true32;	///<A 32 bits constant with all true state for a candidate
-	void ij(int v) {io=v>>5;jo=v&31;};
+	static int io;		///<Used for translation of bitfield position to array index 
+	static int jo;		///<Used for translation of bitfield position to bit position in int
+	static int isize;	///<Number of 32 bits int realy used (a class parameter)
+	static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
+	static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
+	void ij(int v) {
+		io = v >> 5;
+		jo = v & 31;
+	};
 public:
-	BFTAG(){SetAll_0();}
-	BFTAG(BFTAG & x) {(*this)=x;}
-
-	static void SetMax(){isize=BFTAG_size;}
-	static void SetIsize(int icol){isize=(icol+31)>>5; }
+	BFTAG() {
+		SetAll_0();
+		isize = BFTAG_size;
+	}
+	BFTAG(const BFTAG &x) {
+		(*this) = x;
+	}
+	static void SetMax() {
+		isize = BFTAG_size;
+	}
+	static void SetIsize(int icol) {
+		isize = (icol + 31) >> 5;
+	}
 	///\brief Clear all bits
-	void SetAll_0();  
+	void SetAll_0();
 	///\brief Set all bits (limited to <code>isize</code> int)
 	void SetAll_1();
 	///\brief is bit in position <code>v</code> On
-	inline int On(int v)     {ij(v);return (f[io]&(1<<jo));}
+	inline int On(int v) const {
+		int io = v >> 5;
+		int jo = v & 31;
+		//ij(v);
+		return (f[io] & (1 << jo));
+	}
 	///\brief is bit in position <code>v</code> Off
-	inline int Off(int v)     {ij(v);return ((f[io]&(1<<jo))==0);}
+	inline int Off(int v) const {
+		int io = v >> 5;
+		int jo = v & 31;
+		//ij(v);
+		return ((f[io] & (1 << jo)) == 0);
+	}
 	///\brief Set bit in position <code>v</code> to On
-	inline void Set(int v)      {ij(v);f[io]|=(1<<jo);}
+	inline void Set(int v) {
+		ij(v);
+		f[io] |= (1 << jo);
+	}
 	///\brief Clear bit in position <code>v</code> 
-	inline void Clear(int v)    {ij(v);if(On(v))f[io]^=(1<<jo);}
+	inline void Clear(int v) {
+		ij(v);
+		if(On(v)) //TODO: duplicate call of ij(v)
+			f[io] ^= (1 << jo);
+	}
 	///\brief Exchange even and odd bits of parameter <code>i</code>
-	inline UINT FInv (UINT i) {return ( ((i & false32) >>1) | ((i&true32)<<1));} 
+	inline UINT FInv(UINT i) {
+		return (((i & false32) >> 1) | ((i & true32) << 1));
+	} 
 	///\brief And between odd and even bits of parameter <code>i</code>
-	inline int FLayer(UINT i) {return  i&FInv(i);}
-	void Clear(BFTAG & z2)  ;
+	inline int FLayer(UINT i) {
+		return i & FInv(i);
+	}
+	void Clear(BFTAG &z2);
 	BFTAG Inverse();
-	BFTAG operator & (BFTAG  z2);
-	BFTAG operator | (BFTAG  z2);
-	BFTAG operator ^ (BFTAG  z2);
-	BFTAG operator - (BFTAG  z2);
-	void operator &= (BFTAG  z2);
-	void operator |= (BFTAG  z2);
-	void operator ^= (BFTAG  z2);
-	void operator -= (BFTAG  z2);
-	int operator == (BFTAG  z2);
+	BFTAG operator & (const BFTAG &z2) const;
+	BFTAG operator | (const BFTAG &z2) const;
+	BFTAG operator ^ (const BFTAG &z2) const;
+	BFTAG operator - (const BFTAG &z2) const;
+	void operator &= (const BFTAG &z2);
+	void operator |= (const BFTAG &z2);
+	void operator ^= (const BFTAG &z2);
+	void operator -= (const BFTAG &z2);
+	int operator == (const BFTAG &z2) const;
 	BFTAG BFTAG::operator ~();
-	int IsNotEmpty();     
-	int IsEmpty();
+	int IsNotEmpty() const;     
+	int IsEmpty() const;
 	///\brief get on bits count (limit count to first <code>col+2</code> bits)
 	///
 	///\sa col in file _00_ assSE.h
-	int Count();
+	int Count() const;
 	///\brief get positon of first bit On (limited by <code>col+2</code>)
 	///
 	///<b>WARNING BUG :</b> if no bit On return 0 which is the same if bit at position 0 is On.<br>
 	///It seems that the first 2 bits are not used see limit to col+2.<br>
 	/// <b>OPTIMIZATION :</b> possible to test each int before looking at their 32 positions
 	///\return index or 0 if none
-	int First();
+	int First() const;
 	///\brief keep only the True state or the false state
 	/// 
-	BFTAG TrueState();
-	BFTAG FalseState();
+	BFTAG TrueState() const;
+	BFTAG FalseState() const;
 	///\brief fill the array (first parameter) with the list of position of On Bit
 	/// 
 	///\param tr pointer to an array to be filled
 	///\param n used to return number of position
-	void String(USHORT *tr,USHORT &n);
+	void String(USHORT *tr, USHORT &n) const;
 
 	///\brief Print on output file a representation of the bitfield
 	///
 	///No output if o$.ot==0 <br>
 	///TO VERIFY seems to be used for odd/even bivalue bitfield
-	void Image(char * lib,int mmd);
+	void Image(char * lib, int mmd) const;
 
 	// new features not tested in preparation
-int SearchChain(BFTAG * to,USHORT i,USHORT j);
-int SearchCycle(BFTAG * to,USHORT i,BFTAG & loop);
-int SearchCycleChain(BFTAG * to,USHORT i,USHORT relay,BFTAG & loop);
-int TrackBack(BFTAG * to,USHORT start,USHORT end,  USHORT * tt,
-	          USHORT & itt, USHORT relay);
-void Expand(BFTAG * to,USHORT i); // in nested mode, expansion limited to one tag
+	int SearchChain(BFTAG * to, USHORT i, USHORT j);
+	int SearchCycle(BFTAG * to, USHORT i, BFTAG & loop);
+	int SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop);
+	int TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt,
+		USHORT & itt, USHORT relay);
+	void Expand(BFTAG * to, USHORT i); // in nested mode, expansion limited to one tag
 };
-
-

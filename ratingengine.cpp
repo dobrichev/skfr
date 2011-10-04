@@ -30,7 +30,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "global.h"
 #include "h\_00_hfiles.h"
-#include "h\utilities.h"
+#include "utilities.h"
 // global variables for RatingEngine
 USHORT 
 	aigstop=0, /// can be set to 1 anywhere to stop the process as soon as possible for one puzzle
@@ -204,10 +204,10 @@ char * Blancs(int n,int pastrait)
 #include "c\_04b_ecs.cpp"
 #include "c\_04c_xw.cpp"
 #include "c\_04d_paires.cpp"  
-#include "c\_04d_xyw.cpp"
-#include "c\_04d_paires_bug.cpp"  
-#include "c\_04d_paires_bug3.cpp"  
-#include "c\_04d_paires_bug4.cpp"  
+//#include "c\_04d_xyw.cpp"
+//#include "c\_04d_paires_bug.cpp"  
+//#include "c\_04d_paires_bug3.cpp"  
+//#include "c\_04d_paires_bug4.cpp"  
 #include "c\_05b_RI_2N.cpp"
 #include "c\_05a_RIN_el.cpp"
 #include "c\_05a_RIN_el2.cpp"

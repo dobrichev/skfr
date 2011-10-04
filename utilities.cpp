@@ -27,12 +27,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 // utilities
-#include "h\utilities.h"
+#include "utilities.h"
 #include <sys\timeb.h>
+
+
 // catching time as seconds+millis  (seconds since year 1970)
-long GetTimeMillis()
-{struct _timeb tbuf;    _ftime64_s(&tbuf); 
- return ((long)(1000*tbuf.time)+tbuf.millitm);}
-
-
-
+long GetTimeMillis() {
+	struct _timeb tbuf;
+	_ftime64_s(&tbuf); 
+	return ((long)(1000 * tbuf.time) + tbuf.millitm);
+}

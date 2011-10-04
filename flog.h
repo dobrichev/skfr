@@ -56,6 +56,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "skfrtype.h"
 using namespace std;
 
+// wait state added by mladen
+//#include "ratingengine.h"
+
 class FLOG : private ofstream  //no direct access to ofstream  
 {
 	USHORT 
@@ -70,15 +73,31 @@ public:
 
 	//! Open method to call for log file
 	/** \return 0 if opened, 1 in case of error. */
-//	int OpenFL();
-    int OpenFL(char * nam);	
-
+	int OpenFL(char * nam) {
+		if(pron)
+			return 0; 
+		pron = 1;
+		endf = 0;
+		ofstream::open(nam); 
+		if(is_open()) {
+			(*this) << "opend log fait"<<endl;
+		return 0;
+		}
+		//Console::WriteLine("problem in open log");
+		cerr << "problem in open log" << endl;
+		pron = 0;
+		endf = 1;
+		return 1;
+	}
 	//! Close this log file
-	void CloseFL(){if(endf) return; ofstream::close();endf=1;}
+	void CloseFL() {
+		if(endf)
+			return;
+		ofstream::close();
+		endf = 1;
+	}
 
 	// these are debugging commands 
- 
-
 	//! If <code>pron</code> print the char <code>c</code>
 	inline void E(char c)	{if(pron)(*this)<<c; }
 	//! If <code>pron</code> print the null terminated string <code>c</code>
@@ -108,12 +127,7 @@ public:
 	//! If <code>pron</code> print an overflow table message
 	void Elimite(char * lib){Enl2();E("table:"); E(lib); Estop("limite atteinte "); }
 	//! If <code>pron</code> print an error message and in all cases set <code>aigstop</code>
-	void Estop(char * lib) {Enl2();E(lib);Enl2();   aigstop=1;   } 
-
-
-
+	void Estop(char * lib) {
+		Enl2();E(lib);Enl2(); //aigstop=1;
+	}
 };
-
-
-
-
