@@ -55,7 +55,7 @@ class CANDGOSTRONG  // no need to sort the key, entry is doubled
 };
 class TCANDGO
 {public:
- CANDGOFORWARD tt[400];
+ CANDGOFORWARD tt[5000];
  CANDGOSTRONG ts[600];
  USHORT itt,its;
  void Init(){itt=its=1;} // keep 0 as invalid return
@@ -80,10 +80,10 @@ class TCANDGO
   
 class  CHAINSTORE
 {public:
-	USHORT buf [10000],ibuf,        
-        starts[500],ends[500],
-		ise,
-		s2[100],e2[100],ise2;
+	int ibuf,        
+        starts[2000],ends[2000];
+	USHORT	ise,buf [10000],
+		s2[500],e2[500],ise2;
 
   void Init(){ibuf=0;
             starts[0]=ends[0]=0;ise=1; 
@@ -96,10 +96,10 @@ class  CHAINSTORE
    if(ise>=499) return ise; // don't pass the limit
    else return ise++;}
   USHORT AddOne(USHORT * tch,USHORT n)
-  {if(ise2>=100) return 0;
+  {if(ise2>=2000) return 0;
 	s2[ise2]=e2[ise2]=AddChain(tch,n);return ise2++;}
   USHORT AddMul(USHORT d, USHORT f)
-   {if(ise2>=100) return 0;
+   {if(ise2>=2000) return 0;
     s2[ise2]=d;e2[ise2]=f;return ise2++;}
   void Print(USHORT index);
 }tstore;

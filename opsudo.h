@@ -32,40 +32,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "bitfields.h"
 
 //! class storing, managing  and testing options of the command line
-/**
- * It also gives at each step the status towards the parameters of the command line
- * and storing max er;ep;ed<ul>
- * <li>-d   stop if not diamond also --diamond</li>
- * <li>-p   stop if not pearl also --pearl</li>
- * <li>-D   same as diamond possible deviation 0.2</li>
- * <li>-P   same as pearl possible deviation 0.2</li>
- * <li>-d&gt  stop if ED lower than    -d&gtxx.y</li>
- * <li>-d&lt  stop if ED higher than   -d&ltxx.y</li>
- * <li>-p&gt  stop if EP lower than    -p&gtxx.y</li>
- * <li>-p&lt  stop if EP higher than   -p&ltxx.y</li>
- * <li>-r&lt  stop if ER higher than   -r&ltxx.y</li>  
- *
- * only one of the following limitations should be given, 
- * the last one in the command line will act
- * <li>--NoMul stop evaluation at "multi chains" (excluded) internal code 1</li> 
- * <li>--NoDyn stop evaluation at "dynamic" (excluded) internal code 2</li> 
- * <li>--NoDPlus stop evaluation at "dynamic plus" (excluded) internal code 3</li> 
- * <li>--NoNest1 stop evaluation at "Nested lvl 1 forcing chain" (excluded) internal code 4</li> 
- * <li>--NoNest2 stop evaluation at "Nested lvl 2 multi chain" (excluded) internal code 5</li> 
- * <li>--NoNest3 stop evaluation at "Nested lvl 3 dynami chain" (excluded) internal code 6</li> 
-  *
- * <li>-Q   Quick classification for nested level 10.5 11.0 11.5</li>
- *
- * <li>-t   allow printing of the solution (test mode)</li>
- * <li>-n()xx.y  if after n cycles highest rating still lower than xx.y
- *      forces split mode</li>
- * <li>-e  elapsed time per puzzle (total for benchmark allways given)</li></ul>
- * The following options are processed outside that class<ul>
- * <li>-i input file also --input=</li>
- * <li>-s split treatment if d&gt or d&lt (or both) defined and forced if -n() defined</li>
- * </ul>
- * For can have all &lt &gt
- */
+
 class OPSUDO
 {
 public: 
@@ -121,7 +88,6 @@ public:
     {ermax=0; epmax=0;edmax=x;
 	} 
 
-	int  pctl();  // contrôle print on console for test purpose
 
 };	 
 
