@@ -119,19 +119,19 @@ public:
 		for(int i = 0; i < n; i++)
 			buf[ibuf++] = tch[i];
 		ends[ise] = ibuf; 
-		if(ise >= 499)
+		if(ise >= 2000)
 			return ise; // don't pass the limit
 		else
 			return ise++;
 	}
 	USHORT AddOne(USHORT * tch, USHORT n) {
-		if(ise2 >= 2000)
+		if(ise2 >= 500)
 			return 0;
 		s2[ise2] = e2[ise2] = AddChain(tch, n);
 		return ise2++;
 	}
 	USHORT AddMul(USHORT d, USHORT f) {
-		if(ise2 >= 2000)
+		if(ise2 >= 500)
 			return 0;
 		s2[ise2] = d;
 		e2[ise2] = f;
