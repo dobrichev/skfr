@@ -29,7 +29,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // RatingEngine
 
 #include "global.h"
-#include "h\_00_hfiles.h"
+#include "_00_hfiles.h"
 #include "utilities.h"
 // global variables for RatingEngine
 USHORT 
@@ -199,11 +199,6 @@ char * Blancs(int n,int pastrait)
 
 
 #include "_03a_puzzle.cpp"
-//#include "c\_03c_jdk_traite_base.cpp"
-//#include "c\_04a_lock.cpp"
-#include "c\_04b_ecs.cpp"
-#include "c\_04c_xw.cpp"
-
 
 
  // attention de gros changements a venir dans ce qui suit
