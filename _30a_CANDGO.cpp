@@ -1114,7 +1114,7 @@ USHORT itret1=0,nestedlength=0;  itret=0;
            }
 	   else  if(index>0) // it comes from a set, we know which one
 	        {ZCHOIX chx=zcx.zc[tsets[x]];
-	        if( 0 && pr)
+	        if(0 && pr)
 			   {EE.E("set");chx.Image(); EE.Enl();}
 			int n=chx.ncd; if(chx.type==CH_set) n--; // for a set, forget the event
 		   for(int j=0;j<n;j++) 
@@ -1141,11 +1141,11 @@ USHORT itret1=0,nestedlength=0;  itret=0;
   itret1++;
   if(op0 && Op.ot) {EE.E("go back end step   itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
  }
+
   if(pr && Op.ot)  // printing in increasing order of generation
     {EE.Enl(" eliminations justification ");
-	 for(int i=0;i<=npas;i++) 
-	  for(int j=0;j<itret;j++) 
-		if(steps[i].On(tret[j])) 
+	 for(int i=0;i<=npas;i++) for(int j=0;j<itret;j++) 
+		 if(steps[i].On(tret[j])) 
 		 {USHORT wt=tret[j]; 
 		  zpln.ImageTag(wt); // print the tag annd look for explanation
 		  int index=tsets[wt];
@@ -1235,8 +1235,6 @@ and the source of all new strong links used
 */
 
 void CANDGO::NestedMulti(BFTAG & elims) {
-	if(0)
-		allsteps.Image("allsteps", 0);
 	for(int ie = 1; ie < zcx.izc; ie++) {
 		const ZCHOIX &chx = zcx.zc[ie];
 		int nni = chx.ncd, aig2 = 0; 
@@ -1310,8 +1308,9 @@ void CANDGO::NestedMulti(BFTAG & elims) {
 			}// end i
 			if(istored) { //should always be
 				USHORT ii = tstore.AddMul(istored, istoref);
-				tsets[i ^ 1] =- tcandgo.itt;
+				tsets[i] =- tcandgo.itt;
 				tcandgo.tt[tcandgo.itt++].Add(ii, bfs, tot_count); 
+
                 if(opp)  // print it it test mode
 	             {EE.E("new eliminated");   zpln.ImageTag(i); 
 		          EE.E("  ichain="); EE.E(tstore.ise); 

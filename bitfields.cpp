@@ -32,7 +32,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "bitfields.h"
 #include "Flog.h"
 #include "opsudo.h"
-#include "wa_puzzle.h"
+#include "_03c_puzzle_fix.h"
 #include "_03b_puzzle_chains.h"
 
 /*#include "h1\_10a_zg.h"

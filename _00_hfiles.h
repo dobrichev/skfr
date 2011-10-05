@@ -7,9 +7,9 @@
 #include "opsudo.h"             // storing and managing options
 
 
-#include "wa_puzzle.h"
-#include "wb_bruteforce.h"
+#include "_03c_puzzle_fix.h"
 #include "_03a_puzzle.h"           // general class to solve a puzzle
+#include "_03d_puzzle_bruteforce.h"         // uses puzzle.h
 #include "_03b_puzzle_chains.h"    //  puzzles chain eliminations
 
 #include "_20a_event.h"

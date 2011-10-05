@@ -186,22 +186,12 @@ USHORT chx_max =9; //max size  for an event set could be a variable parameter?
 char *orig[]={"row ","column ","box "," "};
 char *lc="ABCDEFGHI";
 char *orig1="RCB ";
-//=============================
-//=========================routines générales ex Borland
-char * stpcpy(char * d, char * o)
-{strcpy_s(d,strlen(o)+2,o); return (d+strlen(d));}
-
-char * Blancs(int n,int pastrait)
- {static char wt[]="___________________ ",
-              wn[]="                    ";
-              if(pastrait)return &wn[20-n]; else return &wt[20-n];}
-
 
 //=============================
 
 
-#include "wa_puzzle.cpp"
-#include "wb_bruteforce.cpp"
+#include "_03c_puzzle_fix.cpp"
+#include "_03d_puzzle_bruteforce.cpp"
 
 
 #include "_03a_puzzle.cpp"
