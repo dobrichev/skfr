@@ -29,6 +29,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // utilities
 #include "utilities.h"
 #include <sys\timeb.h>
+#include <string.h> 
 
 
 // catching time as seconds+millis  (seconds since year 1970)
@@ -37,3 +38,14 @@ long GetTimeMillis() {
 	_ftime64_s(&tbuf); 
 	return ((long)(1000 * tbuf.time) + tbuf.millitm);
 }
+
+//=============================
+//====================== to be in line with borland string 
+char * stpcpy(char * d, char * o)
+{strcpy_s(d,strlen(o)+2,o); return (d+strlen(d));}
+
+char * Blancs(int n,int pastrait)
+ {static char wt[]="___________________ ",
+              wn[]="                    ";
+              if(pastrait)return &wn[20-n]; else return &wt[20-n];}
+

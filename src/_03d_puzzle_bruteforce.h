@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 #pragma once
 //class UN_JEU;
-#include "wa_puzzle.h"
+#include "_03c_puzzle_fix.h"
 
 //! This class provide a brute force solver
 /**

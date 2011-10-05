@@ -31,6 +31,206 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "_30a_CANDGO.h"
 #include "ratingengine.h"
 */
+
+GG::GG() {	// constructor
+	pg = g[0]; 
+	pg[81] = 0;
+}
+
+int GG::NBlancs() {
+	int i, n = 0;
+	for(i = 0; i < 81; i++)
+		if(pg[i] == '0')
+			n++;   
+	return n;
+}
+
+int GG::Nfix() {
+	int i, n = 0; 
+	for(i = 0; i < 81; i++) 
+		if(pg[i] - '0')
+			n++;   
+	return n;
+}
+
+void GG::Image(char * lib) {
+	EE.E(lib); 
+	EE.Enl(); 
+	char wc[10];
+	for(int i=0;i<9;i++) {
+		strncpy_s(wc, 10, g[i], 9);
+		wc[9] = 0;
+		EE.E(i + 1);
+		EE.E("=");
+		EE.E(wc);
+		EE.Enl();
+	}
+}
+
+int P81::Change(int ch) {
+	if(v.cand.Off(ch))
+		return 0;
+	if(jdk.CheckChange(f->i8, ch))
+		return 0;
+	v.cand.Clear(ch);
+	v.ncand = v.cand.CountEtString(scand);
+	jdk.c[ch].Clear(f->i8);
+	return 1;
+}
+
+void TP81::init() {
+	for(int i = 0; i < 81; i++) {
+		t81[i].v.Init();
+		t81[i].f = &t81f[i];
+	}
+}
+void TP81::Fixer(int ch, int i8, UCHAR typ) {
+	t81[i8].Fixer(typ, ch);
+	jdk.cFixer(ch, i8);
+}
+
+int TP81::Clear(BF81 &z, int ch) {
+	//EE.E("clear tp81 ");EE.E(ch+1);z.ImagePoints();  EE.Enl();
+	int ir = 0;
+	for(int i = 0; i < 81; i++)
+		if(z.On(i))
+			ir += t81[i].Change(ch);
+	return ir;
+}
+//<<<<<<<<<<<<<<<<<<<<
+int TP81::Clear(BF81 &z, BF16 x) {
+	int ir = 0;
+	for(int j = 0; j < 9; j++)
+		if(x.On(j))
+			ir += Clear(z,j);
+	return ir;
+}
+//<<<<<<<<<<<<<<<<<<<<    specific ot UR/UL filter to find the lowest length
+int TP81::CheckClear(BF81 &z, BF16 x) {
+	for(int i = 0; i < 81; i++)
+		if(z.On(i))
+			if((t81[i].v.cand&x).f)
+				return 1;
+	return 0;
+}// positive as soon as one effect found
+
+//<<<<<<<<<<<<<<<<<<<<<<<<<
+void TP81::Actifs(BF81 & z) {
+	z.SetAll_0();
+	for(int i = 0; i < 81; i++)
+		if(!t81[i].v.typ)
+			z.Set(i);
+}
+//<<<<<<<<<<<<<<<<<
+BF16 TP81::GenCand(BF81 & z) {
+	BF16 w;
+	w.f = 0;
+	for(int i = 0; i < 81; i++)
+		if(z.On(i) && (!t81[i].v.typ))
+			w = w | t81[i].v.cand;
+	return w;
+}
+//<<<<<<<<<<<<<<<<<     y compris assigned pour RIs
+BF16 TP81::GenCandTyp01(BF81 & z) {
+	BF16 w;
+	w.f = 0;
+	for(int i = 0; i < 81; i++)
+		if(z.On(i) && t81[i].v.typ < 2)
+			w = w | t81[i].v.cand;
+	return w;
+}
+/*
+//<<<<<<<<<<<<<<<<
+void 	 TP81::GenzCand(BF81 & z1,BF81 & z2,int ic)
+{z2.Init();  for(int i=0;i<81;i++)
+if(z1.On(i)&&(!t81[i].v.typ)&&t81[i].v.cand.On(ic)) z2.Set(i);  }
+*/
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+void TP81::CandidatsT() {
+	if(!Op.ot)
+		return; 
+	int i, j, l, lcol[9], tcol = 0;
+	char * pw;       //lcol  largeur maxi colonne
+	EE.Enl("PM map ");  
+	for(i = 0; i < 9; i++) {  // attention ici i indice colonne
+		lcol[i] = 2;    // 2  mini tous chiffres imposés
+		for(j = 0; j < 9; j++) {
+			l = strlen(t81[9 * j + i].strcol()); 
+			if(l > lcol[i])
+				lcol[i] = l;
+		}
+		tcol += lcol[i];
+	}
+	EE.Enl();
+	for(i = 0; i < 9; i++) {
+		if((i == 3) || (i == 6))
+			EE.E("|");
+		EE.E((char)('A' + i));
+		EE.E(Blancs(lcol[i], 1));
+	} 
+	EE.Enl();
+	for(i = 0; i < 9; i++) { // maintenant indice ligne
+		if((i == 3) || (i == 6)) {
+			for(int ix = 0; ix < (tcol + 10); ix++)
+				EE.E((char)'-');
+			EE.Enl();
+		}
+		for(j = 0; j < 9; j++) {
+			if((j == 3) ||(j == 6))
+				EE.E("|");
+			P81* pp8 = &t81[9*i + j];
+			pw = pp8->strcol();		  
+			EE.E(pw);
+			EE.E(Blancs(lcol[j] + 1 - strlen(pw), 1));
+		} // end for j
+		EE.Enl();
+	} // end for i
+	EE.Enl("\n\n");
+}
+
+void ZTOB::Genere() {
+	int i, j;
+	for(i = 0; i < 81; i++) {   // on charge tpobit
+		P81F w = t81f[i];
+		UNP x = T81t[i].v;
+		tpobit.el[w.el].eld[w.pl].Genpo(x);
+		tpobit.el[w.pl + 9].eld[w.el].Genpo(x);
+		tpobit.el[w.eb + 18].eld[w.pb].Genpo(x);
+	}
+	// on génère tch a partir de tpo
+	for(i = 0; i < 27; i++) {  // les 27 groupes
+		for(j = 0; j < 9; j++)
+			tchbit.el[i].eld[j].Raz();
+		for(j = 0; j < 9; j++)
+			for(int k = 0; k < 9; k++)
+				if(tpobit.el[i].eld[j].b.On(k))
+					tchbit.el[i].eld[k].Set(j);
+	}
+}
+
+
+
+int TP81::RIN(int aig) {      // look for unique rectangle 
+	int ir=0;
+	urt.Init();
+	for(int i0 = 0; i0 < 3; i0++) // band/stack 1 to 3
+		for(int i1 = 0; i1 < 2; i1++)
+			for(int i2 = i1 + 1; i2 < 3; i2++) // 2 rows  
+				for(int j1 = 0; j1 < 2; j1++)
+					for(int j2 = j1 + 1; j2 < 3; j2++) // boxes   12 13 23
+						for(int j3 = 0; j3 < 3; j3++)
+							for(int j4 = 0; j4 < 3; j4++) {  // 2 cols  
+								//analysing band and stack, main diagonal symmetry
+								int l1 = 3 * i0 + i1, l2 = 3 * i0 + i2, c1 = 3 * j1 + j3, c2 = 3 * j2 + j4;
+								if(ur.RID(l1, l2, c1, c2) || ur.RID(c1, c2, l1, l2))
+									ir++;
+							}
+	return ir;
+}
+
+
+
+
 JDK::JDK() {
 	solution = un_jeu.ggf.pg;  
 	T81 = &tp8N;
