@@ -40,36 +40,55 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
-class CANDGOFORWARD  // one entry per step.
-{public:
- BFTAG source;
- USHORT count,index;
- void Add(USHORT ind,BFTAG bf,USHORT cpt)        {index=ind; source=bf;count=cpt;};
+class CANDGOFORWARD { // one entry per step.
+public:
+	BFTAG source;
+	USHORT count, index;
+	void Add(USHORT ind, const BFTAG &bf, USHORT cpt) {
+		index = ind;
+		source = bf;
+		count = cpt;
+	}
 };
-class CANDGOSTRONG  // no need to sort the key, entry is doubled
-{public:
- BFTAG source;
- USHORT count,key1,key2;
- void Add(USHORT k1,USHORT k2,BFTAG bf,USHORT cpt)
-        {key1=k1;key2=k2;source=bf;count=cpt;};
+class CANDGOSTRONG { // no need to sort the key, entry is doubled
+public:
+	BFTAG source;
+	USHORT count,key1,key2;
+	void Add(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt) {
+		key1 = k1;
+		key2 = k2;
+		source = bf;
+		count = cpt;
+	}
 };
-class TCANDGO
-{public:
- CANDGOFORWARD tt[5000];
- CANDGOSTRONG ts[600];
- USHORT itt,its;
- void Init(){itt=its=1;} // keep 0 as invalid return
- void AddStrong(USHORT k1,USHORT k2,BFTAG bf,USHORT cpt)
-     { if(its>=598) return;
-	   ts[its++].Add(k1,k2,bf,cpt);ts[its++].Add(k2,k1,bf,cpt);}
- CANDGOSTRONG * Get(USHORT t1,USHORT t2)
-     {USHORT c1=t1>>1,c2=t2>>1;
-      for (int i=1;i<its;i++)
-	   {CANDGOSTRONG * w= & ts[i];
-	    if(w->key1-c1) continue; if(w->key2-c2) continue;
-		return w;
-	   }
-     return 0;} 
+
+class TCANDGO {
+public:
+	CANDGOFORWARD tt[5000];
+	CANDGOSTRONG ts[600];
+	USHORT itt, its;
+	void Init() {
+		itt = its = 1;
+	} // keep 0 as invalid return
+	void AddStrong(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt) {
+		if(its >= 598)
+			return;
+		ts[its++].Add(k1, k2, bf, cpt);
+		ts[its++].Add(k2, k1, bf, cpt);
+	}
+	const CANDGOSTRONG * Get(USHORT t1, USHORT t2) const {
+		USHORT c1 = t1 >> 1, c2 = t2 >> 1;
+		for(int i = 1; i < its; i++) {
+			const CANDGOSTRONG * w = &ts[i];
+			if(w->key1 - c1)
+				continue;
+			if(w->key2 - c2)
+				continue;
+			return w;
+		}
+		return 0;
+	} 
+
 }tcandgo;
 
 /* storage of the nested chains for pring purpose
@@ -78,36 +97,46 @@ class TCANDGO
   secondary for a nested object: start index, end index
   */
   
-class  CHAINSTORE
-{public:
-	int ibuf,        
-        starts[2000],ends[2000];
-	USHORT	ise,buf [10000],
-		s2[500],e2[500],ise2;
+class  CHAINSTORE {
+public:
+	USHORT buf[10000], ibuf,        
+		starts[2000], ends[2000],
+		ise,
+		s2[500], e2[500], ise2;
 
-  void Init(){ibuf=0;
-            starts[0]=ends[0]=0;ise=1; 
-            s2[0]=0; e2[0]=0; ise2=1;} // 0 is "empty"
-  USHORT AddChain(USHORT * tch,USHORT n)
-   {if(ibuf+n>10000) return 0;
-   starts[ise]=ibuf; 
-   for(int i=0;i<n;i++) buf[ibuf++]=tch[i];
-   ends[ise]=ibuf; 
-   if(ise>=499) return ise; // don't pass the limit
-   else return ise++;}
-  USHORT AddOne(USHORT * tch,USHORT n)
-  {if(ise2>=2000) return 0;
-	s2[ise2]=e2[ise2]=AddChain(tch,n);return ise2++;}
-  USHORT AddMul(USHORT d, USHORT f)
-   {if(ise2>=2000) return 0;
-    s2[ise2]=d;e2[ise2]=f;return ise2++;}
-  void Print(USHORT index);
+	void Init() {
+		ibuf=0;
+		starts[0] = ends[0] = 0;
+		ise = 1; 
+		s2[0] = 0;
+		e2[0] = 0;
+		ise2 = 1;
+	} // 0 is "empty"
+	USHORT AddChain(USHORT * tch, USHORT n) {
+		if(ibuf + n > 10000)
+			return 0;
+		starts[ise] = ibuf; 
+		for(int i = 0; i < n; i++)
+			buf[ibuf++] = tch[i];
+		ends[ise] = ibuf; 
+		if(ise >= 499)
+			return ise; // don't pass the limit
+		else
+			return ise++;
+	}
+	USHORT AddOne(USHORT * tch, USHORT n) {
+		if(ise2 >= 2000)
+			return 0;
+		s2[ise2] = e2[ise2] = AddChain(tch, n);
+		return ise2++;
+	}
+	USHORT AddMul(USHORT d, USHORT f) {
+		if(ise2 >= 2000)
+			return 0;
+		s2[ise2] = d;
+		e2[ise2] = f;
+		return ise2++;
+	}
+	void Print(USHORT index);
 }tstore;
 
-void CHAINSTORE::Print(USHORT index)
-{if(index>=ise2) return;
- int id=s2[index],ie=e2[index];
- for(int i=id;i<=ie;i++) 
-	 {USHORT * tx=&buf[starts[i]],n=ends[i]-starts[i];
-      if(n>0)zpln.PrintImply(tx,n);}
-}
