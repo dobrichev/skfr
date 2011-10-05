@@ -198,19 +198,12 @@ char * Blancs(int n,int pastrait)
 #include "wb_bruteforce.cpp"
 
 
-#include "c\_03a_jdk.cpp"
-#include "c\_03c_jdk_traite_base.cpp"
-#include "c\_04a_lock.cpp"
+#include "_03a_puzzle.cpp"
+//#include "c\_03c_jdk_traite_base.cpp"
+//#include "c\_04a_lock.cpp"
 #include "c\_04b_ecs.cpp"
 #include "c\_04c_xw.cpp"
-#include "c\_04d_paires.cpp"  
-//#include "c\_04d_xyw.cpp"
-//#include "c\_04d_paires_bug.cpp"  
-//#include "c\_04d_paires_bug3.cpp"  
-//#include "c\_04d_paires_bug4.cpp"  
-#include "c\_05b_RI_2N.cpp"
-#include "c\_05a_RIN_el.cpp"
-#include "c\_05a_RIN_el2.cpp"
+
 
 
  // attention de gros changements a venir dans ce qui suit
@@ -222,8 +215,6 @@ char * Blancs(int n,int pastrait)
 #include "c1\_10f_tdb0.cpp"
 #include "c1\_10g_cf.cpp"
 #include "c1\_10g_cf_cycle_chain.cpp"
-#include "h2\_30a_CANDGO.h"  // calle exclusively by chain_plus
-#include "h2\_30a_TCANDGO.h"  // calle exclusively by chain_plus
 #include "c2\_30a_CANDGO_gosets.cpp"  // subfunction for candgo
 #include "c2\_30a_CANDGO_while_nested.cpp"  // subfunction for candgo nested 
 #include "c2\_30a_CANDGO_cases.cpp"  // subfunction for candgo nested 
@@ -232,8 +223,8 @@ char * Blancs(int n,int pastrait)
 #include "c1\_11m_choix.cpp"
 #include "c1\_11n_tchoix.cpp"
 #include "c1\_11n_tchoix_check_go_nested.cpp"
-#include "c1\_12a_jdk_Chaines.cpp"
-#include "c1\_12a_jdk_Chaines2.cpp"
-#include "c1\_12a_jdk_ChainesNested.cpp"
-#include "c1\_12a_jdk_AlignedTriplet.cpp"
+//#include "c1\_12a_jdk_Chaines.cpp"
+//#include "c1\_12a_jdk_Chaines2.cpp"
+//#include "c1\_12a_jdk_ChainesNested.cpp"
+//#include "c1\_12a_jdk_AlignedTriplet.cpp"
 #include "c2\_20a_event.cpp"
