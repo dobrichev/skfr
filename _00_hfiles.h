@@ -31,5 +31,5 @@
 
 
 #include "h2\_20a_event.h"
-#include "h2\_30a_CANDGO.h"  // calle exclusively by chain_plus
+#include "_30a_CANDGO.h"  // calle exclusively by chain_plus
 #include "h2\_30a_TCANDGO.h"  // calle exclusively by chain_plus
