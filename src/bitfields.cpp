@@ -33,10 +33,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "Flog.h"
 #include "opsudo.h"
 #include "wa_puzzle.h"
-#include "h1\_10a_zg.h"
+#include "_03b_puzzle_chains.h"
+
+/*#include "h1\_10a_zg.h"
 #include "h1\_10a_path.h"
 #include "h1\_10b_cand.h"
-
+*/
 
 // new set of includes added by mladen
 // should replace the former one
