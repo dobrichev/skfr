@@ -40,7 +40,6 @@ USHORT
 long tdebut; // for debugging purpose start time in jdk traite base
 OPSUDO Op;
 FLOG EE;
-TZPTLN zpln;
 TP81 T81dep;
 TP81 * T81,*T81C;		//standard names for main objects of the class
 P81 * T81t,*T81tc;		//and corresponding tables of cells  
@@ -56,7 +55,14 @@ TPAIRES zpaires;
 TIR yt;
 CRIN ur;
 CRINT urt;
-
+TCHAIN tchain;
+ZGROUPE zgs;
+TZPTLN zpln;
+TZCF zcf;
+ZCXB zcxb;
+TZCHOIX zcx;
+TEVENT tevent;
+TCANDGO tcandgo;
 
 void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,UINT filt){
 	Op.mined = mined;
@@ -199,27 +205,6 @@ char * Blancs(int n,int pastrait)
 
 
 #include "_03a_puzzle.cpp"
-
-
- // attention de gros changements a venir dans ce qui suit
-
-#include "c1\_10a_path.cpp"
-#include "c1\_10a_chaine.cpp"
-#include "c1\_10a_zg.cpp"
-#include "c1\_10b_cand.cpp"
-#include "c1\_10f_tdb0.cpp"
-#include "c1\_10g_cf.cpp"
-#include "c1\_10g_cf_cycle_chain.cpp"
+#include "_03b_puzzle_chains.cpp"
+#include "_20a_event.cpp"
 #include "_30a_CANDGO.cpp"  // subfunction for candgo
-//#include "c2\_30a_CANDGO_while_nested.cpp"  // subfunction for candgo nested 
-//#include "c2\_30a_CANDGO_cases.cpp"  // subfunction for candgo nested 
-
-#include "c1\_10g_cf_chain_plus.cpp"
-#include "c1\_11m_choix.cpp"
-#include "c1\_11n_tchoix.cpp"
-#include "c1\_11n_tchoix_check_go_nested.cpp"
-//#include "c1\_12a_jdk_Chaines.cpp"
-//#include "c1\_12a_jdk_Chaines2.cpp"
-//#include "c1\_12a_jdk_ChainesNested.cpp"
-//#include "c1\_12a_jdk_AlignedTriplet.cpp"
-#include "c2\_20a_event.cpp"

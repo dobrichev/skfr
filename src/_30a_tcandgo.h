@@ -89,7 +89,7 @@ public:
 		return 0;
 	} 
 
-}tcandgo;
+};//tcandgo;
 
 /* storage of the nested chains for pring purpose
   storing is done in a buffer with a double index
