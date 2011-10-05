@@ -145,13 +145,15 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 	zcf.StartNestedOne();
 	zcx.StartNestedOne();
 	zcxb.StartNestedOne();
-	//BFTAG tt = zcf.h.d.t[tag]; 
-	to = zcf.h_one.dp.t; //forward and back tracking table
+	BFTAG tt = zcf.h.d.t[tag]; 
+	// see below to = zcf.h_one.dp.t; //forward and back tracking table
+
 	if(opp) {
-		EE.E("go nested for cand ");
-		zpln.Image(cand);
-		EE.Enl();
-	}
+		    EE.E("go nested for cand ");
+		    zpln.Image(cand);
+		    EE.Enl();
+	         }
+
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
 
@@ -183,12 +185,15 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 		itb = 0;
 
 		GoNestedWhile(tag, base);                    // while cycle
+
+
 		if(opp) {
 			EE.E("fin step=");
 			EE.E(npas);
 			step->Image("step ", 0);
 			(*step).Image("all", 0);
 		}
+
 		cumsteps[npas] = cumsteps[npas - 1] | (*step);
 		itx[npas] = itb;
 
@@ -207,7 +212,8 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 					maxpas = npas + 2; // limit the process to 2 more step
 				if(maxpas > pasmax)
 					maxpas = pasmax;
-				int l1 = GoBackNested(tgx, 0), l2 = GoBackNested(tgx ^ 1, 0);
+				int l1 = GoBackNested(tgx, 0), 
+					l2 = GoBackNested(tgx ^ 1, 0);
 				if((!l1) || (!l2))
 					continue; // should not be
 				int ratch = tchain.GetRating(l1 + l2, tag >> 1);
@@ -226,7 +232,7 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 
 			}// end for i
 		}
-		if(op0 && !aig) {
+		if(0 && !aig) {
 			EE.E("fin aig=0 pour step=");
 			EE.Enl(npas);
 		}
@@ -249,8 +255,8 @@ int CANDGO::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 	zcf.StartNestedOne();
 	zcx.StartNestedOne();
 	zcxb.StartNestedOne();
-	//BFTAG tt = zcf.h.d.t[tag]; 
-	to = zcf.h_one.dp.t; //forward and back tracking table
+	BFTAG tt = zcf.h.d.t[tag]; 
+	// see below to = zcf.h_one.dp.t; //forward and back tracking table
 	if(opp) {
 		EE.E("go nested for tag ");
 		zpln.ImageTag(tag);
@@ -302,7 +308,7 @@ int CANDGO::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 			return l1;
 		}
 
-		if(op0 && !aig) {
+		if(0 && !aig) {
 			EE.E("fin aig=0 pour step=");
 			EE.Enl(npas);
 		}
@@ -934,7 +940,11 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 
 				USHORT cd1 = toff[0], cd2 = toff[1]; 
 				if(n == 2) {
-					if(hdp[cd1].Off(cd2 ^ 1) || hdp[cd2].Off(cd1 ^ 1) || hdp[cd1 ^ 1].Off(cd2) || hdp[cd2 ^ 1].Off(cd1)) {
+					if(hdp[cd1].Off(cd2 ^ 1) || 
+					   hdp[cd2].Off(cd1 ^ 1) || 
+					   hdp[cd1 ^ 1].Off(cd2) || 
+					   hdp[cd2 ^ 1].Off(cd1)) {
+
 						hdp[cd1].Set(cd2 ^ 1);
 						hdp[cd2].Set(cd1 ^ 1);
 						hdp[cd1 ^ 1].Set(cd2);
@@ -1010,7 +1020,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 	NestedForcing(elims); 
 	if(opp && Op.ot)
 		elims.Image("netforcing recap", 0);
-	BFTAG x = elims; // - hdp[tag]; // elims in false state
+	BFTAG x = elims;  // elims in false state
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
 		allsteps |= x; // and in the total 
@@ -1028,7 +1038,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 	NestedMulti(elims2); 
 	if(opp && Op.ot)
 		elims2.Image("multiforcing recap", 0);
-	x = elims2;// - hdp[tag];  // elims in false state
+	x = elims2;// elims in false state
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
 		allsteps |= x; // and in the total 
@@ -1041,6 +1051,8 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 	}    
 }
 
+
+
 /*  create a reduced tdb without
     the candidate sutdied
 	all candidates forced or cleared if the candidate studied is true
@@ -1051,7 +1063,6 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 void CANDGO::Gen_dpn(USHORT tag)
 {          // create the reduced set of tags check tagelim empty 
  dpn.Init(); 
-// BFTAG tt=zcf.h.d.t[tag] ,      * tdp=zcf.h.dp.t;
  BFTAG tt=allsteps ,      * tdp=zcf.h.dp.t;
 
 
@@ -1061,8 +1072,8 @@ void CANDGO::Gen_dpn(USHORT tag)
 	 if(tt.On(j^1)) continue; // that tag is defined as well (to check)
       dpn.t[j]=tdp[j]-tt; // reduce the primary weak links
 	 }
-  if(op0) {tt.Image("allsteps at gen time",0);
-	       zcf.h.d.t[tag].Image("zcf.h.d.t[tag]",0);
+  if(0)   {tt.Image("allsteps at gen time",0);
+	       tt.Image("zcf.h.d.t[tag]",0);
 		   zcf.h.dp.Image();
 		   dpn.Image();
           }
@@ -1074,14 +1085,14 @@ void CANDGO::Gen_dpn(USHORT tag)
 
 
 int CANDGO::GoBackNested(USHORT tag,int pr)
-{if(op0){EE.E("goback");zpln.ImageTag(tag);EE.Enl();}
+{if(0){EE.E("goback");zpln.ImageTag(tag);EE.Enl();}
 USHORT itret1=0,nestedlength=0;  itret=0;
  BFTAG bf; 
  tret[itret++]=tag;bf.Set(tag);
   while(itret1<itret && itret<150) // solve each entry back
  { USHORT x=tret[itret1],aig=1; // first locate where x has been loaded
    int index=tsets[x];
-   if(opp && pr) 
+   if(0 && pr) 
          {EE.E("go back look for "); zpln.ImageTag(x);
               EE.E(" index= ");EE.E( index);
               EE.E(" itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
@@ -1095,7 +1106,7 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 	       // take in priority one already there  
 	         {USHORT y=tx[i2][j]; 
 			  if(to[y].On(x)) 
-			       {if(opp && pr) 
+			       {if(0 && pr) 
 			            {to[y].Image("to image ",y);}
 					if(!z)z=y;   if(bf.On(y)) {z=y;break;}			     } 
 	         }
@@ -1103,7 +1114,7 @@ USHORT itret1=0,nestedlength=0;  itret=0;
            }
 	   else  if(index>0) // it comes from a set, we know which one
 	        {ZCHOIX chx=zcx.zc[tsets[x]];
-	        if( Op.ot && pr)
+	        if( 0 && pr)
 			   {EE.E("set");chx.Image(); EE.Enl();}
 			int n=chx.ncd; if(chx.type==CH_set) n--; // for a set, forget the event
 		   for(int j=0;j<n;j++) 
@@ -1116,11 +1127,11 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 	     {	CANDGOFORWARD w=tcandgo.tt[-index];
 		  nestedlength += w.count;
 		  BFTAG bfn=w.source-bf; // add missing in source
-          if(opp && pr)
+          if(0 && pr)
 			  {EE.E("back forcing for "); zpln.ImageTag(x),EE.Enl();
 		       w.source.Image("source",0);
 			   bfn.Image("solde source",0);}
-		  if( Op.ot && pr) tstore.Print(w.index);
+		  if( 0 && pr) tstore.Print(w.index);
 		  for(int j=2;j<col;j++) if(bfn.On(j))
            {tret[itret++]=j;bf.Set(j);}
 	     }
@@ -1130,14 +1141,34 @@ USHORT itret1=0,nestedlength=0;  itret=0;
   itret1++;
   if(op0 && Op.ot) {EE.E("go back end step   itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
  }
- if(pr && Op.ot)  // printing in increasing order of generation
-    {EE.E("seq ");
-	 for(int i=0;i<=npas;i++) for(int j=0;j<itret;j++) 
-		 if(steps[i].On(tret[j])) {zpln.ImageTag(tret[j]); EE.Esp();}
+  if(pr && Op.ot)  // printing in increasing order of generation
+    {EE.Enl(" eliminations justification ");
+	 for(int i=0;i<=npas;i++) 
+	  for(int j=0;j<itret;j++) 
+		if(steps[i].On(tret[j])) 
+		 {USHORT wt=tret[j]; 
+		  zpln.ImageTag(wt); // print the tag annd look for explanation
+		  int index=tsets[wt];
+	      if(!index) 	     EE.Enl();  // direct no comment
+		  else  if(index>0) // it comes from a set, we know which one
+	        {ZCHOIX chx=zcx.zc[index];
+	         EE.E(" through set ");chx.Image(); EE.Enl(); 		    
+	        }
+
+	    else  // index <0 this is a nested elimination
+	     {CANDGOFORWARD w=tcandgo.tt[-index];
+		  EE.E(" through chain(s) "); EE.Enl();
+		   tstore.Print(w.index);
+	     }
+	      
       EE.Enl();
+        }
     EE.E("return itret=");EE.E( itret);EE.E(" nestedplus="); EE.Enl(nestedlength);
     }
 return itret + nestedlength;}
+
+
+
 
 /* looking for fresh forcing chain
    we have to find
@@ -1153,10 +1184,8 @@ return itret + nestedlength;}
 */
 void CANDGO::NestedForcing(BFTAG & elims) {
 	for(int i = 2; i < col; i += 2) {
-		if(allsteps.Off(i ^ 1) && dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
-			if(tcandgo.itt > 50)
-				continue; // provisoire pour comprendre
-			if(op0) {
+		if( dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
+			if(0) {
 				zpln.ImageTag(i);
 				EE.Enl("search  nested forcing chain");
 			}
@@ -1167,7 +1196,7 @@ void CANDGO::NestedForcing(BFTAG & elims) {
 				continue; // should never happen
 			if(npasch > 40)
 				continue; // should never happen either
-			if(op0) {
+			if(0) {
 				dpn.t[i].Image("dpn", 0);
 				dn.t[i].Image("dn", 0);
 				wch.Image("wch", 0);
@@ -1206,14 +1235,14 @@ and the source of all new strong links used
 */
 
 void CANDGO::NestedMulti(BFTAG & elims) {
-	if(op0)
+	if(0)
 		allsteps.Image("allsteps", 0);
 	for(int ie = 1; ie < zcx.izc; ie++) {
 		const ZCHOIX &chx = zcx.zc[ie];
 		int nni = chx.ncd, aig2 = 0; 
 		BFTAG zt;
 		zt.SetAll_1();
-		zt = zt.FalseState() - allsteps;
+		zt = zt.FalseState() - (allsteps|elims);
 		if(chx.type - CH_base)
 			continue;
 		// must be  n false 
@@ -1283,6 +1312,11 @@ void CANDGO::NestedMulti(BFTAG & elims) {
 				USHORT ii = tstore.AddMul(istored, istoref);
 				tsets[i ^ 1] =- tcandgo.itt;
 				tcandgo.tt[tcandgo.itt++].Add(ii, bfs, tot_count); 
+                if(opp)  // print it it test mode
+	             {EE.E("new eliminated");   zpln.ImageTag(i); 
+		          EE.E("  ichain="); EE.E(tstore.ise); 
+		          EE.E("  stored as "); EE.Enl(tsets[i]); 
+                 }
 			}
 		} // end tag not anymore valid
 	}// end ie
