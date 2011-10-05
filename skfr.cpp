@@ -36,13 +36,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "finout.h" //declarations files for the program
 #include "opsudocmd.h"
 #include "h\ratingengine.h"
-#include "h\utilities.h"
+#include "utilities.h"
 // global variables
 FINPUT finput;
 FOUTPUT foutput,se_refus;
 OPSUDOCMD Op;
-#include "c\_00_Batch_Start.cpp" // main routine initial and command line parsing
-#include "c\_00_Batch_Go.cpp"    // main routine processing puzzles
+#include "_00_Batch_Start.cpp" // main routine initial and command line parsing
+#include "_00_Batch_Go.cpp"    // main routine processing puzzles
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<main file
 //! Main : lauch initialization and if ok the rating of the puzzle batch
