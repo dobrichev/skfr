@@ -10,9 +10,7 @@
 #include "wa_puzzle.h"
 #include "wb_bruteforce.h"
 #include "_03a_puzzle.h"                  // general class to solve a puzzle
-//#include "h\_04b_tir.h"                // class for processing of locked sets and fishes
-//#include "h\_04d_paires.h"
-#include "h\_05a_RIN.h"
+//#include "h\_05a_RIN.h"
 
 
 // h1 subdirectory contains exclusively classes for tagging
@@ -25,7 +23,6 @@
 #include "h1\_10b_cand.h"    //
 // un lot tdb + cf0 + cf à renommer ?? 
 #include "h1\_10f_tdb.h"
-//#include "h1\_10g_cf0.h" now obsolete
 #include "h1\_10g_cf.h"
 // un lot choix + tchoisx a renommer SETS TSETS
 #include "h1\_11m_choix.h"
@@ -34,3 +31,5 @@
 
 
 #include "h2\_20a_event.h"
+#include "h2\_30a_CANDGO.h"  // calle exclusively by chain_plus
+#include "h2\_30a_TCANDGO.h"  // calle exclusively by chain_plus
