@@ -2154,7 +2154,7 @@ bool UL_SEARCH::ParityCheck(void) {
 	bool isOdd = false;
 	for(int i = 0; i < (line_count - 1); ++i) {
 		isOdd = !isOdd;
-		unsigned int curRow = I81::Div9(tcount[i]);
+		unsigned int curRow = tcount[i]/9;
 		unsigned int curCol = tcount[i] % 9;
 		unsigned int curBox = I81::Boite(curRow, curCol);
 		int newPos = 1 << curRow | 1 << (curCol + 9) | 1 << (curBox + 18);

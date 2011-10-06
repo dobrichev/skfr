@@ -85,7 +85,7 @@ public:
 		return i - 6;
 	}
 	static inline USHORT Div3(int i) {if(i<3) return 0;  if(i<6) return 1;  return 2;}
-	static inline USHORT Div9(int i)      {return i/9;     }
+//	static inline USHORT Div9(int i)      {return i/9;     }
 	static inline USHORT Boite(int i,int j)
 	{int jj=Div3(j); if(i<3) return jj; if(i<6) return (3+jj); else return (6+jj);}
 	static inline USHORT PosBoite(int i,int j) { return 3*Mod3(i)+Mod3(j);}
@@ -112,7 +112,7 @@ public:
 	/** \param ie cell index */
 	void init(USHORT ie)
 	{
-		i8=ie; el=I81::Div9(ie);
+		i8=ie; el=ie/9;
 		pl=ie-9*el;
 		eb=I81::Boite(el,pl);
 		pb=I81::PosBoite(el,pl);
