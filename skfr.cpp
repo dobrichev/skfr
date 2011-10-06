@@ -35,7 +35,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "skfrtype.h"
 #include "finout.h" //declarations files for the program
 #include "opsudocmd.h"
-#include "h\ratingengine.h"
+#include "ratingengine.h"
 #include "utilities.h"
 // global variables
 FINPUT finput;

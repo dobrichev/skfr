@@ -30,7 +30,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // routines calles by "Main" and specific functions used
 //==== specific data
 char finput_name[128]; // string file names if given
-char * version="V1.1.0 dated October 5th 2011";
+char * version="V1.1.1 dated October 6th 2011";
 
 // =====================functions written below
 
