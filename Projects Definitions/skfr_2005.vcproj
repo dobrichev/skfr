@@ -188,19 +188,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\finout.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\flog.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\src\opsudo.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\opsudocmd.cpp"
 				>
 			</File>
 			<File
