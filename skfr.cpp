@@ -31,9 +31,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // output = input valid + rating   default input="puz.txt"  
 // default output1="puz_rat.txt"  default output1="puz_N_rat.txt"
 
-#include <math.h>
-#include <sys/timeb.h>
-#include <time.h>   // s_posit  
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
@@ -44,7 +41,19 @@ using namespace std;
 #include "ratingengine.h"
 #include "utilities.h"
 
-#include "bitfield32.h"
+//! a class for bitfield (limited to 32 bits) and set of functions and operators
+class BF32
+ {public:  UINT f;   // bitfield
+  BF32() {f=0;}               // constructor
+	/// is bit at ch position on
+	inline int On(int ch)  {return ((f & (1<<ch))); }
+	/// is bit at ch position off
+	inline int Off(int ch)  {return (!(f & (1<<ch))); }
+	/// set bit at ch position
+	inline void Set(USHORT ch) {f|=(1<<ch);}
+	/// clear bit at ch position
+	inline void Clear(USHORT ch) {f&=~(1<<ch) ;}
+};
 
 //class OPSUDOCMD
 
