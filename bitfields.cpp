@@ -27,18 +27,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
-#include "stdafx.h"
 #include "global.h"
 #include "bitfields.h"
 #include "Flog.h"
 #include "opsudo.h"
 #include "_03c_puzzle_fix.h"
 #include "_03b_puzzle_chains.h"
-
-/*#include "h1\_10a_zg.h"
-#include "h1\_10a_path.h"
-#include "h1\_10b_cand.h"
-*/
 
 // new set of includes added by mladen
 // should replace the former one

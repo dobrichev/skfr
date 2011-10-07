@@ -155,7 +155,7 @@ void TP81::CandidatsT() {
 	for(i = 0; i < 9; i++) {  // attention ici i indice colonne
 		lcol[i] = 2;    // 2  mini tous chiffres imposés
 		for(j = 0; j < 9; j++) {
-			l = strlen(t81[9 * j + i].strcol()); 
+			l = (int)strlen(t81[9 * j + i].strcol()); 
 			if(l > lcol[i])
 				lcol[i] = l;
 		}
@@ -181,7 +181,7 @@ void TP81::CandidatsT() {
 			P81* pp8 = &t81[9*i + j];
 			pw = pp8->strcol();		  
 			EE.E(pw);
-			EE.E(Blancs(lcol[j] + 1 - strlen(pw), 1));
+			EE.E(Blancs(lcol[j] + 1 - (int)strlen(pw), 1));
 		} // end for j
 		EE.Enl();
 	} // end for i

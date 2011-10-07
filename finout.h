@@ -80,7 +80,7 @@ public:
     
 	void GetLogName(char * zn)
 	   {strcpy_s(zn,198,namex); 
-		int ll=strlen(zn);
+		int ll=(int)strlen(zn);
         strcpy_s(&zn[ll],30,"_log.txt");
 	   }
 };
