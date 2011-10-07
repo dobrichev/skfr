@@ -34,7 +34,7 @@ char * version="V1.1.1 dated October 6th 2011";
 
 // =====================functions written below
 
-int Convert_String_to_string(char * str,System::String  ^Str);
+//int Convert_String_to_string(char * str,System::String  ^Str);
 int Search_ccd(char * ww,int n);  // search commands 2 or 3  bytes
 int Search_long(char * ww);   // search for extended commands eg: input=FILE
 int GetRating(char * z);     // look for xx.y
@@ -52,14 +52,18 @@ int CallOpenLog(char *);
  * \return 0 if an error occured (incoherence between min max options 
  * or error when opening files), 1 if all is ok
  */
-int Batch_Start(array<System::String ^> ^args)
+//int Batch_Start(array<System::String ^> ^args)
+int Batch_Start(int argc, char *argv[])
 {
-	char ww[512];
+	//char ww[512];
+	char *ww;
 	cout <<"Version: "<< version<<endl;
-	int narg=args->GetLength(0);
+	//int narg=args->GetLength(0);
+	int narg=argc;
 	for(int i=0;i<narg;i++)
 	{
-		if(!Convert_String_to_string(ww,args[i])) continue;// ignore if error
+		//if(!Convert_String_to_string(ww,args[i])) continue;// ignore if error
+		ww = argv[i];
 		int val1;
 		int ir=Search_ccd(ww,3);	// look for 3 char command
 		if(ir>=0)
@@ -209,16 +213,16 @@ int GetRating(char * z)
  * \param Str unicode string
  * \return 0 if an error occured, 1 OK
  */
-int Convert_String_to_string(char * str,System::String  ^Str)
-{
-	pin_ptr<const wchar_t> wch = PtrToStringChars(Str);
-	size_t convertedChars = 0;
-	size_t sizeInBytes = ((Str->Length + 1) * 2);
-	errno_t err = 0;
-	err = wcstombs_s(&convertedChars, str, 512,  wch, sizeInBytes);
-	if (err != 0)return 0; 
-	return 1;
-}
+//int Convert_String_to_string(char * str,System::String  ^Str)
+//{
+//	pin_ptr<const wchar_t> wch = PtrToStringChars(Str);
+//	size_t convertedChars = 0;
+//	size_t sizeInBytes = ((Str->Length + 1) * 2);
+//	errno_t err = 0;
+//	err = wcstombs_s(&convertedChars, str, 512,  wch, sizeInBytes);
+//	if (err != 0)return 0; 
+//	return 1;
+//}
 //===========================================
 //! Finish command  command -n(y)xx.x
 /** 

@@ -48,7 +48,8 @@ int FINPUT::OpenFI()
 	strcpy_s(&zn[ll],30,".txt"); // add file type
 	ifstream::open(zn); 
 	if(is_open()) return 0 ;
-	Console::WriteLine("problem in open input");
+	//Console::WriteLine("problem in open input");
+	cerr<<"problem in open input\n";
 	endf=1;
 	return 1; 
 }
@@ -118,7 +119,8 @@ int FOUTPUT::OpenFO(char * nam)
 	ofstream::open(nam); 
 	if(is_open()) 
 		return 0;
-	Console::WriteLine("problem in open output");
+	//Console::WriteLine("problem in open output");
+	cerr<<"problem in open output\n";
 	open =0;
 	endf=1;
 	return 1;
