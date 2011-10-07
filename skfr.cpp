@@ -45,10 +45,16 @@ OPSUDOCMD Op;
 #include "_00_Batch_Go.cpp"    // main routine processing puzzles
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<main file
-//! Main : lauch initialization and if ok the rating of the puzzle batch
-int main(array<System::String ^> ^args)
-{
-	if(Batch_Start(args)) 
+////! Main : lauch initialization and if ok the rating of the puzzle batch
+//int main(array<System::String ^> ^args)
+//{
+//	if(Batch_Start(args)) 
+//		Batch_Go();
+//	return 0;
+//}
+
+int main(int argc, char *argv[]) {
+	if(Batch_Start(argc, argv)) 
 		Batch_Go();
 	return 0;
 }
