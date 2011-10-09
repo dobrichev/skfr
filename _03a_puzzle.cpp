@@ -911,7 +911,7 @@ void PUZZLE::TaggingInit() {
 	zcf.Init();     // elementary weak links
 	zcx.Init();     // sets (choices) in use
 	// tevent.Init();   // event
-	BFTAG::SetMax();
+	//BFTAG::SetMax(); //MD: it is always at max
 }
 
 // chain call 1=biv 2= cell_bivalue 4=nishio 8dynamic 16=multi_chain

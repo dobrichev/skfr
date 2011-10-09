@@ -91,26 +91,27 @@ int BF81::io = 0, BF81::jo = 0;
 
 // BFTAG
 // global variable for class BFTAG
-int BFTAG::io = 0, BFTAG::jo = 0, BFTAG::isize = 20;
+int BFTAG::io = 0, BFTAG::jo = 0;
+//int BFTAG::isize = 20;
 
 
 //-----
 void BFTAG::SetAll_0() {
-	for(int i = 0; i < 20; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		f[i] = 0;
 }
 void BFTAG::SetAll_1() {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		f[i] = -1;
 }
 int BFTAG::IsNotEmpty() const {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		if(f[i])
 			return 1;
 	return 0;
 }
 int BFTAG::IsEmpty() const {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		if(f[i])
 			return 0;
 	return 1;
@@ -140,14 +141,14 @@ BFTAG BFTAG::Inverse() {
 
 BFTAG BFTAG::TrueState() const {
 	BFTAG w = (*this);
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		w.f[i] &= true32;
 	return w;
 };
 
 BFTAG BFTAG::FalseState() const {
 	BFTAG w = (*this);
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		w.f[i] &= false32;
 	return w;
 };
@@ -161,48 +162,48 @@ void BFTAG::String(USHORT * r, USHORT &n) const {
 }
 BFTAG BFTAG::operator & (const BFTAG &z2) const {
 	BFTAG w;
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		w.f[i] = f[i] & z2.f[i];
 	return w;
 }
 BFTAG BFTAG::operator | (const BFTAG &z2) const {
 	BFTAG w;
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		w.f[i] = f[i] | z2.f[i];
 	return w;
 }
 BFTAG BFTAG::operator ^ (const BFTAG &z2) const {
 	BFTAG w;
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		w.f[i] = f[i] ^ z2.f[i];
 	return w;
 }
 void BFTAG::operator &= (const BFTAG &z2) {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		f[i] &= z2.f[i];
 }
 void BFTAG::operator |= (const BFTAG &z2) {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		f[i] |= z2.f[i];
 }
 void BFTAG::operator ^= (const BFTAG &z2) {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		f[i] ^= z2.f[i];
 }
 int BFTAG::operator == (const BFTAG &z2) const {
-	for(int i = 0; i < isize; i++)
+	for(int i = 0; i < BFTAG_size; i++)
 		if(!(f[i] == z2.f[i]))
 			return 0;
 	return 1;
 }
 BFTAG BFTAG::operator - (const BFTAG &z2) const {
 	BFTAG w;
-	  for(int i = 0; i < isize; i++)
+	  for(int i = 0; i < BFTAG_size; i++)
 		  w.f[i] = f[i] ^ (f[i] & z2.f[i]);
 	  return w;
 }
 void BFTAG::operator -= (const BFTAG &z2) {
-	  for(int i = 0; i < isize; i++)
+	  for(int i = 0; i < BFTAG_size; i++)
 		  f[i] ^= (f[i] & z2.f[i]);
 }
 
@@ -416,7 +417,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 		//   EE.E("passe npas=");EE.E(npas); EE.Esp();
 		//   zpln.PrintListe(tb,itb,1);
 	}// end while
-	if((npas+2) - itt) {
+	if((npas + 2) - itt) {
 		/* debugging code to relocate
 		if(1 && Op.ot) {
 			EE.E("invalid trackback end phase 1 npas==");

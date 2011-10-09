@@ -603,7 +603,7 @@ class BFTAG {
 	UINT f[BFTAG_size];     // the bit field
 	static int io;		///<Used for translation of bitfield position to array index 
 	static int jo;		///<Used for translation of bitfield position to bit position in int
-	static int isize;	///<Number of 32 bits int realy used (a class parameter)
+	//static int isize;	///<Number of 32 bits int realy used (a class parameter)
 	static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
 	static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
 	void ij(int v) {
@@ -613,17 +613,17 @@ class BFTAG {
 public:
 	BFTAG() {
 		SetAll_0();
-		isize = BFTAG_size;
+		//isize = BFTAG_size;
 	}
 	BFTAG(const BFTAG &x) {
 		(*this) = x;
 	}
-	static void SetMax() {
-		isize = BFTAG_size;
-	}
-	static void SetIsize(int icol) {
-		isize = (icol + 31) >> 5;
-	}
+	//static void SetMax() {
+	//	isize = BFTAG_size;
+	//}
+	//static void SetIsize(int icol) {
+	//	isize = (icol + 31) >> 5;
+	//}
 	///\brief Clear all bits
 	void SetAll_0();
 	///\brief Set all bits (limited to <code>isize</code> int)
