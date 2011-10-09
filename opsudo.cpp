@@ -28,7 +28,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 //#include "stdafx.h"
-#include "global.h"
 #include "bitfields.h"
 #include "flog.h"
 

@@ -601,29 +601,17 @@ public:
 /// BFTAG::jo.
 class BFTAG {
 	UINT f[BFTAG_size];     // the bit field
-	//static int io;		///<Used for translation of bitfield position to array index 
-	//static int jo;		///<Used for translation of bitfield position to bit position in int
-	//static int isize;	///<Number of 32 bits int realy used (a class parameter)
+
 	static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
 	static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
-	//void ij(int v) {
-	//	io = v >> 5;
-	//	jo = v & 31;
-	//};
+
 public:
 	BFTAG() {
 		SetAll_0();
-		//isize = BFTAG_size;
 	}
 	BFTAG(const BFTAG &x) {
 		(*this) = x;
 	}
-	//static void SetMax() {
-	//	isize = BFTAG_size;
-	//}
-	//static void SetIsize(int icol) {
-	//	isize = (icol + 31) >> 5;
-	//}
 	///\brief Clear all bits
 	void SetAll_0();
 	///\brief Set all bits (limited to <code>isize</code> int)
@@ -632,35 +620,23 @@ public:
 	inline int On(int v) const {
 		int io = v >> 5;
 		int jo = v & 31;
-		//ij(v);
 		return (f[io] & (1 << jo));
 	}
 	///\brief is bit in position <code>v</code> Off
 	inline int Off(int v) const {
 		int io = v >> 5;
 		int jo = v & 31;
-		//ij(v);
 		return ((f[io] & (1 << jo)) == 0);
 	}
 	///\brief Set bit in position <code>v</code> to On
 	inline void Set(int v) {
-		//ij(v);
 		f[v >> 5] |= (1 << (v & 31));
 	}
 	///\brief Clear bit in position <code>v</code> 
 	inline void Clear(int v) {
-		//ij(v);
-		if(On(v)) //TODO: duplicate call of ij(v)
+		if(On(v))
 			f[v >> 5] ^= (1 << (v & 31));
 	}
-	///\brief Exchange even and odd bits of parameter <code>i</code>
-	//inline UINT FInv(UINT i) {
-	//	return (((i & false32) >> 1) | ((i & true32) << 1));
-	//} 
-	///\brief And between odd and even bits of parameter <code>i</code>
-	//inline int FLayer(UINT i) {
-	//	return i & FInv(i);
-	//}
 	void Clear(BFTAG &z2);
 	BFTAG Inverse();
 	BFTAG operator & (const BFTAG &z2) const;
@@ -672,22 +648,24 @@ public:
 	void operator ^= (const BFTAG &z2);
 	void operator -= (const BFTAG &z2);
 	int operator == (const BFTAG &z2) const;
-	BFTAG BFTAG::operator ~();
+	//BFTAG BFTAG::operator ~();
 	int IsNotEmpty() const;     
 	int IsEmpty() const;
 	///\brief get on bits count (limit count to first <code>col+2</code> bits)
 	///
 	///\sa col in file _00_ assSE.h
 	int Count() const;
+
 	///\brief get positon of first bit On (limited by <code>col+2</code>)
 	///
 	///<b>WARNING BUG :</b> if no bit On return 0 which is the same if bit at position 0 is On.<br>
 	///It seems that the first 2 bits are not used see limit to col+2.<br>
 	/// <b>OPTIMIZATION :</b> possible to test each int before looking at their 32 positions
 	///\return index or 0 if none
-	int First() const;
+	//int First() const;
 	///\brief keep only the True state or the false state
 	/// 
+
 	BFTAG TrueState() const;
 	BFTAG FalseState() const;
 	///\brief fill the array (first parameter) with the list of position of On Bit
