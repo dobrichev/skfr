@@ -28,7 +28,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 // RatingEngine
 
-#include "global.h"
 #include "_00_hfiles.h"
 #include "utilities.h"
 // global variables for RatingEngine

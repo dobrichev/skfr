@@ -208,13 +208,13 @@ void BFTAG::operator -= (const BFTAG &z2) {
 }
 
 //------
-int BFTAG::First() const {
-	for(int i = 0; i < /*puz.col + 2*/ BFTAG_size; i++) {
-		if(On(i))
-			return i;
-	}
-	return 0;
-}
+//int BFTAG::First() const {
+//	for(int i = 0; i < /*puz.col + 2*/ BFTAG_size; i++) {
+//		if(On(i))
+//			return i;
+//	}
+//	return 0;
+//}
 
 /* search in the area x cycle to xy chain
    1) a cycle can give no elimination.
