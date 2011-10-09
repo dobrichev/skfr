@@ -51,42 +51,11 @@ public:
 	 maxer,      //< er limit for -r<     (rate only lowest puzzles
 	 miner,      //< er limit for -n(?)> (high rating low ed)
 	 edcycles,   //< number of cycles for differed ed
-         ptime,      //< write time after er ep ed
-	 ir,		//< return code for Step()
-	 cycle,		//< counting cycles in the main loop
-	 assigned,  //< counting assigned in the main loop
-	 ermax,     //< final er if ok or cancelled due to filters
-	 epmax,     //< final ep if ok or cancelled due to filters
-	 edmax,     //< final ed if ok or cancelled due to filters
-	 difficulty,  //< storing last call for difficulty used to set er ep ed
-     //! store the return code status
-	/**
-	bit 0 =1 if "not rated" or "spit not ok"
-	bit 1 =1 if end in "error" or "not finished"
-	bit 2=1 if not "diamond" "pearl" with that option
-	bit 3=1 if split ok (bit 1 = 0)
-	*/
-	c_ret;
+         ptime;      //< write time after er ep ed
+
 	BF16 filters; // filters families activated  ed;ep;er;n
 
 	OPSUDO();  // constructor, overall initial values for command line
-
-	void Init(); // start of a resolution
-
-	//! filter on ED 
-	int is_ed_ep();   // at the start of a new cycle
-	
-	int Is_ed_ep_go();
-
-	void Step(SolvingTechnique dif)  ;  // analyse what to do at that level
-
-	inline void SetDif(USHORT dif){difficulty=dif;} // sub level inside a process
-
-	void SetEr();   // something found at the last difficulty level  
-
-	inline void Seterr(int x)  // an error condition has been found
-    {ermax=0; epmax=0;edmax=x;
-	} 
 
 
 };	 

@@ -265,8 +265,9 @@ public:
 		elza81[27],
 		csol[9];   //< Solution as positions of the 9 digits
     BFTAG pointK;
-    int cycle, 
-		coup,
+
+
+    int coup,
 		coupMM,
 		couprem; 
     char fix[81],
@@ -276,8 +277,50 @@ public:
 		   stop_rating,   // set to 1
 		   nfix;
 
+	// data for the rating 
+    USHORT
+		 rating_ir,		//< return code for Step()
+	     cycle,		//< counting cycles in the main loop
+	     assigned,  //< counting assigned in the main loop
+	     ermax,     //< final er if ok or cancelled due to filters
+	     epmax,     //< final ep if ok or cancelled due to filters
+	     edmax,     //< final ed if ok or cancelled due to filters
+	     difficulty,  //< storing last call for difficulty used to set er ep ed
+          //! store the return code status
+	            /**
+	              bit 0 =1 if "not rated" or "spit not ok"
+	              bit 1 =1 if end in "error" or "not finished"
+	              bit 2=1 if not "diamond" "pearl" with that option
+	              bit 3=1 if split ok (bit 1 = 0)
+	            */
+	     c_ret;
+
+
 
 	PUZZLE();
+
+
+    /* set of routines previously in opsudo */
+
+		//! filter on ED 
+	int is_ed_ep();   // at the start of a new cycle
+	
+	int Is_ed_ep_go();
+
+	void Step(SolvingTechnique dif)  ;  // analyse what to do at that level
+
+	inline void SetDif(USHORT dif){difficulty=dif;} // sub level inside a process
+
+	void SetEr();   // something found at the last difficulty level  
+
+	inline void Seterr(int x)  // an error condition has been found
+    {ermax=0; epmax=0;edmax=x;
+	} 
+
+
+
+
+
     //void Initial(); 
 	void cInit(int un=0);
 	void Copie_T_c();

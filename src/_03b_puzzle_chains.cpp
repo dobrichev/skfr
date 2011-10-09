@@ -127,14 +127,14 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
 }
 
 int TCHAIN::IsOK(USHORT x) {
-	int ir=((rating <= x) || (rating <= Op.ermax));
+	int ir=((rating <= x) || (rating <= puz.ermax));
 	if(ir && Op.ot) {
 		EE.E(" sortie isok chaine x=");
 		EE.E(x); 
 		EE.E(" rating=");
 		EE.E(rating);  
 		EE.E(" ermax==");
-		EE.Enl(Op.ermax); }
+		EE.Enl(puz.ermax); }
 	return ir;
 	//{return ((rating <= x ) || (rating <= Op.ermax));}
 }
@@ -1118,7 +1118,7 @@ parentpuz->Elimite("ZCX");return 0;}
 	   for(int  j=3;j< puz.col;j+=2)if(tbt.On(j)) // all tags assigned
 	      {int tot_length=0; USHORT jj=j^1;// skip from assigned to eliminated
 	       if(Op.ot && 0){EE.E(" Set killing "); zpln.ImageTag(jj); EE.Enl(); }
-		   if(Op.ermax>85+n-3) // gofast if already far above
+		   if(puz.ermax>85+n-3) // gofast if already far above
 		    {zpln.Clear(jj>>1); ir++;
 		   if(Op.ot){EE.E(" Set fast killing "); zpln.ImageTag(jj); EE.Enl();}
 		    continue;}

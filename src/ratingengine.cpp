@@ -167,9 +167,9 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 		puz.csol[puz.solution[i]-'1'].Set(i);
 	// do standard processing
 	int rc = puz.Traite();
-	*er = Op.ermax;
-	*ep = Op.epmax;
-	*ed = Op.edmax;
+	*er = puz.ermax;
+	*ep = puz.epmax;
+	*ed = puz.edmax;
 	*aig = puz.stop_rating;
 	return  rc;
 }

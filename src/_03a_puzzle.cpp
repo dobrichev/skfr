@@ -340,8 +340,115 @@ void PUZZLE::Estop(char * lib)
 	EE.Enl(lib); 
 	EE.Enl(); }
 
+
+/* routins imported from opsudo
+
+*/
+
+
+
+int PUZZLE::is_ed_ep()   // at the start of a new cycle
+	{
+		if(cycle<2) return 0;
+		c_ret = Is_ed_ep_go();
+		return c_ret;
+	}
+void PUZZLE::SetEr()   // something found at the last difficulty level  
+	{
+		if((cycle==1)&& difficulty>edmax) edmax=difficulty;
+		if(((!assigned)|| (!epmax))&& difficulty>epmax) epmax=difficulty;
+		if(difficulty>ermax) ermax=difficulty;      
+	}
+
+
+// filter at the start of a new cycle
+
+int PUZZLE::Is_ed_ep_go()  // is the ed or  condition fullfilled
+{switch(Op.o1)
+  {case 0: return 0;       // nothing to do
+ 
+     // if -d command, other filters ignored  
+   case 1: if((ermax- edmax)>Op.delta)  
+		      {ermax=0;epmax=0;return 1;}  // not diamond
+		   return 0;// continue if still ed
+
+
+     // if -p command, similar results
+   case 2: if(!assigned) return 0;   // -p command
+	       if((ermax- epmax)>Op.delta)
+		        {ermax=0;return 1;} // not pearl
+	       return 0;// continue if still ep
+  }	
+	
+     // now, we have no -d no -p command but at least one filter is on	
+     // give priority to the -n() command
+
+if(Op.filters.On(3) )// -n() command
+	if(ermax >= Op.miner) {ermax=0;return 3;} // finished
+      else if(cycle>Op.edcycles) return 4;
+
+	  //then all max conditions
+if(edmax>=Op.maxed || epmax>=Op.maxep || ermax>=Op.maxer)
+	     {ermax=0;return 3;} // finished
+
+     // and finally min ED and min EP
+if(edmax<=Op.mined)  {ermax=0;return 3;} // finished
+if(assigned && epmax<=Op.minep)  {ermax=0;return 3;} // finished
+if(!Op.os)return 0; // finish with split ok
+
+     // that sequence should work for any combinaison of filters.
+if((Op.filters.f&7) ==1) return 4; // ed ok for split   	
+if(assigned && ((Op.filters.f&6) ==2))  return 4; // ep ok for split   	
+
+return 0;}
+
+// the next routine is called at each step of the process
+// the searched rating is stored in "difficulty"
+// a check of filters is made and if any special filter is active,
+// the process is cancelled
+// return code 0 nothing special
+//             1 process cancelled
+//             2 ignore (er<x.y) these routines
+
+void PUZZLE::Step(SolvingTechnique dif) {   // analyse what to do at that level
+	rating_ir = 0;
+	difficulty = dif;
+	if(Op.o1 < 2)
+		return; //nothing to do for -d command
+	// if -p command, stop if we pass maxep
+	if(Op.o1 == 2) {
+		if(assigned && difficulty > Op.maxep) {
+			ermax = 0;
+			rating_ir = 1;
+			return;
+		} 
+		else
+			return;
+	}
+	// now other special filters 
+	// -n() active if we pass the limit
+	if(Op.filters.On(3)) {    // -n() command
+		if(difficulty >= Op.miner) {
+			ermax = 0;
+			rating_ir = 3;
+			return;
+		}  // finished
+	}
+	if(difficulty >= Op.maxer) {
+		ermax = 0;
+		rating_ir = 2;
+		return;
+	} // filter on maxer cancelling high rating
+
+	/*
+	if(difficulty>maxed || difficulty>maxep ){maxer=0; ir=1;return;}
+	*/
+}
+
+
+
+
 PUZZLE::PUZZLE() {
-	stop_rating=0;
 	solution = un_jeu.ggf.pg;  
 	T81 = &tp8N;
 	T81C = &tp8N_cop;
@@ -452,7 +559,7 @@ int PUZZLE::Directs() { //en tete appliquer regle de base
 //    NakedSingle=23,	 cell one candidate 
 
 int PUZZLE::FaitDirects(int rating) {
-	if(puz.stop_rating)
+	if(stop_rating)
 		return 1; 
 	int ir = 0;
 	for(int i = 0; i < 81; i++) {
@@ -494,7 +601,7 @@ int PUZZLE::FaitDirects(int rating) {
 }
 
 int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single forced
-	EE.E(++Op.assigned);
+	EE.E(++assigned);
 	EE.E(" ");
 	EE.E(t81f[i].pt);
 	EE.E("=");
@@ -503,8 +610,8 @@ int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single 
 	if(c2 < 4)
 		EE.Enl(orig1[c2]);
 	else EE.Enl(" assigned");
-	if((un_jeu.ggf.pg[i] - c1) && (!puz.stop_rating)) { // validite  fixation
-		puz.stop_rating=1;
+	if((un_jeu.ggf.pg[i] - c1) && (!stop_rating)) { // validite  fixation
+		stop_rating=1;
 		EE.E( "FIXATION INVALIDE");
 		return 0;
 	}
@@ -578,10 +685,10 @@ int PUZZLE::Check() {
 }
 
 int PUZZLE::CheckChange(int i, int ch) {
-	if(puz.stop_rating) return 1;
+	if(stop_rating) return 1;
 	if(solution[i]-(ch + '1'))
 		return 0;
-	puz.stop_rating = 1;
+	stop_rating = 1;
 	EE.E("ELIMINATION INVALIDE ");
 	EE.E(ch+1);
 	EE.Enl(t81f[i].pt);
@@ -913,8 +1020,8 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 int PUZZLE::Rating_end(int next) {
 	if(!tchain.IsOK(next))
 		return 0;
-	Op.Step((SolvingTechnique)tchain.rating);
-	if(Op.ir)
+	Step((SolvingTechnique)tchain.rating);
+	if(rating_ir)
 		return 0; 
 	return tchain.Clean();
 }
@@ -973,42 +1080,6 @@ int PUZZLE::Rating_base_80() {
 	return Rating_end(200);
 } 
 
-/* killed for the new one
-//==============================================
-// 85 is DynamicForcingChain
-	// at least the derived weak links from direct weak links
-	// we do that once for ever till the end
-int PUZZLE::Rating_base_85()
-{ if(Op.ot) EE.Enl("start rating base 8.5 dynamic forcing chain");
-  if(0&& Op.ot){   long tw=GetTimeMillis();
-             int dt=tw-tdebut;
-		     EE.E("time =");EE.Enl(dt);}
- tchain.SetMaxLength(85);
- BFCAND bf0; // init to no candidate found 
- zcf.CloseOne(); // store the index and basic weak links
- zcx.DeriveDirect(); 
- zcf.ChainPlus(bf0);	
- if(tchain.IsOK(87) ) return Rating_end(87); 
- zcf.DeriveCycle(3,3,0,4); // one cycle;
- zcf.ChainPlus(bf0);	
- if(tchain.IsOK(87) ) return Rating_end(87); // the shortest should come here
- // zcf.ListeForIdPhase(wl_set,zcf.iphase);
-// tout ce qui suit est provisoire et à préciser
-
-  if(!zcf.DeriveCycle(3,7,0,10)) return Rating_end(100);
-  if(tchain.IsOK(90) ) return Rating_end(90); // the shortest should come here
-  zcf.ChainPlus(bf0);	
-  //if(tchain.ichain) return Rating_end(100);
-
-   int iw=1;
-   while(iw++<8)
-	   {if(!zcf.DeriveCycle(3,9,0)) return Rating_end(100);
-	    zcf.ChainPlus(bf0);
-        if(tchain.IsOK(93) ) return Rating_end(93); // the shortest should come here
- 	   }
-
- return Rating_end(200);}
- */ 
 
 /* 85 new process
    expand completely the tags, but try to do it to catch the shortest
@@ -1035,36 +1106,7 @@ int PUZZLE::Rating_base_85() {
 	return Rating_end(200);
 }
 
-/* old process cancelled
-//==============================================
-// 90 is DynamicForcingChainPlus
-// all "events"  claiming, pointing, pair, hidden pair, XWing
-// follows an empty step 85
-// consider each false candidate as start
-// search for new bi values. If none, skip it
-// look for new false thru basic sets
-int PUZZLE::Rating_base_90()
-{if(Op.ot) EE.Enl("start rating base 9.0 dynamic forcing chains plus");
- tchain.SetMaxLength(90);
-  zcf.ResetOne(); // restore the index in zcf  
-  tevent.LoadAll();
-  zcf.CloseOne(); // store the index and basic weak links
 
-  zcf.h.d.ExpandShort(zcf.h.dp,2);
-  BFCAND bf0; // init to no candidate found 
-  zcf.DeriveCycle(3,4,7,2); // one cycle;
-  zcf.ChainPlus(bf0);	
-  if(tchain.IsOK(95) ) return Rating_end(95); // the shortest should come here
-  zcf.DeriveCycle(3,7,7,10); // one cycle;  
-  zcf.ChainPlus(bf0);	
-  if(tchain.IsOK(97) ) return Rating_end(97);
-  int iw=0;
-  while(iw++<20  && zcf.DeriveCycle(3,9,7)  )
-	   {zcf.ChainPlus(bf0);
-		if(tchain.IsOK(97+iw) )return Rating_end(97+iw);
-	   }
- return Rating_end(200);} 
-*/
 
 /* as in dynamic forcing chains,
    first a full controlled expansion
@@ -1392,49 +1434,39 @@ int PUZZLE::Traite() {
 	}
 	cReport(); // and preparing T81 from PM per digit
 
-	puz.stop_rating = 0;
-	Op.Init();
+	stop_rating = 0;
+	cycle=assigned=c_ret=0;
+	ermax=epmax=edmax=0;
 	EE.Enl(); // new line in case test is done
 
 	//===========================================================
-	while (Op.cycle++ < 150) {
-		if(Op.cycle > 148) {
-			Op.Seterr(7);
+	while (cycle++ < 150) {
+		if(cycle > 148) {
+			Seterr(7);
 			break;
 		} // 
-		if(puz.stop_rating) {
-			Op.Seterr(5);
+		if(stop_rating) {
+			Seterr(5);
 			break;
 		} 
-		long tcycle = GetTimeMillis();
-		//	if(tcycle-told>3000) {Op.Seterr(6); break; }  
-		if(0) {
-			if(tcycle - tdebut > 20000) { //TODO: don't stop at breakpoint in your debbuger nor change the system time!?!?
-				Op.Seterr(6);
-				break;
-			}
-			int dt = tcycle - tdebut;
-			EE.E("time =");
-			EE.Enl(dt);
-		}
-		//told = tcycle;
-		int ir_ed = Op.is_ed_ep();
+
+		int ir_ed = is_ed_ep();
 		if(ir_ed > 2)
 			return ir_ed;//split filter
 		if(ir_ed)
 			return 0; // pure ed ep filter
 		if(!Recale()) {
-			Op.Seterr(6);
+			Seterr(6);
 			break;
 		}
 		if(!gg.NBlancs())
 			break; // finished
 		// processing 1.0 to <6.2
 		int ir_a = Traite_a();    
-		//cout<<"cycle="<<Op.cycle<<"retour a="<<ir_a<<" Op.ir="<<Op.ir<<endl;
+		//cout<<"cycle="<<cycle<<"retour a="<<ir_a<<" rating_ir="<<rating_ir<<endl;
 
 		if(!ir_a)
-			return Op.ir;
+			return rating_ir;
 		else if(ir_a < 2)
 			continue;
 
@@ -1443,51 +1475,51 @@ int PUZZLE::Traite() {
 
 		zpln.Init();  // table of candidates  
 		zgs.ReInit(); // 81 bits patterns in use      
-		if(puz.stop_rating)
+		if(stop_rating)
 			break; // in case we would exceed the TCAND limit
 		//=========================
 		tchain.Init();
 
-		Op.Step(AlignedPairExclusion);
-		if(Op.ir > 1)
-			return Op.ir;
-		else if(Op.ir)
+		Step(AlignedPairExclusion);
+		if(rating_ir > 1)
+			return rating_ir;
+		else if(rating_ir)
 			continue;
-		if(puz.AlignedPairN()) {
-			Op.SetEr();
+		if(AlignedPairN()) {
+			SetEr();
 			continue;
 		}  //6.2
 
-		if(Op.ermax < 74) { // skip that if high ER already reached
-			Op.Step(AIC_X_cycle);
-			if(Op.ir > 1)
-				return Op.ir;
-			else if(Op.ir)
+		if(ermax < 74) { // skip that if high ER already reached
+			Step(AIC_X_cycle);
+			if(rating_ir > 1)
+				return rating_ir;
+			else if(rating_ir)
 				continue;
-			if(puz.Rating_base_65()) {
-				Op.SetEr();
+			if(Rating_base_65()) {
+				SetEr();
 				continue;
 			}  //6.5 and 6.6 
-			Op.Step(AIC_XY);
-			if(Op.ir > 1)
-				return Op.ir;
-			else if(Op.ir)
+			Step(AIC_XY);
+			if(rating_ir > 1)
+				return rating_ir;
+			else if(rating_ir)
 				continue;
-			if(puz.Rating_base_70()) {
-				Op.SetEr();
+			if(Rating_base_70()) {
+				SetEr();
 				continue;
 			}  //70
 		}
-		else if(Op.ermax < 77) { // just skip 6.5 6.6 as a first step
+		else if(ermax < 77) { // just skip 6.5 6.6 as a first step
 			if(Op.ot)
 				EE.Enl("go direct to XY"); 
-			Op.Step(AIC_XY);
-			if(Op.ir > 1)
-				return Op.ir;
-			else if(Op.ir)
+			Step(AIC_XY);
+			if(rating_ir > 1)
+				return rating_ir;
+			else if(rating_ir)
 				continue;
-			if(puz.Rating_base_70()) {
-				Op.SetEr();
+			if(Rating_base_70()) {
+				SetEr();
 				continue;
 			}  //70
 		}		
@@ -1498,82 +1530,82 @@ int PUZZLE::Traite() {
 				continue;
 		} 
 
-		Op.Step(AlignedTripletExclusion);
-		if(Op.ir>1)
-			return Op.ir;
-		else if(Op.ir)
+		Step(AlignedTripletExclusion);
+		if(rating_ir>1)
+			return rating_ir;
+		else if(rating_ir)
 			continue;
-		if(puz.AlignedTripletN()) {
-			Op.SetEr();
+		if(AlignedTripletN()) {
+			SetEr();
 			continue;
 		}  //7.5
-		if(puz.Rating_base_75()) {
-			Op.SetEr();
+		if(Rating_base_75()) {
+			SetEr();
 			continue;
 		}  //7.5
 		if(Op.oexclude-1) {
-			Op.Step(MultipleForcingChain);
-			if(Op.ir > 1)
-				return Op.ir;
-			else if(Op.ir)
+			Step(MultipleForcingChain);
+			if(rating_ir > 1)
+				return rating_ir;
+			else if(rating_ir)
 				continue;
-			if(puz.Rating_base_80()) {
-				Op.SetEr();
+			if(Rating_base_80()) {
+				SetEr();
 				continue;
 			}  //8.0
 
 			if(Op.oexclude-2) {	 	
-				Op.Step(DynamicForcingChain);
-				if(Op.ir>1)
-					return Op.ir;
-				else if(Op.ir)
+				Step(DynamicForcingChain);
+				if(rating_ir>1)
+					return rating_ir;
+				else if(rating_ir)
 					continue;
-				if(puz.Rating_base_85()) {
-					Op.SetEr();
+				if(Rating_base_85()) {
+					SetEr();
 					continue;
 				}  //8.5
 
 				if(Op.oexclude-3) {	
-					Op.Step(DynamicForcingChainPlus);
-					if(Op.ir > 1)
-						return Op.ir;
-					else if(Op.ir)
+					Step(DynamicForcingChainPlus);
+					if(rating_ir > 1)
+						return rating_ir;
+					else if(rating_ir)
 						continue;
-					if(puz.Rating_base_90()) {
-						Op.SetEr();
+					if(Rating_base_90()) {
+						SetEr();
 						continue;
 					}  //9.0
 
 					if(Op.oexclude-4) {
 						InitNested(); 
-						Op.Step(NestedForcingChain);
-						if(Op.ir>1)
-							return Op.ir;
-						else if(Op.ir)
+						Step(NestedForcingChain);
+						if(rating_ir>1)
+							return rating_ir;
+						else if(rating_ir)
 							continue;
-						if(puz.Rating_baseNest(95, Op.oq)) {
-							Op.SetEr();
+						if(Rating_baseNest(95, Op.oq)) {
+							SetEr();
 							continue;
 						}  //9.5
 
 						if(Op.oexclude-5) {	
-							Op.Step(NestedLevel3);
-							if(Op.ir>1)
-								return Op.ir;
-							else if(Op.ir)
+							Step(NestedLevel3);
+							if(rating_ir>1)
+								return rating_ir;
+							else if(rating_ir)
 								continue;
-							if(puz.Rating_baseNest(100, Op.oq)) {
-								Op.SetEr();
+							if(Rating_baseNest(100, Op.oq)) {
+								SetEr();
 								continue;
 							}  //100
 							if(Op.oexclude-6) {
-								Op.Step(NestedLevel4);
-								if(Op.ir > 1)
-									return Op.ir;
-								else if(Op.ir)
+								Step(NestedLevel4);
+								if(rating_ir > 1)
+									return rating_ir;
+								else if(rating_ir)
 									continue;
-								if(puz.Rating_baseNest(105, Op.oq)) {
-									Op.SetEr();
+								if(Rating_baseNest(105, Op.oq)) {
+									SetEr();
 									continue;
 								}  //105
 							}// end level4
@@ -1583,348 +1615,348 @@ int PUZZLE::Traite() {
 			} // end if >1
 		} // end if oexclude
 		if(Rating_end(200)) {
-			Op.SetEr();
+			SetEr();
 			continue;
 		} // clean the file
 		if(Op.ot)
 			T81->Candidats();
-		puz.stop_rating=2;
+		stop_rating=2;
 		break;
 	}     
 	//=========================================================================	 
-	EE.E("fin traitement puz.stop_rating=");
-	EE.Enl(puz.stop_rating );
+	EE.E("fin traitement stop_rating=");
+	EE.Enl(stop_rating );
 	gg.Image("fin");
-	return puz.stop_rating;
+	return stop_rating;
 }
 
 int PUZZLE::Traite_a() {
 	if (Directs ()) {
-		Op.Step(LastCell);
-		if(Op.ir > 1)
+		Step(LastCell);
+		if(rating_ir > 1)
 			return 0;
-		else if(Op.ir)
+		else if(rating_ir)
 			return 1;
 		if(FaitDirects(LastCell)) {
-			Op.SetEr();
+			SetEr();
 			return 1;
 		}   //1.0
 
-		Op.Step(SingleBox);
-		if(Op.ir > 1)
+		Step(SingleBox);
+		if(rating_ir > 1)
 			return 0;
-		else if(Op.ir)
+		else if(rating_ir)
 			return 1;
 		if(FaitDirects(SingleBox)) {
-			Op.SetEr();
+			SetEr();
 			return 1;
 		}  //1.2
 
-		Op.Step(Single_R_C);
-		if(Op.ir > 1)
+		Step(Single_R_C);
+		if(rating_ir > 1)
 			return 0;
-		else if(Op.ir)
+		else if(rating_ir)
 			return 1;
 		if(FaitDirects(Single_R_C)) {
-			Op.SetEr();
+			SetEr();
 			return 1;
 		}  //1.5
 	}
 	Actifs(); // update of active cells must be done from here
 
-	Op.Step(Single_after_Locked);
-	if(Op.ir > 1)
+	Step(Single_after_Locked);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(TraiteLocked(Single_after_Locked)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //1.7
 
-	Op.Step(HiddenPair_single);
-	if(Op.ir > 1)
+	Step(HiddenPair_single);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(2,1,1)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //2.0
 
 	if(Directs()) {
-	  Op.Step(NakedSingle);
-	  if(Op.ir > 1)
+	  Step(NakedSingle);
+	  if(rating_ir > 1)
 		  return 0;
-	  else if(Op.ir)
+	  else if(rating_ir)
 		  return 1;
 	   if(FaitDirects(NakedSingle)) {
-		   Op.SetEr();
+		   SetEr();
 		   return 1;
 	   }
 	}  //2.3
 
-    Op.Step(HiddenTriplet_single);
-	if(Op.ir > 1)
+    Step(HiddenTriplet_single);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(3,1,1)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //2.5
 
-	Op.Step(Locked_box);
-	if(Op.ir > 1)
+	Step(Locked_box);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(TraiteLocked(Locked_box)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //2.6
 
-	Op.Step(Locked_RC);
-	if(Op.ir > 1)
+	Step(Locked_RC);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(TraiteLocked(Locked_RC)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //2.8
 
-	Op.Step(NakedPair);
-	if(Op.ir > 1)
+	Step(NakedPair);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(2,0,0)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //3.0
 
-	Op.Step(XWing);
-	if(Op.ir > 1)
+	Step(XWing);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.XW(2)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //3.2
 
-	Op.Step(HiddenPair);
-	if(Op.ir > 1)return 0;
-	else if(Op.ir)
+	Step(HiddenPair);
+	if(rating_ir > 1)return 0;
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(2,1,0)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //3.4
 
-	Op.Step(Naked_triplet);
-	if(Op.ir > 1)
+	Step(Naked_triplet);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(3,0,0)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //3.6
 
-	Op.Step(swordfish);
-	if(Op.ir > 1)
+	Step(swordfish);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.XW(3)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //3.8
 
-	Op.Step(HiddenTriplet);
-	if(Op.ir > 1)
+	Step(HiddenTriplet);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(3,1,0)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.0
 
-    puz.Copie_T_c(); // to be done now copie for UR same rating
+    Copie_T_c(); // to be done now copie for UR same rating
     zpaires.CreerTable();  
 
-	Op.Step(XYWing);
-	if(Op.ir > 1)
+	Step(XYWing);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(zpaires.XYWing()) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.2
 
-	Op.Step(XYZWing);
-	if(Op.ir > 1)
+	Step(XYZWing);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(zpaires.XYZWing()) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.4
 
     if(Op.ot)
 		T81->Candidats();
 
-	Op.Step(UniqueRect1);
-	if(Op.ir > 1)
+	Step(UniqueRect1);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
 	if(T81->RIN()) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.5
 
-	Op.Step(UniqueRect2);
-	if(Op.ir > 1)
+	Step(UniqueRect2);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(urt.Traite(46)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.6 t
     if(zpaires.UL()) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}    
 
-	Op.Step(UniqueRect3);
-	if(Op.ir > 1)
+	Step(UniqueRect3);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
 	 if(urt.Traite(47)) {
-		 Op.SetEr();
+		 SetEr();
 		 return 1;
 	 } //4.7
 	 if(tult.Traite(47)) {
-		 Op.SetEr();
+		 SetEr();
 		 return 1;
 	 } 
 
-	Op.Step(UniqueLoop1);
-	if(Op.ir > 1)
+	Step(UniqueLoop1);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
 	if(urt.Traite(48)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	} //4.7
 	if(tult.Traite(48)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.8
 	                  	
-	Op.Step(UniqueLoop2);
-	if(Op.ir > 1)
+	Step(UniqueLoop2);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
 	if(tult.Traite(49)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.9
 
-	Op.Step(NakedQuad);
-	if(Op.ir > 1)
+	Step(NakedQuad);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
  	if(tult.Traite(50)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //4.9
     if(yt.Tiroirs(4,0,0)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //5.0
 
-	Op.Step(UniqueLoop3);
-	if(Op.ir > 1)
+	Step(UniqueLoop3);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
 	if(tult.Traite(51)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //5.1
  
-	Op.Step(Jellyfish);
-	if(Op.ir > 1)
+	Step(Jellyfish);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
 	if(tult.Traite(52)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //5.2
     if(yt.XW(4)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //5.2
 
-	Op.Step(HiddenQuad);
-	if(Op.ir > 1)
+	Step(HiddenQuad);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(yt.Tiroirs(4,1,0)) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //5.4
 
-	Op.Step(BUG);
-	if(Op.ir > 1)
+	Step(BUG);
+	if(rating_ir > 1)
 		return 0;
-	else if(Op.ir)
+	else if(rating_ir)
 		return 1;
     if(zpaires.BUG()) {
-		Op.SetEr();
+		SetEr();
 		return 1;
 	}  //5.6 a 5.8
 
 	if(zpaires.aigun) {
-		Op.Step((SolvingTechnique)59);
-		if(Op.ir > 1)
+		Step((SolvingTechnique)59);
+		if(rating_ir > 1)
 			return 0;
-		else if(Op.ir)
+		else if(rating_ir)
 			return 1;
 		if(zpaires.Bug3a(59)) {
-			Op.SetEr();
+			SetEr();
 			return 1;
 		}  //5.9
-		Op.Step((SolvingTechnique)60);
-		if(Op.ir > 1)
+		Step((SolvingTechnique)60);
+		if(rating_ir > 1)
 			return 0;
-		else if(Op.ir)
+		else if(rating_ir)
 			return 1;
 		if(zpaires.Bug3a(60)) {
-			Op.SetEr();
+			SetEr();
 			return 1;
 		}  //6.0
-		Op.Step((SolvingTechnique)61);
-		if(Op.ir > 1)
+		Step((SolvingTechnique)61);
+		if(rating_ir > 1)
 			return 0;
-		else if(Op.ir)
+		else if(rating_ir)
 			return 1;
 		if(zpaires.Bug3a(61)) {
-			Op.SetEr();
+			SetEr();
 			return 1;
 		}  //6.1
 	}
@@ -2418,7 +2450,7 @@ void UL_SEARCH::UL_Mess(char * lib,int pr) { // et flag des "faits"
 	EE.E(" count=");
 	EE.E(line_count - 1);
 	EE.E(" rating=");
-	EE.E(Op.difficulty);
+	EE.E(puz.difficulty);
 	for(int i = 0; i < line_count; i++) {
 		EE.Esp();
 		EE.E(t81f[tcount[i]].pt);
@@ -2568,7 +2600,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 			ir += T81t[i].Change(ch);
 	if(ir) {
 		BugMess("2 same digit");
-		Op.SetDif(57);
+		puz.SetDif(57);
 	}
 	return ir;
 }
@@ -2667,7 +2699,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 						ir += T81t[tpa[j]].Change(welim);
 				if(ir) {
 					BugMess("type 3/4 naked pair");
-					Op.SetDif(58);
+					puz.SetDif(58);
 					return 1;
 				}
 			}
@@ -2685,7 +2717,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 						ir += T81t[tpa[j]].Change(ww);
 				if(ir) {
 					BugMess("type 3/4 naked triplet");
-					Op.SetDif(59);
+					puz.SetDif(59);
 					return 1;
 				}
 			}
@@ -2704,7 +2736,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 							ir += T81t[tpa[j]].Change(ww);
 					if(ir) {
 						BugMess("type 3/4 naked quad");
-						Op.SetDif(60);
+						puz.SetDif(60);
 						return 1;
 					}
 				}
@@ -2726,7 +2758,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 								ir += T81t[tpa[j]].Change(ww);
 						if(ir) {
 							BugMess("type 3/4 naked (5)");
-							Op.SetDif(61);
+							puz.SetDif(61);
 							return 1;
 						}
 					}
@@ -2771,7 +2803,7 @@ int TPAIRES::Bug_lock(int el) {
 	T81t[tplus[0]].Keep(wce1 | clock);
 	T81t[tplus[1]].Keep(wce2 | clock);
 	BugMess("3/4 a digit locked");
-	Op.SetDif(57);
+	puz.SetDif(57);
 	return 1;
 }
 
