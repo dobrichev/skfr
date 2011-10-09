@@ -345,6 +345,12 @@ public:
 	int Rating_baseNest(USHORT base, int quick);  // nesting  95 forcing chains
 	int Rating_base_95_Quick();  // quick nesting   
 	void Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target);
+    void ImagePoints(BF81 & zz) const;  
+	void ImageCand(BFCAND & zz ,char * lib) const;
+	void GetCells(BFCAND & zz,BF81 & cells) const;
+	void Image(BFTAG & zz,char * lib, int mmd) const;
+
+
 private:
 	int FaitGo(int i8,char c1,char c2);
 };
@@ -636,6 +642,11 @@ public:     //on ne traite que deux communs.
 	int RID(int l1, int l2, int c1, int c2);  // entry : a potential UR to check
 	int RID2(int rat);
 	int RID3();
+	//! TO BE DOCUMENTED !
+	// provides a print form of the cells iset to 1  in the field
+	// combine rows and column when possible eg : r12c3 r5c678
+
+
 };
 
 // CRINT is a table storing possible UR type other than 1 for further processing

@@ -27,20 +27,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
-#include "global.h"
 #include "bitfields.h"
-#include "Flog.h"
-#include "opsudo.h"
-#include "_03c_puzzle_fix.h"
-#include "_03b_puzzle_chains.h"
 
-// new set of includes added by mladen
-// should replace the former one
-/*
-#include "bitfields.h"
-#include "ratingengine.h"
-
-*/
 BF_CONVERT bfconv;
 
 // BFCAND
@@ -96,77 +84,6 @@ int BFCAND::Count()  {
 	return bfconv.cpt(f, BFCAND_size);
 }
 
-// BF81
-
-void BF81::ImagePoints() {
-	char s0[5], s1[5];
-	int ns = 0, mode = 0;
-	for(int i = 0; i < 81; i++) {
-		if(On(i)) {
-			strcpy_s(s1, 5, t81f[i].pt);
-			switch (mode) {
-				case 0:
-					mode = 1;
-					break;
-				case 1: 
-					if(s0[1]==s1[1]) {  // ligne r1c12 on empile colonnes
-						EE.E(s0);
-						EE.E(s1[3]);
-						mode=2;
-					}
-					else if(s0[3] == s1[3]) { // colonne r12c1
-						EE.E(s0[0]);
-						EE.E(s0[1]);
-						EE.E(s1[1]);
-						mode=3;
-					}
-					else
-						EE.E(s0);
-					break;
-				case 2:
-					if(s0[1]==s1[1])EE.E(s1[3]);  //suite ligne
-					else mode=1;  break;
-				case 3:
-					if(s0[3]==s1[3]) EE.E(s1[1]);//suite colonne  insertion ligne
-					else {mode=1; EE.E(&s0[2]);}
-					break;
-			}  // end switch
-			strcpy_s(s0, 5, s1);
-		}  // end if(On(i))
-	}
-	switch (mode) { // finir le traitement
-		case 1:
-			EE.E(s0);
-			break;
-		case 3:
-			EE.E(&s0[2]);
-			break;
-	} // end switch
-}
-
-//------
-void BFCAND::ImageCand(char * lib) const {
-	if(!Op.ot)
-		return;
-	EE.E(lib);   
-	for(int i = 1; i < zpln.ip; i++) {
-		if(On(i)) {
-			zpln.Image(i);
-			EE.Esp();
-		}
-	}
-	EE.Enl();
-}
-
-//------
-void BFCAND::GetCells(BF81 &cells) const {
-	for(int i = 1; i < zpln.ip; i++) {
-		if(On(i)) {
-			cells.Set(zpln.zp[i].ig);
-		}
-	}
-	EE.Enl();
-}
 
 // BF81
 // global variable for class BF81
@@ -174,29 +91,8 @@ int BF81::io = 0, BF81::jo = 0;
 
 // BFTAG
 // global variable for class BFTAG
-
 int BFTAG::io = 0, BFTAG::jo = 0, BFTAG::isize = 20;
-//int    BFTAG:: false32=0xaaaaaaaa, BFTAG::true32=BFTAG::false32>>1;
 
-//GP 2011 10 9 <<<<<<<<<<<<<<<<<<<<< suggested to move that function in puzzle   
-//  test function giving the list of candidates set to 1 in the BFTAG 
-//
-//------
-void BFTAG::Image(char * lib, int mmd) const {
-	if(!Op.ot)
-		return;
-	EE.E(lib);   
-	if(mmd)
-		zpln.ImageTag(mmd);
-	EE.E(" : ");
-	for(int i = 2; i </*puz.col + 2*/ BFTAG_size; i++) {
-		if(On(i)) {
-			zpln.ImageTag(i);
-			EE.Esp();
-		}
-	}
-	EE.Enl();
-}
 
 //-----
 void BFTAG::SetAll_0() {
@@ -467,6 +363,7 @@ int BFTAG::SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop) {
 int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT & itt, USHORT relay) {
 	// first we have to build forward step by step 
 	if(itt > 40) {
+		/*  debugging infromation to be relocated in the calling sequence
 		EE.E("trackback to many steps=");
 		EE.E(itt);
 		EE.E(" start=");
@@ -475,7 +372,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 		zpln.ImageTag(end); 
 		EE.E(" relay=");
 		zpln.ImageTag(relay);
-		EE.Enl();
+		EE.Enl();*/
 		return 1;
 	}
 	BFTAG steps[50], allsteps; // surely never so many
@@ -520,6 +417,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 		//   zpln.PrintListe(tb,itb,1);
 	}// end while
 	if((npas+2) - itt) {
+		/* debugging code to relocate
 		if(1 && Op.ot) {
 			EE.E("invalid trackback end phase 1 npas==");
 			EE.E(npas);
@@ -538,6 +436,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 				steps[iw].Image("",0);
 			}
 		}
+		 end of debugging code to relocate*/ 
 		return 1;
 	}
 	//second phase, goback using the tx[] tables
@@ -558,6 +457,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 		}
 		// error in the process this is a debugging message
 		if(!tt[i]) {
+			/* debugging code to relocate
 			EE.E("invalid trackback step=");
 			EE.E(i); 
 			EE.E(" last=");
@@ -570,6 +470,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 			zpln.ImageTag(relay);
 			EE.Enl();
 			allsteps.Image("allsteps", 0);
+			 end of debugging code to relocate */
 			return 1;
 		}
 	}

@@ -446,7 +446,7 @@ while(1)
 
 //<<<<<<<<<<<<<<<<<<<<<<<
 void TDB::Image() {EE.Enl( "Image zone tdb");
- for(int i=2;i< puz.col;i++)  if(t[i].IsNotEmpty())  t[i].Image(" ",i);   }
+ for(int i=2;i< puz.col;i++)  if(t[i].IsNotEmpty())  puz.Image(t[i]," ",i);   }
 
 
 int TZCF::DeriveCycle(int nd, int nf, int ns, int npas) {
@@ -536,7 +536,7 @@ void TZCF::ChainPlus(BFCAND & dones) {
 				//  int dt=tw-tdebut;
 				// EE.E("time =");EE.Enl(dt);
 				EE.E("found active a->x and a->~x");
-				zw1.Image(" elims",i);
+				puz.Image(zw1," elims",i);
 			}
 			CANDGO cg;
 			cg.GoCand(i); 
@@ -549,7 +549,7 @@ void TZCF::ChainPlus(BFCAND & dones) {
 				// int dt=tw-tdebut;
 				//  EE.E("time =");EE.Enl(dt);
 				EE.E("found active x->~a and ~x->~a");
-				zw2.Image("elims", i);
+				puz.Image(zw2,"elims", i);
 			}
 			CANDGO cg1;
 			cg1.GoOne(i, zw2);
@@ -616,7 +616,7 @@ void TZCF::ChainPlus(BFCAND & dones) {
 			continue;
 		// candidate(s) to clear found
 		if(Op.ot&& 0) {
-			tbt.Image(" eliminations  multi chain dynamic mode  ", 0);
+			puz.Image(tbt," eliminations  multi chain dynamic mode  ", 0);
 			chx.Image();
 			EE.Enl();
 		} 
@@ -702,7 +702,7 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 	if(xi.IsEmpty())
 		return;  
 	if(0 && Op.ot) { 
-		xi.Image("candidates potential  eliminations", 0);
+		puz.Image(xi,"candidates potential  eliminations", 0);
 	}
 
 	// now check all eliminations for a chain or a cycle    
@@ -736,7 +736,7 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 		//--------------------------- now look for a loop 
 		BFTAG w = h.dp.t[i] & xb; 
 		if(0 && Op.ot)
-			w.Image("loop contacts",i);
+			puz.Image(w,"loop contacts",i);
 		if(w.Count() < 2)
 			continue; // must have contact with 2 candidates ( false state )
 		//in 'X' mode cycle eliminations are done only in the same region
@@ -869,7 +869,7 @@ void  TZCF::Aic_YcycleD2(USHORT t1x,USHORT t2x,BFTAG & loop,USHORT cand)// up to
          EE.E(" t1x=");zpln.ImageTag(t1x);
          EE.E(" t2x"); zpln.ImageTag(t2x); 
          EE.E(" cand="); zpln.Image(cand);EE.Enl();
-		 h.dp.t[t1x^1].Image("liens",0);EE.Enl();
+		 puz.Image(h.dp.t[t1x^1],"liens",0);EE.Enl();
         }
 USHORT t2=t2x^1,t1=0; // new target is  "on"
  USHORT tt[20],itt,lg=200;   PATH resf,resw;
@@ -949,7 +949,7 @@ int TZCF::Aic_Ycycle_start(USHORT t1,USHORT t1a,USHORT t2,BFTAG & loop,PATH & pa
 	if(0) {
 		EE.E("Aic_Ycycle_start after  second npas2=");
 		EE.Enl(npas2);
-		loop2.Image("loop2",0);
+		puz.Image(loop2,"loop2",0);
 		EE.Enl();
 	}
 

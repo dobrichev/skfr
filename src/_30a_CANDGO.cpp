@@ -190,8 +190,8 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 		if(opp) {
 			EE.E("fin step=");
 			EE.E(npas);
-			step->Image("step ", 0);
-			(*step).Image("all", 0);
+			puz.Image((*step),"step ", 0);
+			puz.Image(allsteps,"all", 0);
 		}
 
 		cumsteps[npas] = cumsteps[npas - 1] | (*step);
@@ -296,7 +296,7 @@ int CANDGO::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 		if(opp) {
 			EE.E("fin step=");
 			EE.E(npas);
-			step->Image("step ", 0);
+			puz.Image((*step),"step ", 0);
 		}
 		cumsteps[npas] = cumsteps[npas - 1] | (*step);
 		itx[npas] = itb;
@@ -361,12 +361,12 @@ void CANDGO::GoNestedTag(USHORT tag,USHORT base) {
 		itb = 0;
 
 		if(opp) {
-			(*cum).Image("cum debut",0);
+			puz.Image((*cum),"cum debut",0);
 		}
 		GoNestedWhileShort(tag, base);                    // while cycle
 		cumsteps[npas] = (*cum) | (*step);   // or allsteps updated in while routine
 		if(opp) {
-			(*step).Image("step", 0);
+			puz.Image((*step),"step", 0);
 		}
 		itx[npas] = itb;
 	}// end while
@@ -391,7 +391,7 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 		if(x.IsNotEmpty()) {
 			(*step) |= x; // flag it in the BFTAG and load in new
 			if(opp)
-				x.Image("applied std" ,ta[it]);	   
+				puz.Image(x,"applied std" ,ta[it]);	   
 			allsteps |= x; // and in the total 
 			hdp[tag] |= x;
 			USHORT ty[30], ity=0;
@@ -507,7 +507,7 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 	if(x.IsNotEmpty()) { // force false so use elims.inverse()
 		(*step) |= x; // flag it in the BFTAG and load in new
 		if(opp)
-			x.Image("forcing chain elims" ,0);	
+			puz.Image(x,"forcing chain elims" ,0);	
 		allsteps |= x; // and in the total 
 		hdp[tag] |= x;
 		USHORT ty[200], ity = 0;
@@ -524,7 +524,7 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 	BFTAG elims2; 
 	NestedMultiShort(elims2); 
 	if(opp && Op.ot)
-		elims2.Image("multiforcing recap short ", 0);
+		puz.Image(elims2,"multiforcing recap short ", 0);
 	x = elims2; // - hdp[tag];  // elims in false state
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
@@ -657,7 +657,7 @@ int CANDGO::GoCand(USHORT tag) {
 		if(0 && Op.ot) {
 			EE.E("fin step=");
 			EE.E(npas);
-			step->Image("step ",0);
+			puz.Image((*step),"step ",0);
 		}
 		cumsteps[npas] = cumsteps[npas-1] | (*step);
 		itx[npas] = itb;
@@ -705,7 +705,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 	if(0 && Op.ot) {
 		EE.E("goone for ");
 		zpln.ImageTag(tag); 
-		tagse.Image("killing one of these", 0);
+		puz.Image((BFTAG)tagse ,"killing one of these", 0);
 	}
 	to = zcf.dpbase.t; // we use the table without derivations
 	for(int i = 0; i < 640; i++)
@@ -732,8 +732,8 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 		if(0) {
 			EE.E("step");
 			EE.Enl(npas);
-			cum->Image("cumstep", 0);
-			steps[npas - 1].Image("step precedent", 0);
+			puz.Image((*cum),"cumstep", 0);
+			puz.Image(steps[npas - 1],"step precedent", 0);
 		}
 
 
@@ -757,7 +757,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 		if(0 && Op.ot) {
 			EE.E("fin step=");
 			EE.E(npas);
-			step->Image("step ", 0);
+			puz.Image((*step),"step ", 0);
 		}
 
 		cumsteps[npas] = cumsteps[npas - 1] | (*step);
@@ -768,7 +768,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 			if(ww.IsNotEmpty()) {
 				EE.E("fin step=");
 				EE.Enl(npas);
-				ww.Image("trouvés ", 0);
+				puz.Image(ww,"trouvés ", 0);
 			}
 		}
 		//BFTAG w = tagse - cumsteps[npas];
@@ -901,7 +901,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 		BFTAG x = to[ta[it]]- allsteps;	  // still free and in the overall path
 		if(x.IsNotEmpty()) {
 			if(opp)
-				x.Image("applied std", ta[it]);
+				puz.Image(x,"applied std", ta[it]);
 			(*step) |= x; // flag it in the BFTAG and load in new
 			allsteps |= x; // and in the total 
 			hdp[tag] |= x;
@@ -1019,7 +1019,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 	BFTAG elims; 
 	NestedForcing(elims); 
 	if(opp && Op.ot)
-		elims.Image("netforcing recap", 0);
+		puz.Image(elims,"netforcing recap", 0);
 	BFTAG x = elims;  // elims in false state
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
@@ -1037,7 +1037,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 	BFTAG elims2; 
 	NestedMulti(elims2); 
 	if(opp && Op.ot)
-		elims2.Image("multiforcing recap", 0);
+		puz.Image(elims2,"multiforcing recap", 0);
 	x = elims2;// elims in false state
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
@@ -1072,8 +1072,7 @@ void CANDGO::Gen_dpn(USHORT tag)
 	 if(tt.On(j^1)) continue; // that tag is defined as well (to check)
       dpn.t[j]=tdp[j]-tt; // reduce the primary weak links
 	 }
-  if(0)   {tt.Image("allsteps at gen time",0);
-	       tt.Image("zcf.h.d.t[tag]",0);
+  if(0)   {puz.Image(tt,"allsteps at gen time",0);
 		   zcf.h.dp.Image();
 		   dpn.Image();
           }
@@ -1107,7 +1106,7 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 	         {USHORT y=tx[i2][j]; 
 			  if(to[y].On(x)) 
 			       {if(0 && pr) 
-			            {to[y].Image("to image ",y);}
+			            {puz.Image(to[y],"to image ",y);}
 					if(!z)z=y;   if(bf.On(y)) {z=y;break;}			     } 
 	         }
             if(z && bf.Off(z)) {tret[itret++]=z;bf.Set(z);}
@@ -1129,8 +1128,8 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 		  BFTAG bfn=w.source-bf; // add missing in source
           if(0 && pr)
 			  {EE.E("back forcing for "); zpln.ImageTag(x),EE.Enl();
-		       w.source.Image("source",0);
-			   bfn.Image("solde source",0);}
+		       puz.Image(w.source,"source",0);
+			   puz.Image(bfn,"solde source",0);}
 		  if( 0 && pr) tstore.Print(w.index);
 		  for(int j=2;j< puz.col;j++) if(bfn.On(j))
            {tret[itret++]=j;bf.Set(j);}
@@ -1197,9 +1196,9 @@ void CANDGO::NestedForcing(BFTAG & elims) {
 			if(npasch > 40)
 				continue; // should never happen either
 			if(0) {
-				dpn.t[i].Image("dpn", 0);
-				dn.t[i].Image("dn", 0);
-				wch.Image("wch", 0);
+				puz.Image(dpn.t[i],"dpn", 0);
+				puz.Image(dn.t[i],"dn", 0);
+				puz.Image(wch,"wch", 0);
 				EE.E(" npasch=");
 				EE.Enl(npasch);
 			} 
@@ -1280,9 +1279,9 @@ void CANDGO::NestedMulti(BFTAG & elims) {
 					itt = npasch + 2; 
 					if(wch.TrackBack(dpn.t, j, i, tt, itt, i)) { // intercept error for debugging
 						EE.E ("new nested multi chain bactrack error");
-						dpn.t[j].Image("dpn", 0);
-						dn.t[j].Image("dn", 0);
-						wch.Image("wch", 0);
+						puz.Image(dpn.t[j],"dpn", 0);
+						puz.Image(dn.t[j],"dn", 0);
+						puz.Image(wch,"wch", 0);
 						EE.E(" npasch=");
 						EE.Enl(npasch);
 						EE.Enl();		 
