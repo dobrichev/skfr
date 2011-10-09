@@ -215,19 +215,26 @@ void ZPTLN::Image(int no) {EE.Esp();if(no)EE.E("~");
  */
 
 
-void TZPTLN::Init()
-{ip=1; candtrue.SetAll_0();
- for (int i=0;i<9*81;i++)indexc[i]=0;
- for (UCHAR i=0;i<81;i++)
-   {if(T81t[i].v.ncand<2) continue; BF16 chs=T81t[i].v.cand;  
-    for(UCHAR j=0;j<9;j++) if(chs.On(j))
-    {zp[0].Charge(i,j); 
-	 if(puz.solution[i]==(j+'1')) candtrue.Set(ip);
-	 indexc[81*j+i]= Charge0();
+void TZPTLN::Init() {
+	ip=1;
+	candtrue.SetAll_0();
+	for(int i = 0; i < 9 * 81; i++)
+		indexc[i]=0;
+	for(UCHAR i = 0; i < 81; i++) {
+		if(T81t[i].v.ncand < 2)
+			continue;
+		BF16 chs = T81t[i].v.cand;  
+		for(UCHAR j = 0; j < 9; j++)
+			if(chs.On(j)) {
+				zp[0].Charge(i, j); 
+				if(puz.solution[i] == (j + '1'))
+					candtrue.Set(ip);
+				indexc[81 * j + i] = Charge0();
+			}
 	}
-   }
- puz.col=2*ip; BFTAG::SetIsize(puz.col); 
-// BFCAND::SetIsize(ip);
+	puz.col=2*ip;
+	// BFTAG::SetIsize(puz.col); //MD: removed
+	// BFCAND::SetIsize(ip);
 }
 /* just put zp[0] in the next position 
    check for free room just in case
