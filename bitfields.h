@@ -43,6 +43,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 #pragma once
+#include "skfrtype.h"
 
 /* bit field functions to improve performances
    cpt gives the count of bit set to "1"
@@ -495,10 +496,6 @@ public:
 		return n;
 	}
 
-	//! TO BE DOCUMENTED !
-	// provides a print form of the cells iset to 1  in the field
-	// combine rows and column when possible eg : r12c3 r5c678
-    void ImagePoints();  
  };
 
 
@@ -590,8 +587,6 @@ public:
 		return 1;
 	}
 	int Count() ;
-	void ImageCand(char * lib) const;
-	void GetCells(BF81 & cells) const;
 };
 
 /* BFTAG is the key bitfield in the tagging process.
@@ -729,7 +724,6 @@ public:
 	///
 	///No output if o$.ot==0 <br>
 	///TO VERIFY seems to be used for odd/even bivalue bitfield
-	void Image(char * lib, int mmd) const;
 
 	// new features not tested in preparation
 	int SearchChain(BFTAG * to, USHORT i, USHORT j);

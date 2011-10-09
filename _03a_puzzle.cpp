@@ -228,6 +228,102 @@ int TP81::RIN(int aig) {      // look for unique rectangle
 	return ir;
 }
 
+/* added here routines preliminary in Bitfields
+   images
+   */
+void PUZZLE::ImagePoints( BF81 & zz) const {
+	char s0[5], s1[5];
+	int ns = 0, mode = 0;
+	for(int i = 0; i < 81; i++) {
+		if(zz.On(i)) {
+			strcpy_s(s1, 5, t81f[i].pt);
+			switch (mode) {
+				case 0:
+					mode = 1;
+					break;
+				case 1: 
+					if(s0[1]==s1[1]) {  // ligne r1c12 on empile colonnes
+						EE.E(s0);
+						EE.E(s1[3]);
+						mode=2;
+					}
+					else if(s0[3] == s1[3]) { // colonne r12c1
+						EE.E(s0[0]);
+						EE.E(s0[1]);
+						EE.E(s1[1]);
+						mode=3;
+					}
+					else
+						EE.E(s0);
+					break;
+				case 2:
+					if(s0[1]==s1[1])EE.E(s1[3]);  //suite ligne
+					else mode=1;  break;
+				case 3:
+					if(s0[3]==s1[3]) EE.E(s1[1]);//suite colonne  insertion ligne
+					else {mode=1; EE.E(&s0[2]);}
+					break;
+			}  // end switch
+			strcpy_s(s0, 5, s1);
+		}  // end if(On(i))
+	}
+	switch (mode) { // finir le traitement
+		case 1:
+			EE.E(s0);
+			break;
+		case 3:
+			EE.E(&s0[2]);
+			break;
+	} // end switch
+}
+
+//------
+void PUZZLE::ImageCand(BFCAND & zz,char * lib) const {
+	if(!Op.ot)
+		return;
+	EE.E(lib);   
+	for(int i = 1; i < zpln.ip; i++) {
+		if(zz.On(i)) {
+			zpln.Image(i);
+			EE.Esp();
+		}
+	}
+
+	EE.Enl();
+}
+
+
+
+//------
+void PUZZLE::GetCells(BFCAND & zz,BF81 &cells) const {
+	for(int i = 1; i < zpln.ip; i++) {
+		if(zz.On(i)) {
+			cells.Set(zpln.zp[i].ig);
+		}
+	}
+	EE.Enl();
+}
+
+
+//GP 2011 10 9 <<<<<<<<<<<<<<<<<<<<< suggested to move that function in puzzle   
+//  test function giving the list of candidates set to 1 in the BFTAG 
+//
+//------
+void PUZZLE::Image(BFTAG & zz,char * lib, int mmd) const {
+	if(!Op.ot)
+		return;
+	EE.E(lib);   
+	if(mmd)
+		zpln.ImageTag(mmd);
+	EE.E(" : ");
+	for(int i = 2; i <col ; i++) {
+		if(zz.On(i)) {
+			zpln.ImageTag(i);
+			EE.Esp();
+		}
+	}
+	EE.Enl();
+}
 
 
 
@@ -574,7 +670,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 			bfw &= zcf.h_nest.d.t[chx.tcd[i] << 1];
 		if(Op.ot && 0) { //puz.couprem ==5)
 			chx.Image();
-			bfw.Image("communs",0);
+			Image(bfw,"communs",0);
 		}
 		bfw = bfw.FalseState();	 
 		if(bfw.IsNotEmpty()) {
@@ -586,13 +682,13 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 
 	BFTAG elimt = elims1.Inverse() | elims2 | elims3;
 	if(Op.ot)
-		elimt.Image("elim potential", 0);
+		Image(elimt,"elim potential", 0);
 	if(elimt.IsEmpty())
 		return 0;
 	// if we are in quick mode, set all elims with rating base+ .3/.5
 
 	if(quick) {
-		elimt.Image("quick elim potential", 0);
+		Image(elimt,"quick elim potential", 0);
 		int j = 3;
 		for(int i = 3; i < col; i += 2) { // first in tchain mode
 			if(elimt.On(i)) {
