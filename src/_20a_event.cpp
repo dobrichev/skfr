@@ -115,7 +115,7 @@ void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT
 	if(eva.itcd > chx_max)
 		return; // forget if too big	 
 	if(it >= event_size) {
-		EE.Elimite("TEVENT limite atteinte");
+		parentpuz->Elimite("TEVENT limite atteinte");
 		return;
 	}
 	USHORT evv = event_vi + (it);
