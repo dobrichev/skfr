@@ -148,8 +148,8 @@ void TCHAIN::Status() {
 
 
 
-ZGROUPE::ZGROUPE ()          
-{ 
+ZGROUPE::ZGROUPE (PUZZLE * parent)          
+{   parentpuz=parent;
 	int i,j;
 	BF81 z0,z1; 
 	z0.SetAll_0(); 
@@ -183,7 +183,7 @@ USHORT ZGROUPE::Charge(BF81  &ze)
 {
 	if(ze.IsEmpty())
 	{
-		EE.Estop( "zgs groupe IsEmpty");
+		parentpuz->Estop( "zgs groupe IsEmpty");
 		return 0;
 	}
 	for(int i=0;i<iz;i++) 
@@ -194,7 +194,7 @@ USHORT ZGROUPE::Charge(BF81  &ze)
 		z[iz++]=ze ;
 		return (iz-1);
 	}
-	EE.Elimite( "ZGS");return 0;
+	parentpuz->Elimite( "ZGS");return 0;
 }
 
 
@@ -238,10 +238,10 @@ void TZPTLN::Init() {
 }
 /* just put zp[0] in the next position 
    check for free room just in case
-   if no free room, aigstop is set to 1 thru Elimite
+   if no free room, puz.stop_rating is set to 1 thru Elimite
 */
 USHORT TZPTLN::Charge0()
-{if(ip>=zpln_lim){  EE.Elimite("TZPLN"); return 0;}
+{if(ip>=zpln_lim){  parentpuz->Elimite("TZPLN"); return 0;}
  USHORT ir=ip; zp[ip++]=zp[0]; return ir;}
 
 /* send in TZCF all weak links
@@ -1035,7 +1035,7 @@ void ZCXB::GetSpace(USHORT *(& ps),int n) {
 	izs += n;
 	if(izs >= zcxb_lim) {
 		ps=0;
-		EE.Elimite("ZCXB");
+		parentpuz->Elimite("ZCXB");
 	}
 }
 
@@ -1089,17 +1089,17 @@ void TZCHOIX::Image() {
 
 
 int TZCHOIX::ChargeSet (USHORT * mi,USHORT nmi,CHOIX_TYPE ty)
-{if(nmi<2||aigstop) return 0;
+{if(nmi<2||puz.stop_rating) return 0;
  if(ty &&  nmi>(chx_max+1) ) return 0;
  if(!zc[0].Prepare(mi,nmi,ty,izc)) return 0;
 if(izc<zcx_lim) {zc[izc++]=zc[0];  
                  if(nmi>nmmax)nmmax=nmi;  
 				 if(nmi<nmmin)nmmin=nmi; return 1;}
-EE.Elimite("ZCX");return 0;}
+parentpuz->Elimite("ZCX");return 0;}
 
 int TZCHOIX::CopySet (int i)
 {if(izc<zcx_lim) {zc[izc++]=zc[i];  return 1;}
-EE.Elimite("ZCX");return 0;}
+parentpuz->Elimite("ZCX");return 0;}
 
  // multi chains version
  int TZCHOIX::Interdit_Base80() 
