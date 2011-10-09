@@ -252,7 +252,7 @@ public:
 
 
 
-class JDK
+class PUZZLE
 {
 public:
     GG gg;          //< copy of the puzzle (normalized form - empty cell '0')
@@ -272,10 +272,11 @@ public:
     char fix[81],
 		fixt[81],
 		*solution;
-    USHORT nfix;
+    USHORT col,      // highest tag (2 times ( number of candidates +1))
+		   nfix;
 
 
-	JDK();
+	PUZZLE();
     //void Initial(); 
 	void cInit(int un=0);
 	void Copie_T_c();

@@ -33,23 +33,21 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "utilities.h"
 // global variables for RatingEngine
 USHORT 
-	aigstop=0, /// can be set to 1 anywhere to stop the process as soon as possible for one puzzle
-	op0=0,	///<Used for debugging
-	op1=1,	///<Used for debugging
-	col;	///<GP Last used tag | PP size of last used tag
-long tdebut; // for debugging purpose start time in jdk traite base
+	aigstop=0; /// can be set to 1 anywhere to stop the process as soon as possible for one puzzle
+//	col;	///<GP Last used tag | PP size of last used tag
+long tdebut; // for debugging purpose start time in PUZZLE traite base
 OPSUDO Op;
 FLOG EE;
 TP81 T81dep;
 TP81 * T81,*T81C;		//standard names for main objects of the class
 P81 * T81t,*T81tc;		//and corresponding tables of cells  
-                      // the corresponding tables are located in class JDK
+                      // the corresponding tables are located in class PUZZLE
 UN_JEU un_jeu;
 TP81F tp81f;
 P81F * t81f=tp81f.t81f;			//pointer to speed up the process   
 DIVF divf;
 ZTOB aztob; 
-JDK jdk;
+PUZZLE puz;
 ULT tult;
 TPAIRES zpaires;
 TIR yt;
@@ -125,22 +123,22 @@ int setTestModeC (int ot, char * logFileName){
 
 //! Process a puzzle
 /**
- * Normalize puzzle (empty cell '0') in global variable <code>jdk</code>.<br>
+ * Normalize puzzle (empty cell '0') in global variable <code>PUZZLE</code>.<br>
  * Verify that puzzle is correct (no duplicate given in a house).<br>
  * Verify that puzzle is valid (one and only one solution).<br>
  * Keep the solution as a string and as positions of the 9 digits
  * Launch the processing
  * 
- * @return 0 if error or return from <code>JDK::Traite</code>
+ * @return 0 if error or return from <code>PUZZLE::Traite</code>
  */
 int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 {
 	// final location for the normalized puzzle in a global variable
-	char * d=jdk.gg.pg; 
+	char * d=puz.gg.pg; 
 	for(int i=0;i<81;i++) //get normalised puzzle in puz
 		if(ze[i]-'.') d[i]=ze[i]; else  d[i]='0';
 	// check if the puzzle is correct (no duplicate givens in a house)
-	if (!jdk.Check()) 
+	if (!puz.Check()) 
 	{
 		*er = 0;
 		*ep = 0;
@@ -150,9 +148,9 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	}
 	// Check if the puzzle has one and only one solution
 	/* First solution (if any) is kept in global variable 
-	 * <code>jdk.solution</code> as a string
+	 * <code>puz.solution</code> as a string
 	 */
-	int ir=un_jeu.Unicite(jdk.gg);
+	int ir=un_jeu.Unicite(puz.gg);
 	if( ir-1) 
 	{
 		*er = 0;
@@ -166,11 +164,11 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	 * to check later the validity of eliminations
 	 */
 	for(int i=0;i<9;i++) 
-		jdk.csol[i].SetAll_0();
+		puz.csol[i].SetAll_0();
 	for(int i=0;i<81;i++) 
-		jdk.csol[jdk.solution[i]-'1'].Set(i);
+		puz.csol[puz.solution[i]-'1'].Set(i);
 	// do standard processing
-	int rc = jdk.Traite();
+	int rc = puz.Traite();
 	*er = Op.ermax;
 	*ep = Op.epmax;
 	*ed = Op.edmax;

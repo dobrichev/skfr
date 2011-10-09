@@ -83,7 +83,7 @@ void CANDGO::GoSets() {
 					aig2 = 1;       
 				}
 			}
-			if(op0 && Op.ot && aig2) {
+			if(0 && Op.ot && aig2) {
 				EE.E("set derive actif ");
 				chx.Image();
 				EE.Enl();
@@ -113,7 +113,7 @@ void CANDGO::GoSets() {
 				aig = 1;
 				aig2 = 1;       
 			}
-			if(op0 && Op.ot&& aig2) {
+			if(0 && Op.ot&& aig2) {
 				EE.E("set actif event");
 				chx.Image();
 				ev.Image();
@@ -201,7 +201,7 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 		for(int i = 0; i < itb; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
-				if(op0) {
+				if(0) {
 					EE.E("found active a -> x and a -> ~x");
 					zpln.ImageTag(tgx);
 					EE.E(" step=");
@@ -544,7 +544,7 @@ void CANDGO::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 	BFTAG * tdp = zcf.h.dp.t;
 	USHORT tagc = tag;
 	if(tagc & 1) tagc ^= 1;
-	for(int j = 2; j < col; j++) {
+	for(int j = 2; j < puz.col; j++) {
 		if(j == tagc)
 			continue; // don't process the start point
 		if(tt.On(j))
@@ -553,7 +553,7 @@ void CANDGO::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 			continue; // that tag is defined as well (to check)
 		dpn.t[j] = tdp[j] - tt; // reduce the primary weak links
 	}
-	if(op0) {
+	if(0) {
 		EE.Enl("image dpn de dpnshort");
 		dpn.Image();
 	}
@@ -561,7 +561,7 @@ void CANDGO::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 }
 
 void CANDGO::NestedForcingShort(BFTAG & elims) {
-	for(int i=2;i<col;i+=2)
+	for(int i=2;i< puz.col;i+=2)
 		if(allsteps.Off(i^1) && dn.Is(i,i^1))  // a forcing chain found, find the length
 			elims.Set(i); 
 }
@@ -605,7 +605,7 @@ void CANDGO::NestedMultiShort(BFTAG & elims) {
    */
 
 int CANDGO::GoCand(USHORT tag) {
-	if(Op.ot && op1) {
+	if(Op.ot && 1) {
 		EE.E("gocand killing");
 		zpln.ImageTag(tag);
 		EE.Enl();
@@ -633,7 +633,7 @@ int CANDGO::GoCand(USHORT tag) {
 		ita = itx[npas-1];
 		itb=0;
 		// look first for direct 
-		if(op0) {
+		if(0) {
 			EE.E("step");
 			EE.Enl(npas);
 			//cum->Image("cumstep",0);
@@ -654,7 +654,7 @@ int CANDGO::GoCand(USHORT tag) {
 		}
 		GoSets();                    // look now for sets
 
-		if(op0 && Op.ot) {
+		if(0 && Op.ot) {
 			EE.E("fin step=");
 			EE.E(npas);
 			step->Image("step ",0);
@@ -665,7 +665,7 @@ int CANDGO::GoCand(USHORT tag) {
 		for(int i=0 ; i < itb; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx^1)) {
-				if(op0) {
+				if(0) {
 					EE.E("found active");
 					zpln.ImageTag(tgx);
 					EE.E(" step=");
@@ -691,7 +691,7 @@ int CANDGO::GoCand(USHORT tag) {
 				}
 			}
 		}
-		if(op0 && !aig) {
+		if(0 && !aig) {
 			EE.E("fin aig=0 pour step=");
 			EE.Enl(npas);
 		}
@@ -702,7 +702,7 @@ int CANDGO::GoCand(USHORT tag) {
 //---------------------------------------------
 
 int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
-	if(op0 && Op.ot) {
+	if(0 && Op.ot) {
 		EE.E("goone for ");
 		zpln.ImageTag(tag); 
 		tagse.Image("killing one of these", 0);
@@ -729,7 +729,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 		ita = itx[npas - 1];
 		itb = 0;
 		// look first for direct 
-		if(op0) {
+		if(0) {
 			EE.E("step");
 			EE.Enl(npas);
 			cum->Image("cumstep", 0);
@@ -754,7 +754,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 		}
 		GoSets();                    // look now for sets
 
-		if(op0 && Op.ot) {
+		if(0 && Op.ot) {
 			EE.E("fin step=");
 			EE.E(npas);
 			step->Image("step ", 0);
@@ -763,7 +763,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 		cumsteps[npas] = cumsteps[npas - 1] | (*step);
 		itx[npas] = itb;
 		// check for all the target found
-		if(op0) {
+		if(0) {
 			BFTAG ww = cumsteps[npas] & tagse;
 			if(ww.IsNotEmpty()) {
 				EE.E("fin step=");
@@ -777,7 +777,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 
 		if(w.IsEmpty())
 			return 1;
-		if(op0 && (!aig)) {
+		if(0 && (!aig)) {
 			EE.E("fin aig=0 pour step=");
 			EE.Enl(npas);}
 	}// end while
@@ -787,7 +787,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 //--------------------------------------------------
 
 int CANDGO::GoBack(USHORT tag, int pr) {
-	if(op0) {
+	if(0) {
 		EE.E("goback");
 		zpln.ImageTag(tag);
 		EE.Enl();
@@ -799,7 +799,7 @@ int CANDGO::GoBack(USHORT tag, int pr) {
 	bf.Set(tag);
 	while(itret1 < itret && itret < 150) { // solve each entry back
 		USHORT x = tret[itret1], aig = 1; // first locate where x has been loaded
-		if(op0 && Op.ot) {
+		if(0 && Op.ot) {
 			EE.E("go back look for ");
 			zpln.ImageTag(x);
 			EE.E(" itret1=");
@@ -833,7 +833,7 @@ int CANDGO::GoBack(USHORT tag, int pr) {
 					}
 					else {  // it comes from a set, we know which one
 						const ZCHOIX &chx = zcx.zc[tsets[x]];
-						if(op0) {
+						if(0) {
 							EE.E("set");
 							chx.Image();
 							EE.Enl();
@@ -857,7 +857,7 @@ int CANDGO::GoBack(USHORT tag, int pr) {
 			if(aig || itret > 150)
 				return 0; // not found, should never be
 			itret1++;
-			if(op0 && Op.ot) {
+			if(0 && Op.ot) {
 				EE.E("go back end step   itret1=");
 				EE.E(itret1);
 				EE.E(" itret=");
@@ -1066,7 +1066,7 @@ void CANDGO::Gen_dpn(USHORT tag)
  BFTAG tt=allsteps ,      * tdp=zcf.h.dp.t;
 
 
- for (int j=2;j<col;j++) 
+ for (int j=2;j< puz.col;j++) 
 	{if(j==tag) continue; // don't process the start point
 	 if(tt.On(j)) continue; // that tag is defined
 	 if(tt.On(j^1)) continue; // that tag is defined as well (to check)
@@ -1132,14 +1132,14 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 		       w.source.Image("source",0);
 			   bfn.Image("solde source",0);}
 		  if( 0 && pr) tstore.Print(w.index);
-		  for(int j=2;j<col;j++) if(bfn.On(j))
+		  for(int j=2;j< puz.col;j++) if(bfn.On(j))
            {tret[itret++]=j;bf.Set(j);}
 	     }
         i=100;// force end of process after it has been found
 	   }  // end i
   if(aig || itret>150) return 0; // not found, should never be
   itret1++;
-  if(op0 && Op.ot) {EE.E("go back end step   itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
+  if(0 && Op.ot) {EE.E("go back end step   itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
  }
 
   if(pr && Op.ot)  // printing in increasing order of generation
@@ -1183,7 +1183,7 @@ return itret + nestedlength;}
 
 */
 void CANDGO::NestedForcing(BFTAG & elims) {
-	for(int i = 2; i < col; i += 2) {
+	for(int i = 2; i < puz.col; i += 2) {
 		if( dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
 			if(0) {
 				zpln.ImageTag(i);
@@ -1255,7 +1255,7 @@ void CANDGO::NestedMulti(BFTAG & elims) {
 		}
 		if(aig2 || zt.IsEmpty())
 			continue;	// if ok second round for action	
-		for(int i = 3; i < col; i += 2) {
+		for(int i = 3; i < puz.col; i += 2) {
 			if(!zt.On(i))
 				continue;
 			elims.Set(i); 

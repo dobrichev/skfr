@@ -48,7 +48,7 @@ int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type) {
 		USHORT cand2 = tcd[i], tag2 = (cand2 << 1) ^ 1;
 		if(zcf.Isp(tag, tag2))
 			continue;// only if not yet defined
-		if(op1 && (tag ==(tag2 ^ 1))) {
+		if(1 && (tag ==(tag2 ^ 1))) {
 			EE.E("gen contraire");
 			Image();
 			return 1;
@@ -101,7 +101,7 @@ void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT
 	// if only one in the set, go to gen and return
 	if(eva.itcd == 1) {
 		USHORT cw = eva.tcd[0]; 
-		if(op0 && Op.ot) {
+		if(0 && Op.ot) {
 			EE.E("gen direct event type=");
 			EE.E(evt);
 			EE.Esp(); 
@@ -310,7 +310,7 @@ void TEVENT::LoadLock() {
 	for(int iel = 0; iel < 18; iel++) {
 		for(int ib = 18; ib < 27; ib++) {
 			for(int ich = 0; ich < 9; ich++) {
-				BF81 chel = divf.elz81[iel] & jdk.c[ich];  // the elem pattern for the ch
+				BF81 chel = divf.elz81[iel] & puz.c[ich];  // the elem pattern for the ch
 				if(chel.IsEmpty())
 					continue; // nothing  
 				BF81 chbcom = chel & divf.elz81[ib]; // common part with the block
@@ -319,7 +319,7 @@ void TEVENT::LoadLock() {
 				if(chbcom.Count() < 2)
 					continue; // nothing to do I guess
 				chel -= chbcom; // set in row col
-				BF81 chb = (divf.elz81[ib] & jdk.c[ich]) - chbcom; // set in box
+				BF81 chb = (divf.elz81[ib] & puz.c[ich]) - chbcom; // set in box
 
 				// check what does SE if evrc,evb,evx all one candidate ?? 
 

@@ -34,7 +34,7 @@ void PATH::PrintPathTags() {
 
 
 void CHAIN::Load(USHORT cande) {
-	urem = jdk.couprem;
+	urem = puz.couprem;
 	cand=cande;
 }
 
@@ -119,7 +119,7 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
   if(rat<rating) {ichain=0;  rating=rat;}
   if(ichain>=30) return;
   if(Op.ot)
-           {EE.Enl();jdk.PointK(); EE.Esp(); EE.Enl(lib);
+           {EE.Enl();puz.PointK(); EE.Esp(); EE.Enl(lib);
 			EE.E(" load tchain rating=");EE.E(rat);
 		    EE.E(" elimination of ");zpln.Image(cand);
 			EE.Enl();}
@@ -222,11 +222,11 @@ void TZPTLN::Init()
    {if(T81t[i].v.ncand<2) continue; BF16 chs=T81t[i].v.cand;  
     for(UCHAR j=0;j<9;j++) if(chs.On(j))
     {zp[0].Charge(i,j); 
-	 if(jdk.solution[i]==(j+'1')) candtrue.Set(ip);
+	 if(puz.solution[i]==(j+'1')) candtrue.Set(ip);
 	 indexc[81*j+i]= Charge0();
 	}
    }
- col=2*ip; BFTAG::SetIsize(col); 
+ puz.col=2*ip; BFTAG::SetIsize(puz.col); 
 // BFCAND::SetIsize(ip);
 }
 /* just put zp[0] in the next position 
@@ -299,7 +299,7 @@ void TZPTLN::GenRegionSets()     // can only be one per row col box, only if mor
    for( int ich=0;ich<9;ich++) for (int el=0;el<27;el++)
    {USHORT nmch=aztob.tchbit.el[el].eld[ich].n,ipts=0;;
 	if(nmch<3) continue; // minimum set size is 3
-	BF81 zel=divf.elz81[el]&jdk.c[ich];  int j;
+	BF81 zel=divf.elz81[el]&puz.c[ich];  int j;
     for(j=1;j<ip;j++)
      {if(zp[j].ch-ich )continue;
       if(zel.On(zp[j].ig) ) mch[ipts++]=j; 
@@ -360,7 +360,7 @@ BFCAND TDB::tbf_end,TDB::tbf_endok;
 
 void TDB::Parents(USHORT x) {
 	parents.SetAll_0();
-	for(int i=2;i<col;i++)
+	for(int i=2;i< puz.col;i++)
 		if(t[i].On(x))
 			parents.Set(i);
 }
@@ -372,13 +372,13 @@ void TDB::Parents(USHORT x) {
 
 void TDB::ExpandAll(TDB & from) {
 	(*this)=from; // be sure to start with the set of primary data
-	for(int i=2;i<col;i++) {
+	for(int i=2;i< puz.col;i++) {
 		if (t[i].IsEmpty())
 			continue;
 		int n=1;
 		while(n) {
 			n=0;
-			for(int j=2;j<col;j++)
+			for(int j=2;j< puz.col;j++)
 				if((j-i) && t[i].On(j)) {
 					BFTAG x=t[j]-t[i];
 					if(x.IsNotEmpty()) {
@@ -392,10 +392,10 @@ void TDB::ExpandAll(TDB & from) {
 
 void TDB::ExpandShort(TDB & from ,int npas)
 {(*this)=from; // be sure to start with the set of primary data
- for( int i=2;i<col;i++)
+ for( int i=2;i< puz.col;i++)
   {if (t[i].IsEmpty())continue;   int n=1,pas=0;
    while(n && (++pas<npas))
-    { n=0;for(int j=2;j<col;j++)   if((j-i) && t[i].On(j))
+    { n=0;for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j))
 	 {BFTAG x=from.t[j]-t[i];	  if(x.IsNotEmpty()) {t[i]|=x;n++;}
    }} // end j  while
   } }// end i   proc
@@ -404,8 +404,8 @@ void TDB::ExpandShort(TDB & from ,int npas)
    the "from" table is the table of implications
    */
 void TDB::AllParents(TDB & from)
-{t[0].SetAll_0();for(int i=1;i<col;i++) t[i]=t[0];
- for(int i=2;i<col;i++) for(int j=2;j<col;j++) 
+{t[0].SetAll_0();for(int i=1;i< puz.col;i++) t[i]=t[0];
+ for(int i=2;i< puz.col;i++) for(int j=2;j< puz.col;j++) 
 	 if(from.t[i].On(j)) t[j].Set(i);
 // EE.Enl("parents"); Image();
 }
@@ -427,11 +427,11 @@ int TDB::SearchEliminations(TDB & from,BFTAG & elims)
 while(1)
 {int aig=1; // to detect an empty pass
  npas++;
- for( int i=2;i<col;i+=2)  // only "true" state
+ for( int i=2;i< puz.col;i+=2)  // only "true" state
 	 if (zpln.candtrue.Off(i>>1) &&  // candidate not valid
 		 t[i].IsNotEmpty()               // should always be
 		 )
-  {for(int j=2;j<col;j++)   if((j-i) && t[i].On(j))
+  {for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j))
 	 {BFTAG x=from.t[j]-t[i];	  
       if(x.IsNotEmpty()) {t[i]|=x;aig=0;}
      }
@@ -446,7 +446,7 @@ while(1)
 
 //<<<<<<<<<<<<<<<<<<<<<<<
 void TDB::Image() {EE.Enl( "Image zone tdb");
- for(int i=2;i<col;i++)  if(t[i].IsNotEmpty())  t[i].Image(" ",i);   }
+ for(int i=2;i< puz.col;i++)  if(t[i].IsNotEmpty())  t[i].Image(" ",i);   }
 
 
 int TZCF::DeriveCycle(int nd, int nf, int ns, int npas) {
@@ -527,11 +527,11 @@ void TZCF::LoadEventDirect(USHORT cd1, USHORT cd2) {
 
 void TZCF::ChainPlus(BFCAND & dones) {
 	BFTAG *t = h.d.t, *tp = h.dp.t; 
-	for(int i = 2; i < col; i += 2) {
+	for(int i = 2; i < puz.col; i += 2) {
 		BFTAG zi = (t[i].Inverse()).TrueState(), zw1 = t[i] & zi,
 			zw2 = (t[i] & t[i^1]).FalseState();
 		if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
-			if(op1 && Op.ot) {
+			if(1 && Op.ot) {
 				//long tw=GetTimeMillis();
 				//  int dt=tw-tdebut;
 				// EE.E("time =");EE.Enl(dt);
@@ -544,7 +544,7 @@ void TZCF::ChainPlus(BFCAND & dones) {
 		// if we start form a bi value, SE does not say
 		// ~x but goes immediatly to the bi-value  saving one step.
 		if(zw2.IsNotEmpty()) { // this is x-> ~a and ~x -> ~a
-			if(op1 && Op.ot) {
+			if(1 && Op.ot) {
 				//long tw=GetTimeMillis();
 				// int dt=tw-tdebut;
 				//  EE.E("time =");EE.Enl(dt);
@@ -562,7 +562,7 @@ void TZCF::ChainPlus(BFCAND & dones) {
 				continue;
 			// find the smallest overall length
 			int totlength = 300, i2f = 0;
-			for(int i2 = 3; i2 < col; i2 += 2)
+			for(int i2 = 3; i2 < puz.col; i2 += 2)
 				if(bft.On(i2)) {
 					EE.E("essaichain plus killing ");
 					zpln.Image(i2>>1);
@@ -615,17 +615,17 @@ void TZCF::ChainPlus(BFCAND & dones) {
 		if(!tbt.IsNotEmpty())
 			continue;
 		// candidate(s) to clear found
-		if(Op.ot&& op0) {
+		if(Op.ot&& 0) {
 			tbt.Image(" eliminations  multi chain dynamic mode  ", 0);
 			chx.Image();
 			EE.Enl();
 		} 
-		for(int j = 3; j < col; j += 2) {
+		for(int j = 3; j < puz.col; j += 2) {
 			if(!tbt.On(j))
 				continue;
 			// all tags killed
 			int tot_length = 0; 
-			if(Op.ot && op0) {
+			if(Op.ot && 0) {
 				EE.E(" Set killing ");
 				zpln.Image(j >> 1);
 				EE.Enl(); }
@@ -693,7 +693,7 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 	BFTAG xi;
 	xb.SetAll_0();
 	xi.SetAll_0();// collect tags in loop ok and "to eliminate in true state"
-	for(int i = 2; i < col; i++) {
+	for(int i = 2; i < puz.col; i++) {
 		if(h.d.Is(i, i) && (h.d.Is(i ^ 1, i ^ 1)))
 			xb.Set(i);  
 		if(h.d.Is(i, i ^ 1) && (!(i & 1)))
@@ -706,7 +706,7 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 	}
 
 	// now check all eliminations for a chain or a cycle    
-	for(int i = 2; i < col; i += 2) {
+	for(int i = 2; i < puz.col; i += 2) {
 		if(!xi.On(i))
 			continue;
 		if(0 && Op.ot) {
@@ -719,7 +719,7 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 		{
 			BFTAG wch = h.dp.t[i];
 			int npasch = wch.SearchChain(h.dp.t, i, i ^ 1);
-			if(op0 && Op.ot) {
+			if(0 && Op.ot) {
 				EE.E(" npasch= ");
 				EE.Enl(npasch);
 			}
@@ -990,7 +990,7 @@ void TZCF::ExplainPath(BFTAG & forward, int start, int end, int npas, USHORT rel
 	// EE.E(" npas=");EE.Enl(npas);
 	// forward.Image("forward",start);
 	forward.TrackBack(h.dp.t, start, end, tt, itt, relay);
-	// jdk.PointK(); // put a milestone and print the chain
+	// puz.PointK(); // put a milestone and print the chain
 	zpln.PrintImply(tt, itt);
 }
 /* done when higher rating  already found
@@ -999,15 +999,15 @@ void TZCF::ExplainPath(BFTAG & forward, int start, int end, int npas, USHORT rel
    */
 int TZCF::Fast_Aic_Chain() {
 	int ir=0;
-	jdk.TaggingInit();
+	puz.TaggingInit();
 	zpln.CellLinks();
 	zpln.RegionLinks(1); 	         
 	h.d.ExpandAll(h.dp); // 	
-	for(int i = 2; i < col; i += 2)
+	for(int i = 2; i < puz.col; i += 2)
 		if(h.d.Is(i, i ^ 1)) {
 			zpln.Clear(i >> 1); 	// just clear it if not test mode
 			ir++;
-			if(op0 && Op.ot) {
+			if(0 && Op.ot) {
 				EE.E("clear ");
 				zpln.ImageTag(i);
 				EE.Enl();
@@ -1105,12 +1105,12 @@ EE.Elimite("ZCX");return 0;}
      for(int  i=0;i<n;i++)  tbt &= t[tcd[i]<<1];
  
     if(tbt.IsNotEmpty()) // candidate(s) to clear found
-	  {if(Op.ot&& op1){EE.E(" eliminations found in multi chain mode pour ");
+	  {if(Op.ot&& 1){EE.E(" eliminations found in multi chain mode pour ");
 	                 zc[ie].Image();EE.Enl();} 
 
-	   for(int  j=3;j<col;j+=2)if(tbt.On(j)) // all tags assigned
+	   for(int  j=3;j< puz.col;j+=2)if(tbt.On(j)) // all tags assigned
 	      {int tot_length=0; USHORT jj=j^1;// skip from assigned to eliminated
-	       if(Op.ot && op0){EE.E(" Set killing "); zpln.ImageTag(jj); EE.Enl(); }
+	       if(Op.ot && 0){EE.E(" Set killing "); zpln.ImageTag(jj); EE.Enl(); }
 		   if(Op.ermax>85+n-3) // gofast if already far above
 		    {zpln.Clear(jj>>1); ir++;
 		   if(Op.ot){EE.E(" Set fast killing "); zpln.ImageTag(jj); EE.Enl();}
@@ -1177,7 +1177,7 @@ void TZCHOIX::DeriveBase(ZCHOIX & chx) // each candidate can be the target
  for(int i=0;i<nni;i++)
       {tcf2f=tcf2;  if(i<nni)for(int k=i+1;k<nni;k++) tcf2f=tcf2f&tce[k];
        if(tcf2f.IsNotEmpty())
-         {for(USHORT j=2;j<col;j++)  if(tcf2f.On(j)) 
+         {for(USHORT j=2;j< puz.col;j++)  if(tcf2f.On(j)) 
            { if( zcf.IsStart(j,tcd[i]<<1) )continue; // skip if defined		    
 		  	 zcf.LoadDerivedTag(j,tcd[i]);
 	       }// end j
@@ -1198,7 +1198,7 @@ void TZCHOIX::DeriveSet(ZCHOIX & chx) // only the "event" can be the target
  for(int i=0;i<nni;i++)    tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;  
  for(int i=0;i<nni;i++)    tcft&=tce[i];
  if(tcft.IsNotEmpty()) // event established for any 'true' in tcft
-	 {for(USHORT j=2;j<col;j++)  if(tcft.On(j))
+	 {for(USHORT j=2;j< puz.col;j++)  if(tcft.On(j))
            {if(   tevent.EventSeenFor(j,tcd[nni])) // just for diag
 			{EE.E("diag choix");chx.Image();}
 		  }// end j
