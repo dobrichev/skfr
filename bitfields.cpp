@@ -576,7 +576,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 	return 0;
 }
 
-// GP 2011 10 9 <<<<<<<<<<<<<<<<<<<<<<<  suggested to move that in PUZZLE
+// GP 2011 10 9  <<<<<<<<<<<<<<<<<<<<<<<  suggested to move that in PUZZLE
 // this is more sensitive in performance that the previous ones
 /* final expansion in nested mode of a specific BFTAG */
 void BFTAG::Expand(BFTAG * to, USHORT i) {
