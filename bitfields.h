@@ -601,15 +601,15 @@ public:
 /// BFTAG::jo.
 class BFTAG {
 	UINT f[BFTAG_size];     // the bit field
-	static int io;		///<Used for translation of bitfield position to array index 
-	static int jo;		///<Used for translation of bitfield position to bit position in int
+	//static int io;		///<Used for translation of bitfield position to array index 
+	//static int jo;		///<Used for translation of bitfield position to bit position in int
 	//static int isize;	///<Number of 32 bits int realy used (a class parameter)
 	static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
 	static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
-	void ij(int v) {
-		io = v >> 5;
-		jo = v & 31;
-	};
+	//void ij(int v) {
+	//	io = v >> 5;
+	//	jo = v & 31;
+	//};
 public:
 	BFTAG() {
 		SetAll_0();
@@ -644,23 +644,23 @@ public:
 	}
 	///\brief Set bit in position <code>v</code> to On
 	inline void Set(int v) {
-		ij(v);
-		f[io] |= (1 << jo);
+		//ij(v);
+		f[v >> 5] |= (1 << (v & 31));
 	}
 	///\brief Clear bit in position <code>v</code> 
 	inline void Clear(int v) {
-		ij(v);
+		//ij(v);
 		if(On(v)) //TODO: duplicate call of ij(v)
-			f[io] ^= (1 << jo);
+			f[v >> 5] ^= (1 << (v & 31));
 	}
 	///\brief Exchange even and odd bits of parameter <code>i</code>
-	inline UINT FInv(UINT i) {
-		return (((i & false32) >> 1) | ((i & true32) << 1));
-	} 
+	//inline UINT FInv(UINT i) {
+	//	return (((i & false32) >> 1) | ((i & true32) << 1));
+	//} 
 	///\brief And between odd and even bits of parameter <code>i</code>
-	inline int FLayer(UINT i) {
-		return i & FInv(i);
-	}
+	//inline int FLayer(UINT i) {
+	//	return i & FInv(i);
+	//}
 	void Clear(BFTAG &z2);
 	BFTAG Inverse();
 	BFTAG operator & (const BFTAG &z2) const;
