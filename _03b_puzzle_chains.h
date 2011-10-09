@@ -153,8 +153,9 @@ public:
 #define zgs_lim 10000
 class ZGROUPE     // en fixe 81 points 8       puis  54 groupes
  {public: BF81 z[zgs_lim];
+  PUZZLE * parentpuz;
   USHORT iz;
-  ZGROUPE(); 
+  ZGROUPE(PUZZLE * parent); 
   void ReInit(){iz=81+54;} // first after compulsory entries
   inline BF81 getz(int i) {return z[i];};
   USHORT Charge(BF81 & z);
@@ -175,7 +176,9 @@ public:
 
 #define zpln_lim 320
 class TZPTLN {
-public:ZPTLN zp[zpln_lim];
+public:
+	   PUZZLE * parentpuz;
+	   ZPTLN zp[zpln_lim];
 	   BFCAND candtrue; 
 	   USHORT ip;            // index to zp
 	   USHORT indexc[9*81];  // digits 81 cells -> cand
@@ -184,6 +187,7 @@ public:ZPTLN zp[zpln_lim];
 
 	   USHORT Getch(int i){return zp[i].ch;};
 
+	   TZPTLN(PUZZLE * parent) {parentpuz=parent;}
 	   void Init();
 	   USHORT Charge0();
 
@@ -300,11 +304,14 @@ class TZCF {
 	};
 
 public:
+	PUZZLE * parentpuz;
 	PHASE h, hstart, h_one, h_nest;
 	TDB dpbase;
 	USHORT ic, iphase, ic_one, ic1;  // value of ic at the end of the common loading phase
 	BFTAG  xb, xi, xbr, xbr2; 
 	BFCAND tbf[BFCAND_BitSize], tbfwl[BFCAND_BitSize], isbival;
+
+	TZCF(PUZZLE * parent){parentpuz=parent;}
 
 	inline BFTAG * Getd(int m) {
 		return & h.d.t[m];
@@ -431,7 +438,10 @@ private:
 
 #define zcxb_lim 100000
 class ZCXB   // buffer for candidates + "events"
-{public: USHORT zs[zcxb_lim],izs,izs_one;
+{public: 
+ PUZZLE * parentpuz;
+ USHORT zs[zcxb_lim],izs,izs_one;
+ ZCXB(PUZZLE * parent){parentpuz=parent;}
  inline void Init(){izs=0;}
  inline void LockNestedOne() {izs_one=izs;}
  inline void StartNestedOne() {izs=izs_one;}
@@ -471,7 +481,8 @@ class ZCHOIX
 
 #define zcx_lim 20000
 class TZCHOIX {
-public:    
+public: 
+	PUZZLE * parentpuz;
 	ZCHOIX zc[zcx_lim];
 	USHORT izc,     //index to zc
 		izc_one,
@@ -480,6 +491,8 @@ public:
 	BFTAG tce[20],  // storing used BFTAG in a set analyzed
 		*t;       // pointer to zcf.h.d.t or zcf.h.dp.t depending on direct
 	TDB allparents; // table for derivation
+
+	TZCHOIX(PUZZLE * parent){parentpuz=parent;}
 	void Init();
 	inline void LockNestedOne() {
 		izc_one = izc;

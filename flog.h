@@ -40,12 +40,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 /**
  * If <code>pron</code> print to log file, else do nothing (except setting 
- * <code>aigstop</code> for FSR::Estop)<br>
+ * <code>puz.stop_rating</code> for FSR::Estop)<br>
  * There are method to output <br><ul>
  * <li>char, null terminated string and int with or without newline.</li>
  * <li>space, one or two newline, "[]",dot, equal, minus.</li>
  * <li>an error message to signal overflow of a table.</li>
- * <li>an error message and set aigstop to 1. This is used to stop the program.</li>
+ * <li>an error message and set puz.stop_rating to 1. This is used to stop the program.</li>
 
  * </ul><br>
  * There is only one instance of this class :  EE that is used by technics classes
@@ -125,9 +125,9 @@ public:
 	//! If <code>pron</code> print two newlines
 	inline void Enl2(){if(pron)(*this)<<endl<<endl;}
 	//! If <code>pron</code> print an overflow table message
-	void Elimite(char * lib){Enl2();E("table:"); E(lib); Estop("limite atteinte "); }
-	//! If <code>pron</code> print an error message and in all cases set <code>aigstop</code>
-	void Estop(char * lib) {
-		Enl2();E(lib);Enl2(); //aigstop=1;
-	}
+//	void Elimite(char * lib){Enl2();E("table:"); E(lib); Estop("limite atteinte "); }
+	//! If <code>pron</code> print an error message and in all cases set <code>puz.stop_rating</code>
+//	void Estop(char * lib) {
+//		Enl2();E(lib);Enl2(); //puz.stop_rating=1;
+//	}
 };

@@ -32,9 +32,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "_00_hfiles.h"
 #include "utilities.h"
 // global variables for RatingEngine
-USHORT 
-	aigstop=0; /// can be set to 1 anywhere to stop the process as soon as possible for one puzzle
-//	col;	///<GP Last used tag | PP size of last used tag
+
 long tdebut; // for debugging purpose start time in PUZZLE traite base
 OPSUDO Op;
 FLOG EE;
@@ -54,12 +52,12 @@ TIR yt;
 CRIN ur;
 CRINT urt;
 TCHAIN tchain;
-ZGROUPE zgs;
-TZPTLN zpln;
-TZCF zcf;
-ZCXB zcxb;
-TZCHOIX zcx;
-TEVENT tevent;
+ZGROUPE zgs(& puz);
+TZPTLN zpln(& puz);
+TZCF zcf (&puz);
+ZCXB zcxb (&puz);
+TZCHOIX zcx (&puz);
+TEVENT tevent(&puz);
 TCANDGO tcandgo;
 
 void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,UINT filt){
@@ -143,7 +141,7 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 		*er = 0;
 		*ep = 0;
 		*ed = 1;
-		*aig = aigstop;
+		*aig = puz.stop_rating;
 		return 0;
 	}
 	// Check if the puzzle has one and only one solution
@@ -156,7 +154,7 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 		*er = 0;
 		*ep = 0;
 		*ed = 1;
-		*aig = aigstop;
+		*aig = puz.stop_rating;
 		return 0;
 	} 
 	/* the solution is stored in an appropriate form 
@@ -172,7 +170,7 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	*er = Op.ermax;
 	*ep = Op.epmax;
 	*ed = Op.edmax;
-	*aig = aigstop;
+	*aig = puz.stop_rating;
 	return  rc;
 }
 
