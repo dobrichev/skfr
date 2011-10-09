@@ -178,8 +178,9 @@ int BF81::io = 0, BF81::jo = 0;
 int BFTAG::io = 0, BFTAG::jo = 0, BFTAG::isize = 20;
 //int    BFTAG:: false32=0xaaaaaaaa, BFTAG::true32=BFTAG::false32>>1;
 
-
+//GP 2011 10 9 <<<<<<<<<<<<<<<<<<<<< suggested to move that function in puzzle   
 //  test function giving the list of candidates set to 1 in the BFTAG 
+//
 //------
 void BFTAG::Image(char * lib, int mmd) const {
 	if(!Op.ot)
@@ -188,7 +189,7 @@ void BFTAG::Image(char * lib, int mmd) const {
 	if(mmd)
 		zpln.ImageTag(mmd);
 	EE.E(" : ");
-	for(int i = 2; i < col; i++) {
+	for(int i = 2; i </*puz.col + 2*/ BFTAG_size; i++) {
 		if(On(i)) {
 			zpln.ImageTag(i);
 			EE.Esp();
@@ -218,17 +219,24 @@ int BFTAG::IsEmpty() const {
 			return 0;
 	return 1;
 }
+
+//  GP 2011 10 9 should be replaced by a process using BF_CONVERT
+//
 int BFTAG::Count() const {
 	int c = 0;
-	for(int i = 0; i < col + 2; i++)
+	for(int i = 0; i < /*puz.col + 2*/ BFTAG_size; i++)
 		if(On(i))
 			c++;
 	return c;
 }
+
+// GP 2011 10 9
+// should be replaced by a quick process using true32 false32
+//fx= (f&true32)<<1 + (f&false32 >>1)
 //----
 BFTAG BFTAG::Inverse() {
 	BFTAG w;
-	for(int i = 0; i < col + 2; i++)
+	for(int i = 0; i </*puz.col + 2*/ BFTAG_size + 2; i++)
 		if(On(i))
 			w.Set(i ^ 1);
 	return w;
@@ -251,7 +259,7 @@ BFTAG BFTAG::FalseState() const {
 //----
 void BFTAG::String(USHORT * r, USHORT &n) const {
 	n = 0;
-	for(int i = 2; i < col + 2; i++)
+	for(int i = 2; i < /*puz.col + 2*/ BFTAG_size; i++)
 		if(On(i))
 			r[n++] = (USHORT)i;
 }
@@ -304,7 +312,7 @@ void BFTAG::operator -= (const BFTAG &z2) {
 
 //------
 int BFTAG::First() const {
-	for(int i = 0; i < col + 2; i++) {
+	for(int i = 0; i < /*puz.col + 2*/ BFTAG_size; i++) {
 		if(On(i))
 			return i;
 	}
@@ -512,7 +520,7 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 		//   zpln.PrintListe(tb,itb,1);
 	}// end while
 	if((npas+2) - itt) {
-		if(op1 && Op.ot) {
+		if(1 && Op.ot) {
 			EE.E("invalid trackback end phase 1 npas==");
 			EE.E(npas);
 			EE.E(" itt=");
@@ -567,12 +575,15 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 	}
 	return 0;
 }
+
+// GP 2011 10 9 <<<<<<<<<<<<<<<<<<<<<<<  suggested to move that in PUZZLE
+// this is more sensitive in performance that the previous ones
 /* final expansion in nested mode of a specific BFTAG */
 void BFTAG::Expand(BFTAG * to, USHORT i) {
 	int n = 1, pas = 0;
 	while(n) {
 		n = 0;
-		for(int j = 2; j < col; j++) {
+		for(int j = 2; j < /*puz.col + 2*/ BFTAG_size; j++) {
 			if((j - i) && (*this).On(j)) {
 				BFTAG x = to[j] - (*this);
 				if(x.IsNotEmpty()) {

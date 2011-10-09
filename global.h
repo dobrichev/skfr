@@ -32,10 +32,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // global variables used in .h files
 extern USHORT 
-	aigstop, ///<set to 1 will stop the current rating
-	op0,	///<Used for debugging
-	op1,	///<Used for debugging
-	col;	///<GP Last used tag | PP size of last used tag
+	aigstop; ///<set to 1 will stop the current rating
+//	col;	///<GP Last used tag | PP size of last used tag
 
 class FLOG;
 extern FLOG EE;		///< file to output traces for debug
@@ -61,11 +59,11 @@ extern TP81 T81dep;
 extern TP81 * T81,*T81C;		//standard names for main objects of the class
 class P81;
 extern P81 * T81t,*T81tc;		//and corresponding tables of cells  
-                      // the corresponding tables are located in class JDK
+                      // the corresponding tables are located in class PUZZLE
 class ZTOB;
 extern ZTOB aztob;
-class JDK;
-extern JDK jdk;
+class PUZZLE;
+extern PUZZLE puz;
 class ULT;
 extern ULT tult;
 class TPAIRES;

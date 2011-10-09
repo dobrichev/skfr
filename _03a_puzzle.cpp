@@ -27,7 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 /*
-#include "_03a_jdk.h"
+#include "_03a_puz.h"
 #include "_30a_CANDGO.h"
 #include "ratingengine.h"
 */
@@ -70,11 +70,11 @@ void GG::Image(char * lib) {
 int P81::Change(int ch) {
 	if(v.cand.Off(ch))
 		return 0;
-	if(jdk.CheckChange(f->i8, ch))
+	if(puz.CheckChange(f->i8, ch))
 		return 0;
 	v.cand.Clear(ch);
 	v.ncand = v.cand.CountEtString(scand);
-	jdk.c[ch].Clear(f->i8);
+	puz.c[ch].Clear(f->i8);
 	return 1;
 }
 
@@ -86,7 +86,7 @@ void TP81::init() {
 }
 void TP81::Fixer(int ch, int i8, UCHAR typ) {
 	t81[i8].Fixer(typ, ch);
-	jdk.cFixer(ch, i8);
+	puz.cFixer(ch, i8);
 }
 
 int TP81::Clear(BF81 &z, int ch) {
@@ -231,7 +231,7 @@ int TP81::RIN(int aig) {      // look for unique rectangle
 
 
 
-JDK::JDK() {
+PUZZLE::PUZZLE() {
 	solution = un_jeu.ggf.pg;  
 	T81 = &tp8N;
 	T81C = &tp8N_cop;
@@ -240,20 +240,20 @@ JDK::JDK() {
 }
 
 
-void JDK::Copie_T_c() {
+void PUZZLE::Copie_T_c() {
 	tp8N_cop = tp8N;
 	for(int i = 0; i < 9; i++)
 		c_cop[i]=c[i];
 }
 
-void JDK::Actifs() {
+void PUZZLE::Actifs() {
 	zactif.SetAll_0();
 	T81->Actifs(zactif);
 	for(int i = 0; i < 27; i++)
 		elza81[i] = divf.elz81[i] & zactif;
 }
 
-void JDK::cInit(int un) {
+void PUZZLE::cInit(int un) {
 	for(int i = 0; i < 9; i++)
 		if(un)
 			c[i].SetAll_1();
@@ -261,13 +261,13 @@ void JDK::cInit(int un) {
 			c[i].SetAll_0();
 }
 
-void JDK::cFixer(int ich, int i8) {
+void PUZZLE::cFixer(int ich, int i8) {
 	for(int i = 0; i < 9; i++)
 		c[i].Clear(i8); // pas de candidat ici
 	c[ich].Clear(t81f[i8].z);
 }   // ni en zone influence
 
-void JDK::cReport() {    // on charge cand de ztzch
+void PUZZLE::cReport() {    // on charge cand de ztzch
 	for(int i8 = 0; i8 < 81; i8++) {
 		P81 *p8 = &tp8N.t81[i8];
 		if(p8->v.typ)
@@ -282,7 +282,7 @@ void JDK::cReport() {    // on charge cand de ztzch
 	}
 }
 
-void JDK::TReport() {    // on charge c de table en mode depart impose
+void PUZZLE::TReport() {    // on charge c de table en mode depart impose
 	for(int i = 0; i < 9; i++)
 		c[i].SetAll_0();
 	for(int i8 = 0; i8 < 81; i8++) {
@@ -296,7 +296,7 @@ void JDK::TReport() {    // on charge c de table en mode depart impose
 	}
 }
 
-int JDK::Recale() {
+int PUZZLE::Recale() {
 	//cReport();
 	nfix = 0;
 	for(int i = 0; i < 81; i++) {
@@ -312,7 +312,7 @@ int JDK::Recale() {
 	return 1;
 }
 
-int JDK::Directs() { //en tete appliquer regle de base
+int PUZZLE::Directs() { //en tete appliquer regle de base
 	int ir = 0, i;
 	for(i = 0; i < 81; i++) {
 		if((!T81t[i].v.typ) && (T81t[i].v.ncand == 1)) {   // case 1 candidat
@@ -341,7 +341,7 @@ int JDK::Directs() { //en tete appliquer regle de base
 //    Single_R_C=15,     single row column
 //    NakedSingle=23,	 cell one candidate 
 
-int JDK::FaitDirects(int rating) {
+int PUZZLE::FaitDirects(int rating) {
 	if(aigstop)
 		return 1; 
 	int ir = 0;
@@ -383,7 +383,7 @@ int JDK::FaitDirects(int rating) {
 	return ir;
 }
 
-int JDK::FaitGo(int i, char c1, char c2) { // function also called if single forced
+int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single forced
 	EE.E(++Op.assigned);
 	EE.E(" ");
 	EE.E(t81f[i].pt);
@@ -404,7 +404,7 @@ int JDK::FaitGo(int i, char c1, char c2) { // function also called if single for
 }
 
 //----                     supprimer ch en elem sauf  pos
-int JDK::ChangeSauf(int elem, BF16 pos, BF16 chiffres) {
+int PUZZLE::ChangeSauf(int elem, BF16 pos, BF16 chiffres) {
 	int ir=0;
 	for(int i = 0; i < 9; i++) {
 		if(pos.On(i))
@@ -415,7 +415,7 @@ int JDK::ChangeSauf(int elem, BF16 pos, BF16 chiffres) {
 }
 
 //----                     garder  ch en elem   pos
-int JDK::Keep(int elem, BF16 pos, BF16 chiffres) {
+int PUZZLE::Keep(int elem, BF16 pos, BF16 chiffres) {
 	int ir=0;
 	for(int i=0;i<9;i++) {
 		if(pos.On(i))
@@ -426,7 +426,7 @@ int JDK::Keep(int elem, BF16 pos, BF16 chiffres) {
 
 
 //------                  ou simple deux points quelconques
-int JDK::Keep(int ch1, USHORT p1, USHORT p2) {
+int PUZZLE::Keep(int ch1, USHORT p1, USHORT p2) {
 	BF81 ze = t81f[p1].z & t81f[p2].z & c[ch1];
 	if(ze.IsNotEmpty())
 		return T81->Clear(ze,ch1);
@@ -434,7 +434,7 @@ int JDK::Keep(int ch1, USHORT p1, USHORT p2) {
 }
 
 //---------
-int JDK::NonFixesEl(int el) {
+int PUZZLE::NonFixesEl(int el) {
 	int n = 0;
 	for(int i = 0; i < 9; i++)
 		if(gg.pg[divf.el81[el][i]] == '0')
@@ -443,7 +443,7 @@ int JDK::NonFixesEl(int el) {
 }
 
 //--------       verify that the puzzle is correct
-int JDK::Check() { 
+int PUZZLE::Check() { 
 	BF16 c[27];	// a 9 bitfield for each house
 	int i;
 	for(i = 0; i < 27; i++)
@@ -467,7 +467,7 @@ int JDK::Check() {
 	return 1;
 }
 
-int JDK::CheckChange(int i, int ch) {
+int PUZZLE::CheckChange(int i, int ch) {
 	if(aigstop) return 1;
 	if(solution[i]-(ch + '1'))
 		return 0;
@@ -478,13 +478,13 @@ int JDK::CheckChange(int i, int ch) {
 	return 1;
 }
 
-void JDK::PointK() {
+void PUZZLE::PointK() {
 	couprem++;
 	EE.E( "CREM=" );
 	EE.E(couprem );
 }
 
-void JDK::UsePK(USHORT i) {
+void PUZZLE::UsePK(USHORT i) {
 	EE.E(" UREM=");
 	EE.E(i);
 	EE.Enl();
@@ -493,7 +493,7 @@ void JDK::UsePK(USHORT i) {
 }
 
 
-//former _12a_jdk_ChainesNested.cpp follows
+//former _12a_PUZZLE_ChainesNested.cpp follows
 
 /* comments on the process
 level 2 base 9.5   Forcing chain authorized
@@ -506,7 +506,7 @@ level 3 base 10.0  lev 2 + multiple chains authorized
 //    and nested + multi chains
 // can be used to reduce the number of puzzles when looking for hardest puzzles
 
-void JDK::InitNested() { // common part before starting nested processing
+void PUZZLE::InitNested() { // common part before starting nested processing
 	// lock the start situation with fully expanded  hdp from step 90
 	if(Op.ot) {
 		EE.Enl("Init  nested levels  ");
@@ -519,7 +519,7 @@ void JDK::InitNested() { // common part before starting nested processing
 	//zcf.h_one.d.Image();
 }
 
-int JDK::Rating_baseNest(USHORT base, int quick) {
+int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	if(Op.ot) {
 		EE.E("start  nested levels base =");
 		EE.Enl(base);
@@ -536,7 +536,7 @@ int JDK::Rating_baseNest(USHORT base, int quick) {
 		candgo.GoNestedTag(i,base);
 	}   
 
-	//if(Op.ot && jdk.couprem==5)  zcf.h_nest.d.Image();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	//if(Op.ot && puz.couprem==5)  zcf.h_nest.d.Image();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	// we have now fully expanded tags in zcf.h_nest.d
 	// we look for potential eliminations
 
@@ -572,7 +572,7 @@ int JDK::Rating_baseNest(USHORT base, int quick) {
 		bfw.SetAll_1();
 		for(int i = 0; i < nni; i++)
 			bfw &= zcf.h_nest.d.t[chx.tcd[i] << 1];
-		if(Op.ot && 0) { //jdk.couprem ==5)
+		if(Op.ot && 0) { //puz.couprem ==5)
 			chx.Image();
 			bfw.Image("communs",0);
 		}
@@ -610,7 +610,7 @@ int JDK::Rating_baseNest(USHORT base, int quick) {
 		return Rating_end(200);
 	}
 	// not quick mode, go step by step to find the lowest rating
-	if(op1 && Op.ot) {
+	if(1 && Op.ot) {
 		EE.E("action it2 =");
 		EE.E(it2);
 		EE.E(" itch =");
@@ -641,7 +641,7 @@ int JDK::Rating_baseNest(USHORT base, int quick) {
 
 	if(itch) { // some case 3 through sets to apply
 		for(int i = 0; i < itch; i++) {
-			if(op1 && Op.ot) {
+			if(1 && Op.ot) {
 				EE.E("action itch pour i =");
 				EE.E(i);
 				EE.E(" set=");
@@ -666,13 +666,13 @@ int JDK::Rating_baseNest(USHORT base, int quick) {
 
 /* find the target in dynamic mode for a set of tags
 */
-void JDK::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
+void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
 	// filter if target if part of the set
 	USHORT ctarg = target >> 1;
 	for(int i = 0; i < ntags; i++)
 		if(ttags[i] >> 1 == ctarg)
 			return;	
-	if(op1 && Op.ot) {
+	if(1 && Op.ot) {
 		EE.E("entry rating nested ntags =");
 		EE.E(ntags);
 		EE.E(" target ");
@@ -702,7 +702,7 @@ void JDK::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target
 	}// end if
 }
 
-//former _12a_jdk_Chaines.cpp follows
+//former _12a_PUZZLE_Chaines.cpp follows
 /* main routine to process chains
    entry at a specific basic value for min rating
    process is cancelled as soon as a solution is found with a shorter rating
@@ -710,7 +710,7 @@ void JDK::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target
 */
 // chain call 1=biv 2= cell_bivalue 4=nishio 8 dynamic 16=multi_chain
 
-void JDK::Chaining(int opt, int level, int base) {
+void PUZZLE::Chaining(int opt, int level, int base) {
 	TaggingInit();
 	tchain.SetMaxLength(base);
 	// long tta,ttc;// provisoire, pour test de temps
@@ -800,7 +800,7 @@ void JDK::Chaining(int opt, int level, int base) {
       except for aligned triplet */
 
 
-int JDK::Rating_end(int next) {
+int PUZZLE::Rating_end(int next) {
 	if(!tchain.IsOK(next))
 		return 0;
 	Op.Step((SolvingTechnique)tchain.rating);
@@ -809,8 +809,8 @@ int JDK::Rating_end(int next) {
 	return tchain.Clean();
 }
 
-//former _12a_jdk_Chaines2.cpp follows
-void JDK::TaggingInit() {
+//former _12a_PUZZLE_Chaines2.cpp follows
+void PUZZLE::TaggingInit() {
 	zgs.ReInit();   // 81 bits patterns in use 
 	zcf.Init();     // elementary weak links
 	zcx.Init();     // sets (choices) in use
@@ -821,7 +821,7 @@ void JDK::TaggingInit() {
 // chain call 1=biv 2= cell_bivalue 4=nishio 8dynamic 16=multi_chain
 //==============================================
 // this includes the search for x or y cycle
-int JDK::Rating_base_65() {
+int PUZZLE::Rating_base_65() {
 	Chaining(1,0,65);// x cycle  
 	if(Rating_end(65))
 		return 1;
@@ -831,7 +831,7 @@ int JDK::Rating_base_65() {
 
 //=============================================
 // this includes the search for xy cycle or chain
-int JDK::Rating_base_70() {
+int PUZZLE::Rating_base_70() {
 	Chaining(3, 0, 70); // xy  forcing chain or loop
 	return Rating_end(75);
 } 
@@ -839,7 +839,7 @@ int JDK::Rating_base_70() {
 //==============================================
 // this does not includes the search for aligned triplet 
 // only th search for nishio
-int JDK::Rating_base_75() {
+int PUZZLE::Rating_base_75() {
 	Chaining(1 + 4, 0, 75); 
 	return Rating_end(200);
 } 
@@ -848,7 +848,7 @@ int JDK::Rating_base_75() {
 // 80 is multi chains
 // we enter now a new group of eliminations. all the work is done using
 // all bi values, basic weak links, basic sets
-int JDK::Rating_base_80() {
+int PUZZLE::Rating_base_80() {
 	if(Op.ot)
 		EE.Enl("start rating base 8.0 multi chains");
 	TaggingInit();
@@ -868,9 +868,9 @@ int JDK::Rating_base_80() {
 // 85 is DynamicForcingChain
 	// at least the derived weak links from direct weak links
 	// we do that once for ever till the end
-int JDK::Rating_base_85()
+int PUZZLE::Rating_base_85()
 { if(Op.ot) EE.Enl("start rating base 8.5 dynamic forcing chain");
-  if(op0&& Op.ot){   long tw=GetTimeMillis();
+  if(0&& Op.ot){   long tw=GetTimeMillis();
              int dt=tw-tdebut;
 		     EE.E("time =");EE.Enl(dt);}
  tchain.SetMaxLength(85);
@@ -910,7 +910,7 @@ int JDK::Rating_base_85()
 // 85 is DynamicForcingChain
 
 
-int JDK::Rating_base_85() {
+int PUZZLE::Rating_base_85() {
 	if(Op.ot)
 		EE.Enl("start rating base 8.5 dynamic forcing chain");
 	tchain.SetMaxLength(85);
@@ -933,7 +933,7 @@ int JDK::Rating_base_85() {
 // consider each false candidate as start
 // search for new bi values. If none, skip it
 // look for new false thru basic sets
-int JDK::Rating_base_90()
+int PUZZLE::Rating_base_90()
 {if(Op.ot) EE.Enl("start rating base 9.0 dynamic forcing chains plus");
  tchain.SetMaxLength(90);
   zcf.ResetOne(); // restore the index in zcf  
@@ -967,7 +967,7 @@ int JDK::Rating_base_90()
 // consider each false candidate as start
 // search for new bi values. If none, skip it
 // look for new false thru basic sets
-int JDK::Rating_base_90() {
+int PUZZLE::Rating_base_90() {
 	if(Op.ot)
 		EE.Enl("start rating base 9.0 dynamic forcing chains plus");
 	tchain.SetMaxLength(90);
@@ -985,7 +985,7 @@ int JDK::Rating_base_90() {
 	return Rating_end(200);
 }
 
-//former _12a_jdk_AlignedTriplet.cpp follows
+//former _12a_PUZZLE_AlignedTriplet.cpp follows
 
 //! Search for aligned pair or aligned triplet
 /**
@@ -995,7 +995,7 @@ int JDK::Rating_base_90() {
 	First choose 2 cells (in the same band)of the potential base cells.
 */
 
-int JDK::AlignedTripletN() {
+int PUZZLE::AlignedTripletN() {
 	int debuga = 0;
 	static int combi32[3][2] = {{0,1},{0,2},{1,2}};
 	BF81 z23,	// set of cells that have 2 or 3 candidates (could be excluding cells)
@@ -1142,7 +1142,7 @@ int JDK::AlignedTripletN() {
 //similar process for aligned pair with 2 base cells only
 
 //! Search for aligned pairs
-int JDK::AlignedPairN() {
+int PUZZLE::AlignedPairN() {
 	BF81 z2, zbase;
 	// look for cells that have 2 candidates
 	for(int i81 = 0; i81 < 81; i81++) {
@@ -1266,9 +1266,9 @@ int JDK::AlignedPairN() {
 
 
 
-//former _03c_jdk_traite_base.cpp follows
+//former _03c_PUZZLE_traite_base.cpp follows
 
-int JDK::Traite() {
+int PUZZLE::Traite() {
 	//================== assign clues to start
 	cInit(1);
 	PKInit();
@@ -1298,7 +1298,7 @@ int JDK::Traite() {
 		} 
 		long tcycle = GetTimeMillis();
 		//	if(tcycle-told>3000) {Op.Seterr(6); break; }  
-		if(op0) {
+		if(0) {
 			if(tcycle - tdebut > 20000) { //TODO: don't stop at breakpoint in your debbuger nor change the system time!?!?
 				Op.Seterr(6);
 				break;
@@ -1343,7 +1343,7 @@ int JDK::Traite() {
 			return Op.ir;
 		else if(Op.ir)
 			continue;
-		if(jdk.AlignedPairN()) {
+		if(puz.AlignedPairN()) {
 			Op.SetEr();
 			continue;
 		}  //6.2
@@ -1354,7 +1354,7 @@ int JDK::Traite() {
 				return Op.ir;
 			else if(Op.ir)
 				continue;
-			if(jdk.Rating_base_65()) {
+			if(puz.Rating_base_65()) {
 				Op.SetEr();
 				continue;
 			}  //6.5 and 6.6 
@@ -1363,7 +1363,7 @@ int JDK::Traite() {
 				return Op.ir;
 			else if(Op.ir)
 				continue;
-			if(jdk.Rating_base_70()) {
+			if(puz.Rating_base_70()) {
 				Op.SetEr();
 				continue;
 			}  //70
@@ -1376,7 +1376,7 @@ int JDK::Traite() {
 				return Op.ir;
 			else if(Op.ir)
 				continue;
-			if(jdk.Rating_base_70()) {
+			if(puz.Rating_base_70()) {
 				Op.SetEr();
 				continue;
 			}  //70
@@ -1393,11 +1393,11 @@ int JDK::Traite() {
 			return Op.ir;
 		else if(Op.ir)
 			continue;
-		if(jdk.AlignedTripletN()) {
+		if(puz.AlignedTripletN()) {
 			Op.SetEr();
 			continue;
 		}  //7.5
-		if(jdk.Rating_base_75()) {
+		if(puz.Rating_base_75()) {
 			Op.SetEr();
 			continue;
 		}  //7.5
@@ -1407,7 +1407,7 @@ int JDK::Traite() {
 				return Op.ir;
 			else if(Op.ir)
 				continue;
-			if(jdk.Rating_base_80()) {
+			if(puz.Rating_base_80()) {
 				Op.SetEr();
 				continue;
 			}  //8.0
@@ -1418,7 +1418,7 @@ int JDK::Traite() {
 					return Op.ir;
 				else if(Op.ir)
 					continue;
-				if(jdk.Rating_base_85()) {
+				if(puz.Rating_base_85()) {
 					Op.SetEr();
 					continue;
 				}  //8.5
@@ -1429,7 +1429,7 @@ int JDK::Traite() {
 						return Op.ir;
 					else if(Op.ir)
 						continue;
-					if(jdk.Rating_base_90()) {
+					if(puz.Rating_base_90()) {
 						Op.SetEr();
 						continue;
 					}  //9.0
@@ -1441,7 +1441,7 @@ int JDK::Traite() {
 							return Op.ir;
 						else if(Op.ir)
 							continue;
-						if(jdk.Rating_baseNest(95, Op.oq)) {
+						if(puz.Rating_baseNest(95, Op.oq)) {
 							Op.SetEr();
 							continue;
 						}  //9.5
@@ -1452,7 +1452,7 @@ int JDK::Traite() {
 								return Op.ir;
 							else if(Op.ir)
 								continue;
-							if(jdk.Rating_baseNest(100, Op.oq)) {
+							if(puz.Rating_baseNest(100, Op.oq)) {
 								Op.SetEr();
 								continue;
 							}  //100
@@ -1462,7 +1462,7 @@ int JDK::Traite() {
 									return Op.ir;
 								else if(Op.ir)
 									continue;
-								if(jdk.Rating_baseNest(105, Op.oq)) {
+								if(puz.Rating_baseNest(105, Op.oq)) {
 									Op.SetEr();
 									continue;
 								}  //105
@@ -1488,7 +1488,7 @@ int JDK::Traite() {
 	return aigstop;
 }
 
-int JDK::Traite_a() {
+int PUZZLE::Traite_a() {
 	if (Directs ()) {
 		Op.Step(LastCell);
 		if(Op.ir > 1)
@@ -1643,7 +1643,7 @@ int JDK::Traite_a() {
 		return 1;
 	}  //4.0
 
-    jdk.Copie_T_c(); // to be done now copie for UR same rating
+    puz.Copie_T_c(); // to be done now copie for UR same rating
     zpaires.CreerTable();  
 
 	Op.Step(XYWing);
@@ -1822,7 +1822,7 @@ int JDK::Traite_a() {
 }
 
 //former _04a_lock.cpp follows
-// part of JDK class methos processing locked candidates in a box, row,col
+// part of PUZZLE class methos processing locked candidates in a box, row,col
 
 void messlock(int obj,int obj2,int ch) {
 	if(!Op.ot)
@@ -1849,7 +1849,7 @@ void messlock(int obj,int obj2,int ch) {
 */
 
 //<<<<<<<<<<<<<<<<<<<<
-int JDK::TraiteLocked(int rating) {
+int PUZZLE::TraiteLocked(int rating) {
 	if(rating == 26)
 		return TraiteLocked2(18, 27); // box only no fix
 	if(rating == 28)
@@ -1874,7 +1874,7 @@ int JDK::TraiteLocked(int rating) {
 					BF81 ww;
 					for(int i = 18; i < 27; i++) { // must be a box
 						if((i-ialt) && (divf.elz81[i] & divf.elz81[ialt]).IsNotEmpty()) {
-							ww = (divf.elz81[i] & jdk.c[ich]) - wex;
+							ww = (divf.elz81[i] & puz.c[ich]) - wex;
 							if(ww.Count() == 1) {
 								ok = 1;
 								break;
@@ -1886,7 +1886,7 @@ int JDK::TraiteLocked(int rating) {
 						int i8 = ww.First();
 						T81t[i8].Keep(ich);
 						EE.Enl("lock assignment");
-						return jdk.FaitGoA(i8, ich + '1', 4);
+						return puz.FaitGoA(i8, ich + '1', 4);
 					} // immediate return after assign  
 				}
 			}
@@ -1896,7 +1896,7 @@ int JDK::TraiteLocked(int rating) {
 }
 
 //<<<<<<<<<<<<<<<<<<<<
-int JDK::TraiteLocked2(int eld, int elf) {
+int PUZZLE::TraiteLocked2(int eld, int elf) {
 	int ir = 0;
 	int ialt;
 	for(int ich = 0; ich < 9; ich++) {
@@ -1946,7 +1946,7 @@ int TIR::Tiroirs(int nn,int hid,int sing) {     //recherche normale des tiroirs
 	if(!hid_dir )ief=27;if(hid_dir==1 )ied=27;if(single){ied=27;ief=54;}
 	for( e=ied;e<ief;e++)   // direct, hidden or both upon request
 	{rangc=rangv; non.f=cases.f=0; if(e<27) e27=e; else e27=e-27;
-	if(jdk.NonFixesEl(e%27) < (rangv +1)) continue;
+	if(puz.NonFixesEl(e%27) < (rangv +1)) continue;
 	for(int i=0;i<9-rangv+1;i++)
 	{int nn= aztob.tpobit.el[e].eld[i].n;
 	if(nn<2 || nn>rangv) continue;
@@ -1971,7 +1971,7 @@ int TIR::UnTiroir() {// is there a single required after the locked set to accep
 		{BF16 wcd=aztob.tchbit.el[e27].eld[j].b-wf; // positions still valid
 		if(wcd.QC()==1)
 		{EE.Enl("ecs assignment");
-		jdk.FaitGoA(i8,j+'1',4);// stop at first assignment
+		puz.FaitGoA(i8,j+'1',4);// stop at first assignment
 		ir=1; break;}
 		}// end for j if
 
@@ -1979,8 +1979,8 @@ int TIR::UnTiroir() {// is there a single required after the locked set to accep
 		if(!ir) return 0;// no single found
 	}// end if single
 
-	else if(e<27) {if (!jdk.ChangeSauf(e,wi,wf)&&(!ir) )return 0;  }
-	else   { if (!jdk.Keep(e27,wf,wi) &&(!ir))return 0;  }
+	else if(e<27) {if (!puz.ChangeSauf(e,wi,wf)&&(!ir) )return 0;  }
+	else   { if (!puz.Keep(e27,wf,wi) &&(!ir))return 0;  }
 
 	if(!Op.ot) return 1; 
 	// describe the LS even if no more eliminations after an assignment
@@ -2016,7 +2016,7 @@ return 0;}
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< en mode XWING liste objets et chiffres
 int TIR::GroupeObjetsChange(int dobj,int ch)
 {BF16 x(ch); int ir=0;
- for(int i=0;i<9;i++)   if(wf.On(i)) ir+= jdk.ChangeSauf(dobj+i,wi,x);
+ for(int i=0;i<9;i++)   if(wf.On(i)) ir+= puz.ChangeSauf(dobj+i,wi,x);
 return ir;}
 //<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
 int TIR::XW(int nn)
@@ -2713,7 +2713,7 @@ int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs
 				// on a un XYWing  potentiel
 				int ich = w1.First(); // le chiffre 
 				BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z,
-					z2 = z1 & jdk.c[ich];  // z2 est à supprimer
+					z2 = z1 & puz.c[ich];  // z2 est à supprimer
 				if(z2.IsNotEmpty()) {
 					if(Op.ot)
 						CommunLib(i, j, zp[k].i8, "->XY WING pivot= ");
@@ -2745,7 +2745,7 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 				// on a un XYZWing  potentiel
 				int ich = w1.First(); // le chiffre
 				BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z & t81f[k].z,
-					z2 = z1 & jdk.c[ich];  // z2 est à supprimer
+					z2 = z1 & puz.c[ich];  // z2 est à supprimer
 				if(z2.IsNotEmpty()) {
 					if(Op.ot)
 						CommunLib(i, j, k, "->XYZ WING pivot= ");
@@ -2876,7 +2876,7 @@ int CRIN::T2(USHORT action) {
 // same but el is now identified 
 int CRIN::T2_el(USHORT el, USHORT action) {
 	//look mode 1 for a bivalue of one of the common digits
-	if(op0) {
+	if(0) {
 		ImageRI("");
 		EE.E("UR/UL el ");
 		EE.E(el + 1);
@@ -3023,7 +3023,7 @@ int CRIN::T2_el_set_nacked(USHORT len)
   }
 
  if(len<2) return 0;// nothing else if a pair is expected
-if(op0) { EE.E("look for nacked len ="); EE.E( len);
+if(0) { EE.E("look for nacked len ="); EE.E( len);
           EE.E(" nnh ="); EE.Enl( nnh);}
 // first   pattern is nacked triplet no extra digit
 if(nautres==3 && ntd>2 && len==2)
@@ -3152,7 +3152,7 @@ int CRIN::RID(int i1,int i2,int c1,int c2) {
 	ib = I81::Pos(i1, c2);
 	ic = I81::Pos(i2, c1);
 	id = I81::Pos(i2, c2);
-	char * gr = jdk.gg.pg;
+	char * gr = puz.gg.pg;
 	if((gr[ia] - '0') || (gr[ib] - '0') || (gr[ic] - '0') || (gr[id] - '0'))
 		return 0;
 	if(Setw() - 2)
@@ -3173,7 +3173,7 @@ int CRIN::RID(int i1,int i2,int c1,int c2) {
 
 	// if one digit active, do it now 4.5
 	if(nautres == 1) { // un chiffre en lig/col  ou diagonal
-		if(jdk.Keep(ch1, pp1, pp2)) {
+		if(puz.Keep(ch1, pp1, pp2)) {
 			ImageRI(" one digit active");
 			return 1;
 		}
@@ -3211,7 +3211,7 @@ int CRIN::RID3() {
 	if(tr[id].v.ncand == 3)
 		zw &= t81f[id].z;
 
-	zw &= jdk.c[ch1];
+	zw &= puz.c[ch1];
 
 	if(zw.IsNotEmpty()) {
 		ImageRI(" UR one digit active");	

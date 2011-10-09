@@ -51,7 +51,7 @@ class ZTOB;
   ZTOB aztob;
 #include "wb_bruteforce.h"
  UN_JEU un_jeu;
-#include "h\_03a_jdk.h"                  // general class to solve a puzzle
+#include "h\_03a_puz.h"                  // general class to solve a puzzle
 class JDK;
   JDK jdk;
 TP81F tp81f;
