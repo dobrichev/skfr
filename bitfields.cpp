@@ -121,7 +121,7 @@ int BFTAG::IsEmpty() const {
 //
 int BFTAG::Count() const {
 	int c = 0;
-	for(int i = 0; i < /*puz.col + 2*/ BFTAG_size; i++)
+	for(int i = 0; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
 		if(On(i))
 			c++;
 	return c;
@@ -133,7 +133,7 @@ int BFTAG::Count() const {
 //----
 BFTAG BFTAG::Inverse() {
 	BFTAG w;
-	for(int i = 0; i </*puz.col + 2*/ BFTAG_size + 2; i++)
+	for(int i = 0; i </*puz.col + 2*/ BFTAG_BitSize; i++)
 		if(On(i))
 			w.Set(i ^ 1);
 	return w;
@@ -156,7 +156,7 @@ BFTAG BFTAG::FalseState() const {
 //----
 void BFTAG::String(USHORT * r, USHORT &n) const {
 	n = 0;
-	for(int i = 2; i < /*puz.col + 2*/ BFTAG_size; i++)
+	for(int i = 2; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
 		if(On(i))
 			r[n++] = (USHORT)i;
 }
@@ -209,7 +209,7 @@ void BFTAG::operator -= (const BFTAG &z2) {
 
 //------
 //int BFTAG::First() const {
-//	for(int i = 0; i < /*puz.col + 2*/ BFTAG_size; i++) {
+//	for(int i = 0; i < /*puz.col + 2*/ BFTAG_BitSize; i++) {
 //		if(On(i))
 //			return i;
 //	}
@@ -485,7 +485,7 @@ void BFTAG::Expand(BFTAG * to, USHORT i) {
 	int n = 1, pas = 0;
 	while(n) {
 		n = 0;
-		for(int j = 2; j < /*puz.col + 2*/ BFTAG_size; j++) {
+		for(int j = 2; j < /*puz.col + 2*/ BFTAG_BitSize; j++) {
 			if((j - i) && (*this).On(j)) {
 				BFTAG x = to[j] - (*this);
 				if(x.IsNotEmpty()) {
