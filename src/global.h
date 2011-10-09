@@ -30,10 +30,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "skfrtype.h"
 
-// global variables used in .h files
-extern USHORT 
-	aigstop; ///<set to 1 will stop the current rating
-//	col;	///<GP Last used tag | PP size of last used tag
+/*  don't understand why it is there
 
 class FLOG;
 extern FLOG EE;		///< file to output traces for debug
@@ -74,3 +71,4 @@ class CRIN;
 extern CRIN ur;
 class CRINT;
 extern CRINT urt;
+*/

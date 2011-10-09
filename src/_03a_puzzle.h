@@ -272,7 +272,8 @@ public:
     char fix[81],
 		fixt[81],
 		*solution;
-    USHORT col,      // highest tag (2 times ( number of candidates +1))
+    USHORT col,           // highest tag (2 times ( number of candidates +1))
+		   stop_rating,   // set to 1
 		   nfix;
 
 
@@ -349,7 +350,8 @@ public:
 	void ImageCand(BFCAND & zz ,char * lib) const;
 	void GetCells(BFCAND & zz,BF81 & cells) const;
 	void Image(BFTAG & zz,char * lib, int mmd) const;
-
+ 	void Elimite(char * lib);
+	void Estop(char * lib);
 
 private:
 	int FaitGo(int i8,char c1,char c2);

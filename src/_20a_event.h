@@ -89,8 +89,11 @@ extern USHORT event_vi;
 
 class TEVENT {
 public:
+	PUZZLE * parentpuz;
 	EVENT t[event_size];
 	USHORT it;             // next value in t
+
+	TEVENT(PUZZLE * parent){parentpuz=parent;}
 
 	inline void Init() {
 		it = 1;
