@@ -305,9 +305,8 @@ void PUZZLE::GetCells(BFCAND & zz,BF81 &cells) const {
 }
 
 
-//GP 2011 10 9 <<<<<<<<<<<<<<<<<<<<< suggested to move that function in puzzle   
-//  test function giving the list of candidates set to 1 in the BFTAG 
-//
+
+
 //------
 void PUZZLE::Image(BFTAG & zz,char * lib, int mmd) const {
 	if(!Op.ot)
@@ -325,9 +324,24 @@ void PUZZLE::Image(BFTAG & zz,char * lib, int mmd) const {
 	EE.Enl();
 }
 
+void PUZZLE::Elimite(char * lib)
+   {stop_rating=1;
+    if(!Op.ot) return;
+	EE.Enl2();
+	EE.E("table:"); 
+	EE.E(lib); 
+	EE.E("limite atteinte ");
+	EE.Enl2(); }
 
+void PUZZLE::Estop(char * lib)
+   {stop_rating=1;
+    if(!Op.ot) return;
+	EE.Enl();
+	EE.Enl(lib); 
+	EE.Enl(); }
 
 PUZZLE::PUZZLE() {
+	stop_rating=0;
 	solution = un_jeu.ggf.pg;  
 	T81 = &tp8N;
 	T81C = &tp8N_cop;
@@ -438,7 +452,7 @@ int PUZZLE::Directs() { //en tete appliquer regle de base
 //    NakedSingle=23,	 cell one candidate 
 
 int PUZZLE::FaitDirects(int rating) {
-	if(aigstop)
+	if(puz.stop_rating)
 		return 1; 
 	int ir = 0;
 	for(int i = 0; i < 81; i++) {
@@ -489,8 +503,8 @@ int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single 
 	if(c2 < 4)
 		EE.Enl(orig1[c2]);
 	else EE.Enl(" assigned");
-	if((un_jeu.ggf.pg[i] - c1) && (!aigstop)) { // validite  fixation
-		aigstop=1;
+	if((un_jeu.ggf.pg[i] - c1) && (!puz.stop_rating)) { // validite  fixation
+		puz.stop_rating=1;
 		EE.E( "FIXATION INVALIDE");
 		return 0;
 	}
@@ -564,10 +578,10 @@ int PUZZLE::Check() {
 }
 
 int PUZZLE::CheckChange(int i, int ch) {
-	if(aigstop) return 1;
+	if(puz.stop_rating) return 1;
 	if(solution[i]-(ch + '1'))
 		return 0;
-	aigstop = 1;
+	puz.stop_rating = 1;
 	EE.E("ELIMINATION INVALIDE ");
 	EE.E(ch+1);
 	EE.Enl(t81f[i].pt);
@@ -1378,7 +1392,7 @@ int PUZZLE::Traite() {
 	}
 	cReport(); // and preparing T81 from PM per digit
 
-	aigstop = 0;
+	puz.stop_rating = 0;
 	Op.Init();
 	EE.Enl(); // new line in case test is done
 
@@ -1388,7 +1402,7 @@ int PUZZLE::Traite() {
 			Op.Seterr(7);
 			break;
 		} // 
-		if(aigstop) {
+		if(puz.stop_rating) {
 			Op.Seterr(5);
 			break;
 		} 
@@ -1429,7 +1443,7 @@ int PUZZLE::Traite() {
 
 		zpln.Init();  // table of candidates  
 		zgs.ReInit(); // 81 bits patterns in use      
-		if(aigstop)
+		if(puz.stop_rating)
 			break; // in case we would exceed the TCAND limit
 		//=========================
 		tchain.Init();
@@ -1574,14 +1588,14 @@ int PUZZLE::Traite() {
 		} // clean the file
 		if(Op.ot)
 			T81->Candidats();
-		aigstop=2;
+		puz.stop_rating=2;
 		break;
 	}     
 	//=========================================================================	 
-	EE.E("fin traitement aigstop=");
-	EE.Enl(aigstop );
+	EE.E("fin traitement puz.stop_rating=");
+	EE.Enl(puz.stop_rating );
 	gg.Image("fin");
-	return aigstop;
+	return puz.stop_rating;
 }
 
 int PUZZLE::Traite_a() {
