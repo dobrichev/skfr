@@ -91,7 +91,7 @@ int BF81::io = 0, BF81::jo = 0;
 
 // BFTAG
 // global variable for class BFTAG
-int BFTAG::io = 0, BFTAG::jo = 0;
+//int BFTAG::io = 0, BFTAG::jo = 0;
 //int BFTAG::isize = 20;
 
 
