@@ -447,36 +447,12 @@ public:
 		return (((*this) & fe ) == (*this));
 	}
 
-	BF81 Inverse() {
-		BF81 w;
-		w.f[0] = f[0] ^ (-1);
-		w.f[1] = f[1] ^ (-1);
-		w.f[2] = f[2] ^ 0x1ffff;
-		return w;
-	}
-	//! Is position <code>i</code> on, and clear it before returning
-	int NextI(int i) {
-		if(On(i)) {
-			Clear(i);
-			return 1;
-		}
-		return 0;
-	}
-
 	//! Clear all position that are on in <code>z</code>
     void Clear(const BF81 & z) {
 		for(int i = 0; i < 3; i++)
 			f[i] ^= (f[i] & z.f[i]);
 	}
 
-	//! Find the first position on, and clear it
-	/** \return found position or 128 if none */
-	int Next() {
-		for(int i = 0; i < 81; i++)
-			if(NextI(i))
-				return i;
-		return 128;
-	}
 
 	//! Find the first position on
 	/** \return found position or 128 if none */
