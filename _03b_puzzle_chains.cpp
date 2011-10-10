@@ -377,6 +377,27 @@ void TDB::Parents(USHORT x) {
    partial mode are found in the BFTAG functions
    */ 
 
+//void TDB::ExpandAll(TDB & from) {
+//	(*this)=from; // be sure to start with the set of primary data
+//	for(int i=2;i< puz.col;i++) {
+//		if (t[i].IsEmpty())
+//			continue;
+//		int n=1;
+//		while(n) {
+//			n=0;
+//			for(int j=2;j< puz.col;j++)
+//				if((j-i) && t[i].On(j)) {
+//					BFTAG x = t[j];
+//					x -= t[i];
+//					if(x.IsNotEmpty()) {
+//						t[i] |= x;
+//						//n++;
+//						n = 1;
+//					}
+//				}
+//		} // end j  while
+//	} 
+//}// end i   proc
 void TDB::ExpandAll(TDB & from) {
 	(*this)=from; // be sure to start with the set of primary data
 	for(int i=2;i< puz.col;i++) {
@@ -387,9 +408,12 @@ void TDB::ExpandAll(TDB & from) {
 			n=0;
 			for(int j=2;j< puz.col;j++)
 				if((j-i) && t[i].On(j)) {
-					BFTAG x=t[j]-t[i];
-					if(x.IsNotEmpty()) {
-						t[i]|=x;n++;
+					BFTAG x = t[j];
+					//x -= t[i];
+					if(x.substract(t[i])) {
+						t[i] |= x;
+						//n++;
+						n = 1;
 					}
 				}
 		} // end j  while
@@ -401,9 +425,17 @@ void TDB::ExpandShort(TDB & from ,int npas)
 {(*this)=from; // be sure to start with the set of primary data
  for( int i=2;i< puz.col;i++)
   {if (t[i].IsEmpty())continue;   int n=1,pas=0;
-   while(n && (++pas<npas))
-    { n=0;for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j))
-	 {BFTAG x=from.t[j]-t[i];	  if(x.IsNotEmpty()) {t[i]|=x;n++;}
+   while(n && (++pas<npas)) {
+	   n=0;
+	   for(int j=2;j< puz.col;j++)
+		   if((j-i) && t[i].On(j)) {
+			   BFTAG x = from.t[j];
+			   //x -= t[i];
+			   //if(x.IsNotEmpty()) {
+			   if(x.substract(t[i])) {
+				   t[i] |= x;
+				   n++;
+			   }
    }} // end j  while
   } }// end i   proc
 
@@ -438,9 +470,14 @@ while(1)
 	 if (zpln.candtrue.Off(i>>1) &&  // candidate not valid
 		 t[i].IsNotEmpty()               // should always be
 		 )
-  {for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j))
-	 {BFTAG x=from.t[j]-t[i];	  
-      if(x.IsNotEmpty()) {t[i]|=x;aig=0;}
+  {for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j)) {
+	  BFTAG x=from.t[j];
+	  //x -= t[i];	  
+      //if(x.IsNotEmpty()) {
+      if(x.substract(t[i])) {
+		  t[i]|=x;
+		  aig=0;
+	  }
      }
    if(t[i].On(i^1)) // an elimination is seen
      {elims.Set(i); aigt=1;}
@@ -535,8 +572,12 @@ void TZCF::LoadEventDirect(USHORT cd1, USHORT cd2) {
 void TZCF::ChainPlus(BFCAND & dones) {
 	BFTAG *t = h.d.t, *tp = h.dp.t; 
 	for(int i = 2; i < puz.col; i += 2) {
-		BFTAG zi = (t[i].Inverse()).TrueState(), zw1 = t[i] & zi,
-			zw2 = (t[i] & t[i^1]).FalseState();
+		BFTAG zw1 = t[i];
+		zw1 &= (t[i].Inverse()).TrueState();
+		//BFTAG zw2 = (t[i] & t[i^1]).FalseState();
+		BFTAG zw2 = t[i];
+		zw2 &= t[i ^ 1];
+		zw2 = zw2.FalseState();
 		if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
 			if(1 && Op.ot) {
 				//long tw=GetTimeMillis();
@@ -562,9 +603,12 @@ void TZCF::ChainPlus(BFCAND & dones) {
 			cg1.GoOne(i, zw2);
 			CANDGO cg2;
 			cg2.GoOne(i ^ 1, zw2);
-			BFTAG bf1 = zw2 & cg1.cumsteps[cg1.npas],
-				bf2 = zw2 & cg2.cumsteps[cg2.npas],
-				bft = bf1 & bf2;
+			BFTAG bf1 = zw2;
+			bf1 &= cg1.cumsteps[cg1.npas];
+			BFTAG bf2 = zw2;
+			bf2 &= cg2.cumsteps[cg2.npas];
+			BFTAG bft = bf1;
+			bft &= bf2;
 			if(bft.IsEmpty())
 				continue;
 			// find the smallest overall length
@@ -575,12 +619,16 @@ void TZCF::ChainPlus(BFCAND & dones) {
 					zpln.Image(i2>>1);
 					EE.Enl();	
 					int l1 = cg1.GoBack(i2, 0), l2 = cg2.GoBack(i2, 0);
-					if((!l1) || (!l2)) continue;// should never be
+					if((!l1) || (!l2))
+						continue;// should never be
 					// if chain 2 starts by a strong link, reduce the count by one
-					if((zcf.dpbase.t[i^1] & cg2.cumsteps[1]).IsNotEmpty())
+					//if((zcf.dpbase.t[i^1] & cg2.cumsteps[1]).IsNotEmpty())
+					BFTAG ttt = zcf.dpbase.t[i ^ 1];
+					ttt &= cg2.cumsteps[1];
+					if(ttt.IsNotEmpty())
 						l2--;
 					int ll = l1 + l2;
-					if(ll<totlength) {
+					if(ll < totlength) {
 						totlength = ll;
 						i2f = i2;
 					}
@@ -617,12 +665,16 @@ void TZCF::ChainPlus(BFCAND & dones) {
 		tbt.SetAll_1();
 		for(int i = 0; i < n; i++)
 			bfset.Set((tcd[i] << 1) ^ 1);
-		for(int i = 0; i < n; i++)
-			tbt &= (t[tcd[i] << 1] - bfset); 
+		for(int i = 0; i < n; i++) {
+			//tbt &= (t[tcd[i] << 1] - bfset);
+			BFTAG ttt = t[tcd[i] << 1];
+			ttt -= bfset;
+			tbt &= ttt;
+		}
 		if(!tbt.IsNotEmpty())
 			continue;
 		// candidate(s) to clear found
-		if(Op.ot&& 0) {
+		if(Op.ot && 0) {
 			puz.Image(tbt," eliminations  multi chain dynamic mode  ", 0);
 			chx.Image();
 			EE.Enl();
@@ -741,7 +793,8 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 			}
 		}
 		//--------------------------- now look for a loop 
-		BFTAG w = h.dp.t[i] & xb; 
+		BFTAG w = h.dp.t[i];
+		w &= xb; 
 		if(0 && Op.ot)
 			puz.Image(w,"loop contacts",i);
 		if(w.Count() < 2)
@@ -801,20 +854,40 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 */
 void TZCF::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
 	// forget if not same digit or t2 is ~t1
-	ZPTLN candt1 = zpln.zp[t1 >> 1], candt2 = zpln.zp[t2 >> 1];
 	if(cand == (t2 >> 1))
 		return;
-	if(candt1.ch-candt2.ch)
+
+	ZPTLN candt1 = zpln.zp[t1 >> 1];
+	ZPTLN candt2 = zpln.zp[t2 >> 1];
+	if(candt1.ch - candt2.ch)
 		return;
-	USHORT ct1 = (h.dp.t[t1] & loop).Count(), ct2 = (h.dp.t[t2] & loop).Count();
 
-	if(ct1 < 1 || ct2 < 1)
+	//USHORT ct1 = (h.dp.t[t1] & loop).Count();
+	BFTAG ttt = h.dp.t[t1];
+	ttt &= loop;
+	USHORT ct1 = ttt.Count();
+	if(ct1 < 1)
 		return; // should never be
-
 	if(ct1 < 2) {
 		Aic_YcycleD(t1, t2 ^ 1, loop, cand);
 		return;
-	}  
+	}
+
+	//USHORT ct2 = (h.dp.t[t2] & loop).Count();
+	ttt = h.dp.t[t2];
+	ttt &= loop;
+	USHORT ct2 = ttt.Count();
+	if(ct2 < 1)
+		return; // should never be
+
+	//if(ct1 < 1 || ct2 < 1)
+	//	return; // should never be
+
+	//if(ct1 < 2) {
+	//	Aic_YcycleD(t1, t2 ^ 1, loop, cand);
+	//	return;
+	//}  
+
 	if(ct2 < 2) {
 		Aic_YcycleD(t2, t1 ^ 1, loop, cand);
 		return;
@@ -834,7 +907,12 @@ void TZCF::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // up to 
 	USHORT tt[20], itt, lg = 200;
 	PATH resf, resw;
 	USHORT tagc = cand << 1, tagcn = tagc ^ 1;
-	(h.dp.t[t1] & loop).String(tt, itt); // starts in table
+
+	//(h.dp.t[t1] & loop).String(tt, itt); // starts in table
+	BFTAG ttt = h.dp.t[t1];
+	ttt &= loop;
+	ttt.String(tt, itt); // starts in table
+
 	for(int i = 0; i < itt; i++) {
 		if(h.dp.t[tt[i]].On(t1))
 			continue; // this is a strong link, skip it
@@ -887,7 +965,12 @@ USHORT t2=t2x^1,t1=0; // new target is  "on"
          EE.E(" t1=");zpln.ImageTag(t1);EE.Enl();
         }
  USHORT tagc=cand<<1,tagcn=tagc^1;
- (h.dp.t[t1] & loop).String(tt,itt); // starts in table
+
+ //(h.dp.t[t1] & loop).String(tt,itt); // starts in table
+ BFTAG ttt = h.dp.t[t1];
+ ttt &= loop;
+ ttt.String(tt,itt); // starts in table
+
  for(int i=0;i<itt;i++) 
   {if(h.dp.t[tt[i]].On(t1)) continue; // this is a strong link, skip it
    if(tt[i]==tagcn) continue; // don't start with the elimination
@@ -1180,16 +1263,25 @@ void TZCHOIX::DeriveBase(ZCHOIX & chx) // each candidate can be the target
  // bfset is the set itself in bf form for the exclusion of the set itself
  for(int i=0;i<nni;i++) bfset.Set(tcd[i]<<1);
 
- for(int i=0;i<nni;i++)    tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;  
- for(int i=0;i<nni;i++)
-      {tcf2f=tcf2;  if(i<nni)for(int k=i+1;k<nni;k++) tcf2f=tcf2f&tce[k];
+ for(int i=0;i<nni;i++) {
+	 //tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
+	 tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
+	 tce[i] -= bfset;
+ }
+ for(int i=0;i<nni;i++) {
+	 tcf2f = tcf2;
+	 if(i < nni)
+		 for(int k = i + 1; k < nni; k++) {
+			 tcf2f &= tce[k];
+		 }
        if(tcf2f.IsNotEmpty())
          {for(USHORT j=2;j< puz.col;j++)  if(tcf2f.On(j)) 
            { if( zcf.IsStart(j,tcd[i]<<1) )continue; // skip if defined		    
 		  	 zcf.LoadDerivedTag(j,tcd[i]);
 	       }// end j
          } //end if
-       tcf2=tcf2&tce[i];if(tcf2.IsEmpty()) return;
+       tcf2 &= tce[i];
+	   if(tcf2.IsEmpty()) return;
 	 }// end i
 }
 
@@ -1202,7 +1294,11 @@ void TZCHOIX::DeriveSet(ZCHOIX & chx) // only the "event" can be the target
  BFTAG tcft,bfset;   tcft.SetAll_1();
  // bfset is the set itself in bf form for the exclusion of the set itself
  for(int i=0;i<nni;i++)    bfset.Set(tcd[i]<<1);
- for(int i=0;i<nni;i++)    tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;  
+ for(int i=0;i<nni;i++) {
+	 //tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
+	 tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
+	 tce[i] -= bfset;
+ }
  for(int i=0;i<nni;i++)    tcft&=tce[i];
  if(tcft.IsNotEmpty()) // event established for any 'true' in tcft
 	 {for(USHORT j=2;j< puz.col;j++)  if(tcft.On(j))

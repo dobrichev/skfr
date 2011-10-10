@@ -606,7 +606,7 @@ class BFTAG {
 	static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
 
 public:
-	BFTAG() {
+	inline BFTAG() {
 		SetAll_0();
 	}
 	BFTAG(const BFTAG &x) {
@@ -618,15 +618,14 @@ public:
 	void SetAll_1();
 	///\brief is bit in position <code>v</code> On
 	inline int On(int v) const {
-		int io = v >> 5;
-		int jo = v & 31;
-		return (f[io] & (1 << jo));
+		return (f[v >> 5] & (1 << (v & 31)));
 	}
+	//inline bool On(int v) const {
+	//	return !Off(v);
+	//}
 	///\brief is bit in position <code>v</code> Off
-	inline int Off(int v) const {
-		int io = v >> 5;
-		int jo = v & 31;
-		return ((f[io] & (1 << jo)) == 0);
+	inline bool Off(int v) const {
+		return ((f[v >> 5] & (1 << (v & 31))) == 0);
 	}
 	///\brief Set bit in position <code>v</code> to On
 	inline void Set(int v) {
@@ -634,23 +633,26 @@ public:
 	}
 	///\brief Clear bit in position <code>v</code> 
 	inline void Clear(int v) {
-		if(On(v))
-			f[v >> 5] ^= (1 << (v & 31));
+		//if(On(v))
+		//	f[v >> 5] ^= (1 << (v & 31));
+		f[v >> 5] &= (~(1 << (v & 31)));
 	}
-	void Clear(BFTAG &z2);
-	BFTAG Inverse();
-	BFTAG operator & (const BFTAG &z2) const;
-	BFTAG operator | (const BFTAG &z2) const;
-	BFTAG operator ^ (const BFTAG &z2) const;
-	BFTAG operator - (const BFTAG &z2) const;
+	//void Clear(BFTAG &z2);
+	BFTAG Inverse() const;
+	//BFTAG operator & (const BFTAG &z2) const;
+	//BFTAG operator | (const BFTAG &z2) const;
+	//BFTAG operator ^ (const BFTAG &z2) const;
+	//BFTAG operator - (const BFTAG &z2) const;
 	void operator &= (const BFTAG &z2);
 	void operator |= (const BFTAG &z2);
-	void operator ^= (const BFTAG &z2);
+	//void operator ^= (const BFTAG &z2);
 	void operator -= (const BFTAG &z2);
-	int operator == (const BFTAG &z2) const;
+	bool operator == (const BFTAG &z2) const;
 	//BFTAG BFTAG::operator ~();
-	int IsNotEmpty() const;     
-	int IsEmpty() const;
+	bool substract(const BFTAG &z2); //perform -= and return IsNotEmpty()
+	inline bool IsNotEmpty() const;
+	//inline bool IsNotEmpty() const {return !IsEmpty();};
+	bool IsEmpty() const;
 	///\brief get on bits count (limit count to first <code>col+2</code> bits)
 	///
 	///\sa col in file _00_ assSE.h
@@ -684,6 +686,6 @@ public:
 	int SearchCycle(BFTAG * to, USHORT i, BFTAG & loop);
 	int SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop);
 	int TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt,
-		USHORT & itt, USHORT relay);
-	void Expand(BFTAG * to, USHORT i); // in nested mode, expansion limited to one tag
+		USHORT & itt, USHORT relay) const;
+	//void Expand(BFTAG * to, USHORT i); // in nested mode, expansion limited to one tag
 };
