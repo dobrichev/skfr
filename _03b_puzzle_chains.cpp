@@ -399,24 +399,25 @@ void TDB::Parents(USHORT x) {
 //	} 
 //}// end i   proc
 void TDB::ExpandAll(TDB & from) {
-	(*this)=from; // be sure to start with the set of primary data
-	for(int i=2;i< puz.col;i++) {
-		if (t[i].IsEmpty())
+	(*this) = from; // be sure to start with the set of primary data
+	for(int i = 2; i < puz.col; i++) {
+		if(t[i].IsEmpty())
 			continue;
-		int n=1;
+		int n = 1;
 		while(n) {
-			n=0;
-			for(int j=2;j< puz.col;j++)
-				if((j-i) && t[i].On(j)) {
+			n = 0;
+			for(int j = 2; j < puz.col; j++) {
+				if(j == i)
+					continue;
+				if(t[i].On(j)) {
 					BFTAG x = t[j];
-					//x -= t[i];
 					if(x.substract(t[i])) {
 						t[i] |= x;
-						//n++;
 						n = 1;
 					}
 				}
-		} // end j  while
+			} // j
+		} // while
 	} 
 }// end i   proc
 
