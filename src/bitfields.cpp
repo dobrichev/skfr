@@ -28,6 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 #include "bitfields.h"
+#include <memory.h>
 
 BF_CONVERT bfconv;
 
@@ -99,31 +100,40 @@ int BF81::io = 0, BF81::jo = 0;
 void BFTAG::SetAll_0() {
 	for(int i = 0; i < BFTAG_size; i++)
 		f[i] = 0;
+	//memset(this, 0, sizeof(*this));
 }
 void BFTAG::SetAll_1() {
 	for(int i = 0; i < BFTAG_size; i++)
 		f[i] = -1;
+	//memset(this, -1, sizeof(*this));
 }
-int BFTAG::IsNotEmpty() const {
+inline bool BFTAG::IsNotEmpty() const {
 	for(int i = 0; i < BFTAG_size; i++)
 		if(f[i])
-			return 1;
-	return 0;
+			return true;
+	return false;
 }
-int BFTAG::IsEmpty() const {
+bool BFTAG::IsEmpty() const {
 	for(int i = 0; i < BFTAG_size; i++)
 		if(f[i])
-			return 0;
-	return 1;
+			return false;
+	return true;
 }
 
+inline unsigned int popCount32(unsigned int v) { // count bits set in this (32-bit value)
+	v = v - ((v >> 1) & 0x55555555);                    // reuse input as temporary
+	v = (v & 0x33333333) + ((v >> 2) & 0x33333333);     // temp
+	return ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24; // count
+}
 //  GP 2011 10 9 should be replaced by a process using BF_CONVERT
 //
 int BFTAG::Count() const {
 	int c = 0;
-	for(int i = 0; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
-		if(On(i))
-			c++;
+	//for(int i = 0; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
+	//	if(On(i))
+	//		c++;
+	for(int i = 0; i < BFTAG_size; i++)
+		c += popCount32((unsigned int) f[i]);
 	return c;
 }
 
@@ -131,7 +141,7 @@ int BFTAG::Count() const {
 // should be replaced by a quick process using true32 false32
 //fx= (f&true32)<<1 + (f&false32 >>1)
 //----
-BFTAG BFTAG::Inverse() {
+BFTAG BFTAG::Inverse() const {
 	BFTAG w;
 	for(int i = 0; i </*puz.col + 2*/ BFTAG_BitSize; i++)
 		if(On(i))
@@ -160,24 +170,24 @@ void BFTAG::String(USHORT * r, USHORT &n) const {
 		if(On(i))
 			r[n++] = (USHORT)i;
 }
-BFTAG BFTAG::operator & (const BFTAG &z2) const {
-	BFTAG w;
-	for(int i = 0; i < BFTAG_size; i++)
-		w.f[i] = f[i] & z2.f[i];
-	return w;
-}
-BFTAG BFTAG::operator | (const BFTAG &z2) const {
-	BFTAG w;
-	for(int i = 0; i < BFTAG_size; i++)
-		w.f[i] = f[i] | z2.f[i];
-	return w;
-}
-BFTAG BFTAG::operator ^ (const BFTAG &z2) const {
-	BFTAG w;
-	for(int i = 0; i < BFTAG_size; i++)
-		w.f[i] = f[i] ^ z2.f[i];
-	return w;
-}
+//BFTAG BFTAG::operator & (const BFTAG &z2) const {
+//	BFTAG w;
+//	for(int i = 0; i < BFTAG_size; i++)
+//		w.f[i] = f[i] & z2.f[i];
+//	return w;
+//}
+//BFTAG BFTAG::operator | (const BFTAG &z2) const {
+//	BFTAG w;
+//	for(int i = 0; i < BFTAG_size; i++)
+//		w.f[i] = f[i] | z2.f[i];
+//	return w;
+//}
+//BFTAG BFTAG::operator ^ (const BFTAG &z2) const {
+//	BFTAG w;
+//	for(int i = 0; i < BFTAG_size; i++)
+//		w.f[i] = f[i] ^ z2.f[i];
+//	return w;
+//}
 void BFTAG::operator &= (const BFTAG &z2) {
 	for(int i = 0; i < BFTAG_size; i++)
 		f[i] &= z2.f[i];
@@ -186,25 +196,59 @@ void BFTAG::operator |= (const BFTAG &z2) {
 	for(int i = 0; i < BFTAG_size; i++)
 		f[i] |= z2.f[i];
 }
-void BFTAG::operator ^= (const BFTAG &z2) {
-	for(int i = 0; i < BFTAG_size; i++)
-		f[i] ^= z2.f[i];
-}
-int BFTAG::operator == (const BFTAG &z2) const {
+//void BFTAG::operator ^= (const BFTAG &z2) {
+//	for(int i = 0; i < BFTAG_size; i++)
+//		f[i] ^= z2.f[i];
+//}
+bool BFTAG::operator == (const BFTAG &z2) const {
 	for(int i = 0; i < BFTAG_size; i++)
 		if(!(f[i] == z2.f[i]))
-			return 0;
-	return 1;
+			return false;
+	return true;
+	//return memcmp(this, &z2, sizeof(*this)) == 0;
 }
-BFTAG BFTAG::operator - (const BFTAG &z2) const {
-	BFTAG w;
-	  for(int i = 0; i < BFTAG_size; i++)
-		  w.f[i] = f[i] ^ (f[i] & z2.f[i]);
-	  return w;
-}
+//BFTAG BFTAG::operator - (const BFTAG &z2) const {
+//	BFTAG w;
+//	  for(int i = 0; i < BFTAG_size; i++)
+//		  w.f[i] = f[i] ^ (f[i] & z2.f[i]);
+//	  return w;
+//}
 void BFTAG::operator -= (const BFTAG &z2) {
 	  for(int i = 0; i < BFTAG_size; i++)
-		  f[i] ^= (f[i] & z2.f[i]);
+		  //f[i] ^= (f[i] & z2.f[i]);
+		  f[i] &= ~z2.f[i];
+}
+
+bool BFTAG::substract(const BFTAG &z2) {
+	UINT accum = 0;
+	//for(int i = 0; i < BFTAG_size; i++) {
+	//	accum |= (f[i] &= ~z2.f[i]);
+	//}
+	//for(int i = 0; i < BFTAG_size; i++) {
+	//	  f[i] &= ~z2.f[i];
+	//	  accum |= f[i];
+	//}
+	accum |= (f[0] &= ~z2.f[0]);
+	accum |= (f[1] &= ~z2.f[1]);
+	accum |= (f[2] &= ~z2.f[2]);
+	accum |= (f[3] &= ~z2.f[3]);
+	accum |= (f[4] &= ~z2.f[4]);
+	accum |= (f[5] &= ~z2.f[5]);
+	accum |= (f[6] &= ~z2.f[6]);
+	accum |= (f[7] &= ~z2.f[7]);
+	accum |= (f[8] &= ~z2.f[8]);
+	accum |= (f[9] &= ~z2.f[9]);
+	accum |= (f[10] &= ~z2.f[10]);
+	accum |= (f[11] &= ~z2.f[11]);
+	accum |= (f[12] &= ~z2.f[12]);
+	accum |= (f[13] &= ~z2.f[13]);
+	accum |= (f[14] &= ~z2.f[14]);
+	accum |= (f[15] &= ~z2.f[15]);
+	accum |= (f[16] &= ~z2.f[16]);
+	accum |= (f[17] &= ~z2.f[17]);
+	accum |= (f[18] &= ~z2.f[18]);
+	accum |= (f[19] &= ~z2.f[19]);
+	return accum != 0;
 }
 
 //------
@@ -244,10 +288,12 @@ int BFTAG::SearchChain(BFTAG * to, USHORT start, USHORT end) {
 		tnew = (told == tta) ? ttb : tta; // new the second table
 		itnew = 0;
 		// EE.E("cycle");zpln.PrintListe(told,itold,1); 
-		int aig = 1; // to detect an empty pass
+		//int aig = 1; // to detect an empty pass
 		for(int it = 0; it < itold; it++) {
-			BFTAG x = (to[told[it]] - (*this));
-			if(x.IsNotEmpty()) {
+			BFTAG x = to[told[it]];
+			//x -= (*this);
+			//if(x.IsNotEmpty()) {
+			if(x.substract(*this)) {
 				(*this) |= x; // flag it in the BFTAG and load in new
 				// here tx dimension increased. In nested mode, could require it
 				USHORT tx[40], itx = 0;
@@ -281,7 +327,10 @@ int BFTAG::SearchCycle(BFTAG * to, USHORT start, BFTAG & loop) {
 		itnew = 0;
 		// EE.E("cycle");zpln.PrintListe(told,itold,1); 
 		for(int it = 0; it < itold; it++) {
-			BFTAG x = (to[told[it]] - (*this))& loop ;	  
+			//BFTAG x = (to[told[it]] - (*this)) & loop ;	  
+			BFTAG x = to[told[it]];
+			x -= (*this);
+			x &= loop;
 			if(x.IsNotEmpty()) {
 				(*this) |= x; // flag it in the BFTAG and load in new
 				USHORT tx[20], itx = 0;
@@ -313,7 +362,10 @@ int BFTAG::SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop) {
 		tnew = (told == tta) ? ttb : tta; // new the second table
 		itnew = 0;
 		for(int it = 0; it < itold; it++) {
-			BFTAG x = (to[told[it]] - (*this)) & loop;
+			//BFTAG x = (to[told[it]] - (*this)) & loop;
+			BFTAG x = to[told[it]];
+			x -= (*this);
+			x &= loop;
 			if(x.IsNotEmpty()) {
 				(*this) |= x; // flag it in the BFTAG and load in new
 				USHORT tx[20], itx = 0;
@@ -361,7 +413,7 @@ int BFTAG::SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop) {
    not yet enough to be revised
    need really to build forward step by step before going backward
  */
-int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT & itt, USHORT relay) {
+int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT & itt, USHORT relay) const {
 	// first we have to build forward step by step 
 	if(itt > 40) {
 		/*  debugging infromation to be relocated in the calling sequence
@@ -389,7 +441,10 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 		USHORT *ta = tx[npas], *tb = tx[npas + 1],
 			ita = itx[npas], itb = 0;
 		for(int it = 0; it < ita; it++) {
-			BFTAG x = (to[ta[it]] - allsteps) & (*this);	  // still free and in the overall path
+			//BFTAG x = (to[ta[it]] - allsteps) & (*this);	  // still free and in the overall path
+			BFTAG x = to[ta[it]];
+			x -= allsteps;
+			x &= (*this);	  // still free and in the overall path
 			if(x.IsNotEmpty()) {
 				(*step) |= x; // flag it in the BFTAG and load in new
 				allsteps |= x; // and in the total 
@@ -481,18 +536,20 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 // GP 2011 10 9  <<<<<<<<<<<<<<<<<<<<<<<  suggested to move that in PUZZLE
 // this is more sensitive in performance that the previous ones
 /* final expansion in nested mode of a specific BFTAG */
-void BFTAG::Expand(BFTAG * to, USHORT i) {
-	int n = 1, pas = 0;
-	while(n) {
-		n = 0;
-		for(int j = 2; j < /*puz.col + 2*/ BFTAG_BitSize; j++) {
-			if((j - i) && (*this).On(j)) {
-				BFTAG x = to[j] - (*this);
-				if(x.IsNotEmpty()) {
-					(*this) |= x;
-					n++;
-				}
-			}
-		} // end j
-	} // end while
-}
+//void BFTAG::Expand(BFTAG * to, USHORT i) {
+//	int n = 1;
+//	while(n) {
+//		n = 0;
+//		for(int j = 2; j < /*puz.col + 2*/ BFTAG_BitSize; j++) {
+//			if((j - i) && (*this).On(j)) {
+//				BFTAG x = to[j];
+//				x -= (*this);
+//				if(x.IsNotEmpty()) {
+//					(*this) |= x;
+//					//n++;
+//					n = 1;
+//				}
+//			}
+//		} // end j
+//	} // end while
+//}

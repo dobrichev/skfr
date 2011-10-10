@@ -308,7 +308,7 @@ void PUZZLE::GetCells(BFCAND & zz,BF81 &cells) const {
 
 
 //------
-void PUZZLE::Image(BFTAG & zz,char * lib, int mmd) const {
+void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
 	if(!Op.ot)
 		return;
 	EE.E(lib);   
@@ -763,9 +763,11 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	BFTAG elims1, elims2, elims3, elimst2[300], tchte[500]; 
 	USHORT t2[300], it2 = 0;
 	for(int i = 2; i < col; i += 2) {
-		BFTAG tw = zcf.h_nest.d.t[i],
-			tw1 = tw & tw.Inverse(),
-			tw2 = tw & zcf.h_nest.d.t[i ^ 1];
+		BFTAG tw = zcf.h_nest.d.t[i];
+		BFTAG tw1 = tw;
+		tw1 &= tw.Inverse();
+		BFTAG tw2 = tw;
+		tw2 &= zcf.h_nest.d.t[i ^ 1];
 		tw2 = tw2.FalseState();
 		tw1 = tw1.TrueState();
 		if(tw2.IsNotEmpty()) {  // case 2
@@ -801,7 +803,9 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		}
 	}// end case 3
 
-	BFTAG elimt = elims1.Inverse() | elims2 | elims3;
+	BFTAG elimt = elims1.Inverse();
+	elimt |= elims2;
+	elimt |= elims3;
 	if(Op.ot)
 		Image(elimt,"elim potential", 0);
 	if(elimt.IsEmpty())

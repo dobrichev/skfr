@@ -392,7 +392,7 @@ public:
     void ImagePoints(BF81 & zz) const;  
 	void ImageCand(BFCAND & zz ,char * lib) const;
 	void GetCells(BFCAND & zz,BF81 & cells) const;
-	void Image(BFTAG & zz,char * lib, int mmd) const;
+	void Image(const BFTAG & zz,char * lib, int mmd) const;
  	void Elimite(char * lib);
 	void Estop(char * lib);
 
