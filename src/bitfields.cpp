@@ -166,9 +166,17 @@ BFTAG BFTAG::FalseState() const {
 //----
 void BFTAG::String(USHORT * r, USHORT &n) const {
 	n = 0;
-	for(int i = 2; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
-		if(On(i))
-			r[n++] = (USHORT)i;
+	//for(int i = 2; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
+	//	if(On(i))
+	//		r[n++] = (USHORT)i;
+	for(int i = 0; i < BFTAG_size; i++) {
+		if(f[i]) {
+			for(unsigned int j = 1, k = 0; k < 32; j <<= 1, k++) {
+				if(f[i] & j)
+					r[n++] = (USHORT)(i * 32 + k);
+			}
+		}
+	}
 }
 //BFTAG BFTAG::operator & (const BFTAG &z2) const {
 //	BFTAG w;
