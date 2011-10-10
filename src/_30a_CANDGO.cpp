@@ -1041,7 +1041,8 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 		(*step) |= elims; // flag it in the BFTAG and load in new
 		allsteps |= elims; // and in the total 
 		hdp[tag] |= elims;
-		USHORT ty[100], ity = 0;
+		//USHORT ty[100], ity = 0; //test 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
+		USHORT ty[150], ity = 0;
 		elims.String(ty, ity);
 		for(int i = 0; i < ity; i++)
 			tb[itb++] = ty[i];
@@ -1059,7 +1060,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 		(*step) |= elims2; // flag it in the BFTAG and load in new
 		allsteps |= elims2; // and in the total 
 		hdp[tag] |= elims2;
-		USHORT ty[100], ity = 0;
+		USHORT ty[150], ity = 0;
 		elims2.String(ty, ity);
 		for(int i = 0; i < ity; i++)
 			tb[itb++] = ty[i];
