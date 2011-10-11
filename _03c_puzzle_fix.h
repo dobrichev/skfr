@@ -39,7 +39,7 @@ DIVF fix data for the regions including the region to cell indexes and BF81 patt
 
 UNP  describing the variable part for a cell 
 P81  describing a cell including variable part and a pointer to fix part
-TP81 the table of 81 P81 and associated function
+CELLS the table of 81 P81 and associated function
 
     and a group fo classes giving alternative entries in the grid
 	region -> digit -> cell   region -> cell -> digits
@@ -137,12 +137,12 @@ public:
 };
 
 //! Table containing the fix data for the 81 cells
-class TP81F {  
+class CELLS_FIX {  
 public:
 	CELL_FIX t81f[81]; 
 
 	// constructor making all initialisations 
-	TP81F() {
+	CELLS_FIX() {
 		int i, j; 
 		for(i=0;i<81;i++)		// initialize all data except influence zone
 			t81f[i].init(i);

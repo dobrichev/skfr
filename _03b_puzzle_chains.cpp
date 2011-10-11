@@ -47,7 +47,7 @@ USHORT  steps[] = {4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128,
 */
 int CHAIN::Clean() // clear candidates
      {if(Op.ot){EE.E("clean for UREM=");EE.Enl(urem);}
-      ZPTLN cw=zpln.zp[cand];
+      CANDIDATE cw=zpln.zp[cand];
 	  return T81t[cw.ig].Change(cw.ch);}
 /* accelerator for the search of loops
    to be revised
@@ -199,12 +199,12 @@ USHORT ZGROUPE::Charge(BF81  &ze)
 
 
 
-BF81 * ZPTLN::GetZ() {
+BF81 * CANDIDATE::GetZ() {
 	return &zgs.z[ig];
 }     
 
-void ZPTLN::Clear(){T81t[ig].Change(ch); }
-void ZPTLN::Image(int no) {EE.Esp();if(no)EE.E("~");
+void CANDIDATE::Clear(){T81t[ig].Change(ch); }
+void CANDIDATE::Image(int no) {EE.Esp();if(no)EE.E("~");
                      EE.E(ch+1);EE.E(t81f[ig].pt); }
 
 /* creates the table of candidates
@@ -215,7 +215,7 @@ void ZPTLN::Image(int no) {EE.Esp();if(no)EE.E("~");
  */
 
 
-void TZPTLN::Init() {
+void CANDIDATES::Init() {
 	ip=1;
 	candtrue.SetAll_0();
 	for(int i = 0; i < 9 * 81; i++)
@@ -240,11 +240,11 @@ void TZPTLN::Init() {
    check for free room just in case
    if no free room, puz.stop_rating is set to 1 thru Elimite
 */
-USHORT TZPTLN::Charge0()
+USHORT CANDIDATES::Charge0()
 {if(ip>=zpln_lim){  parentpuz->Elimite("TZPLN"); return 0;}
  USHORT ir=ip; zp[ip++]=zp[0]; return ir;}
 
-/* send in TZCF all weak links
+/* send in INFERENCES all weak links
    if it is a bi value, then 2 weak links are created
       a - b  and   ~a - ~b
    one entry for 'X' mode and one entry for 'Y' mode
@@ -254,7 +254,7 @@ USHORT TZPTLN::Charge0()
 
 // this is a process specific to 'Y' mode
 // only cell bivalues + 
-void  TZPTLN::CellStrongLinks()
+void  CANDIDATES::CellStrongLinks()
 { for(int i=0;i<81;i++) if(T81t[i].v.ncand==2) 
   {iptsch=0; 
    for(int ich=0,jp=i;ich<9;ich++,jp+=81)
@@ -266,7 +266,7 @@ void  TZPTLN::CellStrongLinks()
    if biv=1, no generation of strong links
    (if not, biv=3)
 */
-void  TZPTLN::CellLinks() 
+void  CANDIDATES::CellLinks() 
 { el=0; // to shunt the filter in WeaklinksD
  for(int i=0;i<81;i++) if(T81t[i].v.ncand<2) continue;
 else 
@@ -278,7 +278,7 @@ else
    else  if(iptsch)WeakLinksD();
  }
 }
-void  TZPTLN::RegionLinks(USHORT ich,int biv)
+void  CANDIDATES::RegionLinks(USHORT ich,int biv)
 {for (el=0;el<27;el++)
    { iptsch=0;  if(aztob.tchbit.el[el].eld[ich].n <2 )continue;
      for(int i=0;i<9;i++)
@@ -289,7 +289,7 @@ void  TZPTLN::RegionLinks(USHORT ich,int biv)
 	else    if(iptsch)WeakLinksD();
    }
 }
-void  TZPTLN::WeakLinksD()
+void  CANDIDATES::WeakLinksD()
 {for(int j=0;j<iptsch-1;j++)// look for all pairs
      {USHORT p1=ptsch[j],ig1=zp[p1].ig;
       for(int k=j+1;k<iptsch;k++)
@@ -301,7 +301,7 @@ void  TZPTLN::WeakLinksD()
        }  }}
 
 //---------- gen sets of candidates in a row column box 
-void TZPTLN::GenRegionSets()     // can only be one per row col box, only if more than 2 candidates
+void CANDIDATES::GenRegionSets()     // can only be one per row col box, only if more than 2 candidates
 {  USHORT mch[10];       
    for( int ich=0;ich<9;ich++) for (int el=0;el<27;el++)
    {USHORT nmch=aztob.tchbit.el[el].eld[ich].n,ipts=0;;
@@ -311,44 +311,44 @@ void TZPTLN::GenRegionSets()     // can only be one per row col box, only if mor
      {if(zp[j].ch-ich )continue;
       if(zel.On(zp[j].ig) ) mch[ipts++]=j; 
      }
-     zcx.ChargeSet(mch,nmch,CH_base);
+     zcx.ChargeSet(mch,nmch,SET_base);
     }
 }
-void  TZPTLN::GenCellsSets()
+void  CANDIDATES::GenCellsSets()
 {for(USHORT i=0;i<81;i++)
   {USHORT n= T81t[i].v.ncand; if(n<3 || n>chx_max) continue;    
    BF16 ch8=T81t[i].v.cand;  
    USHORT nm=0,tm[9];    for(int j=0,jp=i;j<9;j++,jp+=81) if(ch8.On(j))
      {tm[nm++]=indexc[jp];}
-     zcx.ChargeSet(tm,nm,CH_base);  
+     zcx.ChargeSet(tm,nm,SET_base);  
     }  }
 
-void TZPTLN::Liste()
+void CANDIDATES::Liste()
 {EE.Enl("Liste des candidats ");
  for(int j=1;j<ip;j++)  {zp[j].Image();   EE.Enl();}  }
 
-void TZPTLN::ListeIndexc()
+void CANDIDATES::ListeIndexc()
 {EE.Enl("Liste des candidats via index ");
  for(int i=0;i<81;i++) for(int ich=0;ich<9;ich++) 
  {USHORT j=indexc[ich*81+i];
  if(j)  {zp[j].Image();   EE.Enl();}  }
 }
 
- void  TZPTLN::PrintPath(USHORT * tp,USHORT np)
+ void  CANDIDATES::PrintPath(USHORT * tp,USHORT np)
 {if(!Op.ot) return; EE.Echem();
  for(int i=0;i<np;i++)
   {ImageTag(tp[i]);
   if(i<np-1) if(i&1)EE.Esl(); else EE.Ewl(); } 
  EE.Enl();}
 
- void  TZPTLN::PrintImply(USHORT * tp,USHORT np)
+ void  CANDIDATES::PrintImply(USHORT * tp,USHORT np)
 {if(!Op.ot) return; EE.Echem();
  for(int i=0;i<np;i++)
   {USHORT px=tp[i];  ImageTag(tp[i]);
   if(i<np-1) EE.E(" -> ");  } 
  EE.Enl();}
 
-void  TZPTLN::PrintListe(USHORT * tp,USHORT np,int modetag)
+void  CANDIDATES::PrintListe(USHORT * tp,USHORT np,int modetag)
 {if(!Op.ot) return; EE.E("candidats");
  for(int i=0;i<np;i++)
   {USHORT px=tp[i];  
@@ -359,13 +359,13 @@ void  TZPTLN::PrintListe(USHORT * tp,USHORT np,int modetag)
 
 
 
-BFTAG TDB::done[50]; 
-USHORT  TDB::ich, TDB::mode, TDB::length, TDB::mmfin, TDB::maxlength;
-PATH   TDB::path,TDB::pathr;
-USHORT TDB::maxichain,TDB::maxsearch,TDB:: parsediag,TDB:: parsecount;
-BFCAND TDB::tbf_end,TDB::tbf_endok; 
+BFTAG SQUARE_BFTAG::done[50]; 
+USHORT  SQUARE_BFTAG::ich, SQUARE_BFTAG::mode, SQUARE_BFTAG::length, SQUARE_BFTAG::mmfin, SQUARE_BFTAG::maxlength;
+PATH   SQUARE_BFTAG::path,SQUARE_BFTAG::pathr;
+USHORT SQUARE_BFTAG::maxichain,SQUARE_BFTAG::maxsearch,SQUARE_BFTAG:: parsediag,SQUARE_BFTAG:: parsecount;
+BFCAND SQUARE_BFTAG::tbf_end,SQUARE_BFTAG::tbf_endok; 
 
-void TDB::Parents(USHORT x) {
+void SQUARE_BFTAG::Parents(USHORT x) {
 	parents.SetAll_0();
 	for(int i=2;i< puz.col;i++)
 		if(t[i].On(x))
@@ -377,7 +377,7 @@ void TDB::Parents(USHORT x) {
    partial mode are found in the BFTAG functions
    */ 
 
-//void TDB::ExpandAll(TDB & from) {
+//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
 //	(*this)=from; // be sure to start with the set of primary data
 //	for(int i=2;i< puz.col;i++) {
 //		if (t[i].IsEmpty())
@@ -398,7 +398,7 @@ void TDB::Parents(USHORT x) {
 //		} // end j  while
 //	} 
 //}// end i   proc
-void TDB::ExpandAll(TDB & from) {
+void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
 	(*this) = from; // be sure to start with the set of primary data
 	for(int i = 2; i < puz.col; i++) {
 		if(t[i].IsEmpty())
@@ -422,7 +422,7 @@ void TDB::ExpandAll(TDB & from) {
 }// end i   proc
 
 
-void TDB::ExpandShort(TDB & from ,int npas)
+void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
 {(*this)=from; // be sure to start with the set of primary data
  for( int i=2;i< puz.col;i++)
   {if (t[i].IsEmpty())continue;   int n=1,pas=0;
@@ -443,7 +443,7 @@ void TDB::ExpandShort(TDB & from ,int npas)
 /* that table is prepared for the derivation of weak links
    the "from" table is the table of implications
    */
-void TDB::AllParents(TDB & from)
+void SQUARE_BFTAG::AllParents(SQUARE_BFTAG & from)
 {t[0].SetAll_0();for(int i=1;i< puz.col;i++) t[i]=t[0];
  for(int i=2;i< puz.col;i++) for(int j=2;j< puz.col;j++) 
 	 if(from.t[i].On(j)) t[j].Set(i);
@@ -455,13 +455,13 @@ void TDB::AllParents(TDB & from)
    return 0 if nothing
    return the length if elimination(s) have been found
 
-   from is the TDB of elementary weak links
+   from is the SQUARE_BFTAG of elementary weak links
    elims is set to 1 for all tags found in that process
 
    only "true" state of non valid candidates are expanded
 */
 
-int TDB::SearchEliminations(TDB & from,BFTAG & elims)
+int SQUARE_BFTAG::SearchEliminations(SQUARE_BFTAG & from,BFTAG & elims)
 {int npas=0,aigt=0;  elims.SetAll_0();
  (*this)=from; // be sure to start with the set of primary data
 while(1)
@@ -490,11 +490,11 @@ while(1)
 
 
 //<<<<<<<<<<<<<<<<<<<<<<<
-void TDB::Image() {EE.Enl( "Image zone tdb");
+void SQUARE_BFTAG::Image() {EE.Enl( "Image zone tdb");
  for(int i=2;i< puz.col;i++)  if(t[i].IsNotEmpty())  puz.Image(t[i]," ",i);   }
 
 
-int TZCF::DeriveCycle(int nd, int nf, int ns, int npas) {
+int INFERENCES::DeriveCycle(int nd, int nf, int ns, int npas) {
 	int icd = ic;  // to check if something new comes
 	hstart = h; // copy to have the situation at the start
 	PlusPhase(); // save for later comments in test mode
@@ -509,7 +509,7 @@ int TZCF::DeriveCycle(int nd, int nf, int ns, int npas) {
 
 // put in the table if there is some room
 // return 1 if no room
-int TZCF::LoadVoid(USHORT cd1, USHORT cd2, WL_TYPE type, USHORT ph) {
+int INFERENCES::LoadVoid(USHORT cd1, USHORT cd2, WL_TYPE type, USHORT ph) {
 	ic++;
 	//if(ic>=zcf_lim) {EE.Elimite("ZCF");return 1;}
 	//f[ic++].Load(cd1,cd2,type,ph);
@@ -517,14 +517,14 @@ int TZCF::LoadVoid(USHORT cd1, USHORT cd2, WL_TYPE type, USHORT ph) {
 } 
 
 // entry for basic weak link a - b
-void TZCF::LoadBase(USHORT cd1 ,USHORT cd2) {
+void INFERENCES::LoadBase(USHORT cd1 ,USHORT cd2) {
 	if(LoadVoid(cd1, cd2, wl_basic, 0))
 		return;  
 	Entrep(cd1 << 1, cd2 << 1);
 }
 
 // entry for bi value  a = b thru a - b and ã - ~b   
-void TZCF::LoadBivalue(USHORT cd1, USHORT cd2) {
+void INFERENCES::LoadBivalue(USHORT cd1, USHORT cd2) {
 	if(LoadVoid(cd1, cd2, wl_bivalue, 0))
 		return;  
 	Entrep((cd1 << 1) ^ 1, (cd2 << 1) ^ 1);  
@@ -533,21 +533,21 @@ void TZCF::LoadBivalue(USHORT cd1, USHORT cd2) {
 }
 
 // entry for weak link derived from a set  a -> b
-void TZCF::LoadDerivedTag(USHORT tg1, USHORT cd2) {
+void INFERENCES::LoadDerivedTag(USHORT tg1, USHORT cd2) {
 	if(LoadVoid(tg1, cd2, wl_set, iphase))
 		return;
 	Plusp(tg1, cd2 << 1);  //  a -> b
 }
 
 // entry for event  a - b
-void TZCF::LoadEventTag(USHORT tg1, USHORT cd2) {
+void INFERENCES::LoadEventTag(USHORT tg1, USHORT cd2) {
 	if(LoadVoid(tg1, cd2, wl_event, iphase))
 		return;
 	Plusp(tg1, (cd2 << 1) ^ 1); // a -> ~b
 }
 
 // entry for direct event  ~a - b
-void TZCF::LoadEventDirect(USHORT cd1, USHORT cd2) {
+void INFERENCES::LoadEventDirect(USHORT cd1, USHORT cd2) {
 	if(LoadVoid(cd1, cd2, wl_ev_direct, iphase))
 		return;
 	Plusp((cd1 <<1 ) ^ 1, (cd2 << 1) ^ 1); 
@@ -570,7 +570,7 @@ void TZCF::LoadEventDirect(USHORT cd1, USHORT cd2) {
    provisionnal status, each search is force to parsemini=100 in direct path
    */
 
-void TZCF::ChainPlus(BFCAND & dones) {
+void INFERENCES::ChainPlus(BFCAND & dones) {
 	BFTAG *t = h.d.t, *tp = h.dp.t; 
 	for(int i = 2; i < puz.col; i += 2) {
 		BFTAG zw1 = t[i];
@@ -657,8 +657,8 @@ void TZCF::ChainPlus(BFCAND & dones) {
 
 	// now check multichains in a similar way but not for nishio
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		const ZCHOIX &chx = zcx.zc[ie];
-		if(chx.type - CH_base)
+		const SET &chx = zcx.zc[ie];
+		if(chx.type - SET_base)
 			break; // only base sets can be used
 		int n = chx.ncd;
 		USHORT *tcd = chx.tcd;
@@ -743,7 +743,7 @@ void TZCF::ChainPlus(BFCAND & dones) {
   but then  b - a = ~a - ~x = x ..... - b   always exists
 */
 
-void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
+void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 	// first collect tags in loop
 	//if(opx==2) h.dp.Image();
 	BFTAG elims;
@@ -812,7 +812,7 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
 					//  same cell or region
 					// except in 'XY' mode, must be the same digit
 					if(opx-3) {
-						ZPTLN candt1 = zpln.zp[t1 >> 1], candt2 = zpln.zp[t2 >> 1];
+						CANDIDATE candt1 = zpln.zp[t1 >> 1], candt2 = zpln.zp[t2 >> 1];
 						if(candt1.ch-candt2.ch)
 							continue; 
 					}
@@ -853,13 +853,13 @@ void TZCF::Aic_Cycle(int opx) {  // only nice loops and solve them
    That process can miss some possibilities, what is accepted.
 
 */
-void TZCF::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
+void INFERENCES::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
 	// forget if not same digit or t2 is ~t1
 	if(cand == (t2 >> 1))
 		return;
 
-	ZPTLN candt1 = zpln.zp[t1 >> 1];
-	ZPTLN candt2 = zpln.zp[t2 >> 1];
+	CANDIDATE candt1 = zpln.zp[t1 >> 1];
+	CANDIDATE candt2 = zpln.zp[t2 >> 1];
 	if(candt1.ch - candt2.ch)
 		return;
 
@@ -904,7 +904,7 @@ void TZCF::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
 /* now the all possibilities with start t1 and crossing t2
    we must start with a weak link so we exclude as start the strong link
 */
-void TZCF::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // up to 4 starts
+void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // up to 4 starts
 	USHORT tt[20], itt, lg = 200;
 	PATH resf, resw;
 	USHORT tagc = cand << 1, tagcn = tagc ^ 1;
@@ -950,7 +950,7 @@ void TZCF::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // up to 
    try starttin from the second candidate in the cell containing t1
 */
 
-void  TZCF::Aic_YcycleD2(USHORT t1x,USHORT t2x,BFTAG & loop,USHORT cand)// up to 4 starts
+void  INFERENCES::Aic_YcycleD2(USHORT t1x,USHORT t2x,BFTAG & loop,USHORT cand)// up to 4 starts
 {if(0) {EE.E("Aic_Ycycle d2"); 
          EE.E(" t1x=");zpln.ImageTag(t1x);
          EE.E(" t2x"); zpln.ImageTag(t2x); 
@@ -999,7 +999,7 @@ USHORT t2=t2x^1,t1=0; // new target is  "on"
    then track back the path to clean the "done" filtering the process
    and continue to t1. send back the count and the BFTAG
 */
-int TZCF::Aic_Ycycle_start(USHORT t1,USHORT t1a,USHORT t2,BFTAG & loop,PATH & path) {
+int INFERENCES::Aic_Ycycle_start(USHORT t1,USHORT t1a,USHORT t2,BFTAG & loop,PATH & path) {
 	if(0) {
 		EE.E("Aic_Ycycle_start"); 
 		EE.E(" start=");
@@ -1069,7 +1069,7 @@ int TZCF::Aic_Ycycle_start(USHORT t1,USHORT t1a,USHORT t2,BFTAG & loop,PATH & pa
 /* we have found something in a forward step
   in test mode, we have to publish an equivalent path
   */
-void TZCF::ExplainPath(BFTAG & forward, int start, int end, int npas, USHORT relay) {
+void INFERENCES::ExplainPath(BFTAG & forward, int start, int end, int npas, USHORT relay) {
 	if(npas > 40) {
 		EE.E("path too long in Explainpath npas=");
 		EE.Enl(npas);
@@ -1088,7 +1088,7 @@ void TZCF::ExplainPath(BFTAG & forward, int start, int end, int npas, USHORT rel
    just eliminate candidates (true) without looking for loops
    replacing X Y and XY search
    */
-int TZCF::Fast_Aic_Chain() {
+int INFERENCES::Fast_Aic_Chain() {
 	int ir=0;
 	puz.TaggingInit();
 	zpln.CellLinks();
@@ -1114,16 +1114,16 @@ int TZCF::Fast_Aic_Chain() {
 
 
 
-void ZCXB::GetSpace(USHORT *(& ps),int n) {
+void SETS_BUFFER::GetSpace(USHORT *(& ps),int n) {
 	ps = &zs[izs];
 	izs += n;
-	if(izs >= zcxb_lim) {
+	if(izs >= setsbuffer_lim) {
 		ps=0;
-		parentpuz->Elimite("ZCXB");
+		parentpuz->Elimite("SETS_BUFFER");
 	}
 }
 
-void ZCHOIX::Image() const {  // liste of candidates in the set
+void SET::Image() const {  // liste of candidates in the set
 	if(!Op.ot)
 		return;
 	EE.E(type);
@@ -1139,7 +1139,7 @@ void ZCHOIX::Image() const {  // liste of candidates in the set
 		EE.E(tcd[lim]);
 }
 
-int ZCHOIX::Prepare (USHORT * mi,USHORT nmi,CHOIX_TYPE ty,USHORT ixe) {
+int SET::Prepare (USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe) {
 	 zcxb.GetSpace(tcd, nmi);
 	 if(tcd == 0)
 		 return 0;// limite atteinte
@@ -1154,7 +1154,7 @@ int ZCHOIX::Prepare (USHORT * mi,USHORT nmi,CHOIX_TYPE ty,USHORT ixe) {
 
 
 
-void TZCHOIX::Init() {
+void SETS::Init() {
 	izc = 1;
 	zcxb.Init();
 	nmmax = 0;
@@ -1162,7 +1162,7 @@ void TZCHOIX::Init() {
 	direct = 0;
 }
 
-void TZCHOIX::Image() {
+void SETS::Image() {
 	EE.E("\nimage fichier choix izc=");
 	EE.Enl(izc);
 	for(int i = 1; i < izc; i++) {
@@ -1172,25 +1172,25 @@ void TZCHOIX::Image() {
 }
 
 
-int TZCHOIX::ChargeSet (USHORT * mi,USHORT nmi,CHOIX_TYPE ty)
+int SETS::ChargeSet (USHORT * mi,USHORT nmi,SET_TYPE ty)
 {if(nmi<2||puz.stop_rating) return 0;
  if(ty &&  nmi>(chx_max+1) ) return 0;
  if(!zc[0].Prepare(mi,nmi,ty,izc)) return 0;
-if(izc<zcx_lim) {zc[izc++]=zc[0];  
+if(izc<sets_lim) {zc[izc++]=zc[0];  
                  if(nmi>nmmax)nmmax=nmi;  
 				 if(nmi<nmmin)nmmin=nmi; return 1;}
 parentpuz->Elimite("ZCX");return 0;}
 
-int TZCHOIX::CopySet (int i)
-{if(izc<zcx_lim) {zc[izc++]=zc[i];  return 1;}
+int SETS::CopySet (int i)
+{if(izc<sets_lim) {zc[izc++]=zc[i];  return 1;}
 parentpuz->Elimite("ZCX");return 0;}
 
  // multi chains version
- int TZCHOIX::Interdit_Base80() 
+ int SETS::Interdit_Base80() 
  {t= zcf.h.d.t;
  int ir=0;
   for (int ie=1;ie<izc;ie++)     // all active sets 
-   {if(zc[ie].type-CH_base) continue;
+   {if(zc[ie].type-SET_base) continue;
     int n=zc[ie].ncd; USHORT *tcd=zc[ie].tcd ; 
 	BFTAG tbt; tbt.SetAll_1();
      for(int  i=0;i<n;i++)  tbt &= t[tcd[i]<<1];
@@ -1237,7 +1237,7 @@ parentpuz->Elimite("ZCX");return 0;}
   }// end ie
  return ir;}
  
-void TZCHOIX::Derive(int min,int max,int maxs)  
+void SETS::Derive(int min,int max,int maxs)  
 {if(max>nmmax) max=nmmax;   if(min<nmmin) min=nmmin;if(maxs>nmmax) maxs=nmmax;
  int maxt=(max>maxs)?max:maxs;
 
@@ -1250,13 +1250,13 @@ void TZCHOIX::Derive(int min,int max,int maxs)
   for (int ie=1;ie<izc;ie++)
    {int nnm=zc[ie].ncd;   
     switch (zc[ie].type)
-	{case CH_base: if(nnm<=max) DeriveBase(zc[ie]); break;
-	 case CH_set : if(nnm<=maxs)DeriveSet(zc[ie]); break;	
+	{case SET_base: if(nnm<=max) DeriveBase(zc[ie]); break;
+	 case SET_set : if(nnm<=maxs)DeriveSet(zc[ie]); break;	
 	 }   
    }
 if(Op.ot && 0)  {EE.E("end Derive  zcf.ic= ");EE.Enl(zcf.ic); }  
 }
-void TZCHOIX::DeriveBase(ZCHOIX & chx) // each candidate can be the target
+void SETS::DeriveBase(SET & chx) // each candidate can be the target
 {if(0){EE.E("on traite"); chx.Image(); EE.Enl();     }
 
  USHORT * tcd=chx.tcd, nni=chx.ncd ; 
@@ -1290,7 +1290,7 @@ void TZCHOIX::DeriveBase(ZCHOIX & chx) // each candidate can be the target
    the set must be in a dead state for a candidate in left to right mode
    then, the event is established and the event process is called
 */
-void TZCHOIX::DeriveSet(ZCHOIX & chx) // only the "event" can be the target
+void SETS::DeriveSet(SET & chx) // only the "event" can be the target
 {USHORT * tcd=chx.tcd, nni=chx.ncd-1 ; 
  BFTAG tcft,bfset;   tcft.SetAll_1();
  // bfset is the set itself in bf form for the exclusion of the set itself
@@ -1318,12 +1318,12 @@ void TZCHOIX::DeriveSet(ZCHOIX & chx) // only the "event" can be the target
    create the new sets and the new strong links.
 */
 
-int TZCHOIX::CheckGoNested1(const BFTAG &bftag, USHORT cand) {
+int SETS::CheckGoNested1(const BFTAG &bftag, USHORT cand) {
 	int ir=0;
  for(int ie=1;ie<izc_one;ie++)// check all sets
-  {ZCHOIX chx=zc[ie];
+  {SET chx=zc[ie];
    USHORT nni=chx.ncd,n=0,toff[10]; 
-   if (zc[ie].type-CH_base) continue;
+   if (zc[ie].type-SET_base) continue;
     // forget all sets where one candidate is now true
 	// Gen a strong link if reduced to 2 candidates
 	// should never be 0 candidate true
@@ -1337,7 +1337,7 @@ int TZCHOIX::CheckGoNested1(const BFTAG &bftag, USHORT cand) {
 	 if(n==2) // create a new strong link
 	     {zcf.LoadBivalue(toff[0],toff[1]); ir=1; }
 	 else // create a new set 
-	     {ChargeSet(toff,n,CH_base);}
+	     {ChargeSet(toff,n,SET_base);}
 			// CopySet(ie);} ???(copy the previous one)
 	}   
 return ir;}
