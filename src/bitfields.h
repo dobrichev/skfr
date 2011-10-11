@@ -44,6 +44,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #pragma once
 #include "skfrtype.h"
+#include "t_128.h"
 
 /* bit field functions to improve performances
    cpt gives the count of bit set to "1"
@@ -600,10 +601,11 @@ public:
 /// 2 - All method are not thread safe due to the usage of static member as temporary variables BFTAG::io and
 /// BFTAG::jo.
 class BFTAG {
-	UINT f[BFTAG_size];     // the bit field
+	//UINT f[BFTAG_size];     // the bit field
+	bm128 ff[5];
 
-	static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
-	static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
+	//static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
+	//static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
 
 public:
 	inline BFTAG() {
@@ -618,56 +620,38 @@ public:
 	void SetAll_1();
 	///\brief is bit in position <code>v</code> On
 	inline int On(int v) const {
-		return (f[v >> 5] & (1 << (v & 31)));
+		//return (f[v >> 5] & (1 << (v & 31)));
+		return (ff[v >> 7].isBitSet(v & 127));
 	}
 	//inline bool On(int v) const {
 	//	return !Off(v);
 	//}
 	///\brief is bit in position <code>v</code> Off
 	inline bool Off(int v) const {
-		return ((f[v >> 5] & (1 << (v & 31))) == 0);
+		//return ((f[v >> 5] & (1 << (v & 31))) == 0);
+		return (!On(v));
 	}
 	///\brief Set bit in position <code>v</code> to On
 	inline void Set(int v) {
-		f[v >> 5] |= (1 << (v & 31));
+		//f[v >> 5] |= (1 << (v & 31));
+		ff[v >> 7].setBit(v & 127);
 	}
 	///\brief Clear bit in position <code>v</code> 
 	inline void Clear(int v) {
-		//if(On(v))
-		//	f[v >> 5] ^= (1 << (v & 31));
-		f[v >> 5] &= (~(1 << (v & 31)));
+		//f[v >> 5] &= (~(1 << (v & 31)));
+		ff[v >> 7].clearBit(v & 127);
 	}
-	//void Clear(BFTAG &z2);
 	BFTAG Inverse() const;
-	//BFTAG operator & (const BFTAG &z2) const;
-	//BFTAG operator | (const BFTAG &z2) const;
-	//BFTAG operator ^ (const BFTAG &z2) const;
-	//BFTAG operator - (const BFTAG &z2) const;
 	void operator &= (const BFTAG &z2);
 	void operator |= (const BFTAG &z2);
-	//void operator ^= (const BFTAG &z2);
 	void operator -= (const BFTAG &z2);
 	bool operator == (const BFTAG &z2) const;
-	//BFTAG BFTAG::operator ~();
 	bool substract(const BFTAG &z2); //perform -= and return IsNotEmpty()
 	bool IsNotEmpty() const;
 	//inline bool IsNotEmpty() const {return !IsEmpty();};
 	bool IsEmpty() const;
-	///\brief get on bits count (limit count to first <code>col+2</code> bits)
-	///
-	///\sa col in file _00_ assSE.h
+	///\brief get on bits count
 	int Count() const;
-
-	///\brief get positon of first bit On (limited by <code>col+2</code>)
-	///
-	///<b>WARNING BUG :</b> if no bit On return 0 which is the same if bit at position 0 is On.<br>
-	///It seems that the first 2 bits are not used see limit to col+2.<br>
-	/// <b>OPTIMIZATION :</b> possible to test each int before looking at their 32 positions
-	///\return index or 0 if none
-	//int First() const;
-	///\brief keep only the True state or the false state
-	/// 
-
 	BFTAG TrueState() const;
 	BFTAG FalseState() const;
 	///\brief fill the array (first parameter) with the list of position of On Bit
@@ -676,16 +660,11 @@ public:
 	///\param n used to return number of position
 	void String(USHORT *tr, USHORT &n) const;
 
-	///\brief Print on output file a representation of the bitfield
-	///
-	///No output if o$.ot==0 <br>
-	///TO VERIFY seems to be used for odd/even bivalue bitfield
-
 	// new features not tested in preparation
-	int SearchChain(BFTAG * to, USHORT i, USHORT j);
-	int SearchCycle(BFTAG * to, USHORT i, BFTAG & loop);
-	int SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop);
-	int TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt,
+	int SearchChain(const BFTAG *to, USHORT i, USHORT j);
+	int SearchCycle(const BFTAG *to, USHORT i, const BFTAG &loop);
+	int SearchCycleChain(const BFTAG *to, USHORT i, USHORT relay, const BFTAG &loop);
+	int TrackBack(const BFTAG *to, USHORT start, USHORT end, USHORT * tt,
 		USHORT & itt, USHORT relay) const;
 	//void Expand(BFTAG * to, USHORT i); // in nested mode, expansion limited to one tag
 };

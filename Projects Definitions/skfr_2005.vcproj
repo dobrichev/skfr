@@ -118,12 +118,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
-				InlineFunctionExpansion="2"
+				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				RuntimeLibrary="0"
+				RuntimeLibrary="1"
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
@@ -204,6 +204,10 @@
 			</File>
 			<File
 				RelativePath="..\src\skfr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\t_128.cpp"
 				>
 			</File>
 			<File
