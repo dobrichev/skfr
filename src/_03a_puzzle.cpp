@@ -449,7 +449,7 @@ void PUZZLE::Step(SolvingTechnique dif) {   // analyse what to do at that level
 
 
 PUZZLE::PUZZLE() {
-	solution = un_jeu.ggf.pg;  
+	solution = gsolution.pg;  
 	T81 = &tp8N;
 	T81C = &tp8N_cop;
 	T81t = T81->t81;
@@ -610,7 +610,7 @@ int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single 
 	if(c2 < 4)
 		EE.Enl(orig1[c2]);
 	else EE.Enl(" assigned");
-	if((un_jeu.ggf.pg[i] - c1) && (!stop_rating)) { // validite  fixation
+	if((solution[i] - c1) && (!stop_rating)) { // validite  fixation
 		stop_rating=1;
 		EE.E( "FIXATION INVALIDE");
 		return 0;
@@ -1424,7 +1424,36 @@ int PUZZLE::AlignedPairN() {
 
 //former _03c_PUZZLE_traite_base.cpp follows
 
-int PUZZLE::Traite() {
+int PUZZLE::Traite(char * ze) {
+
+	stop_rating = 0;
+	cycle=assigned=c_ret=0;
+	ermax=epmax=edmax=0;
+
+	   // final location for the normalized puzzle in a global variable
+	for(int i=0;i<81;i++) //get normalised puzzle in puz
+		if(ze[i]-'.') gg.pg[i]=ze[i]; else  gg.pg[i]='0';
+
+	// check if the puzzle is correct 
+	   //(no duplicate givens in a house)
+	   // one solution and only one
+	if ((!Check())     ||
+		( un_jeu.Unicite(gg,& gsolution)-1)) {
+        edmax=1;
+		return 0;
+	}
+
+		/* the solution is stored in an appropriate form 
+	 * 9 81 bitfield indicating for each digit the positions
+	 * to check later the validity of eliminations
+	 * this is a debugging control
+	 */
+	for(int i=0;i<9;i++) 
+		csol[i].SetAll_0();
+	for(int i=0;i<81;i++) 
+		csol[solution[i]-'1'].Set(i);
+
+
 	//================== assign clues to start
 	cInit(1);
 	PKInit();
@@ -1438,9 +1467,6 @@ int PUZZLE::Traite() {
 	}
 	cReport(); // and preparing T81 from PM per digit
 
-	stop_rating = 0;
-	cycle=assigned=c_ret=0;
-	ermax=epmax=edmax=0;
 	EE.Enl(); // new line in case test is done
 
 	//===========================================================

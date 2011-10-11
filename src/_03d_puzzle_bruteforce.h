@@ -45,15 +45,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 class UNPAS 
 {
 public:   
-	static ULONG nsol; 
-
 	CELL_VAR tu[81];			//< candidate and status of cells
-	GG gg;				//< puzzle as a string
+	GG  * ggf,  // pointer to the final location
+		gg;				//< puzzle as a string
 	char * gr;			//< pointer on puzzle string that will evolve to the solution
 	BF81 libres;		//< 81 bitfield indicating the empty cell
 	USHORT nlibres,		//< number of empty cells
 		nactif,
 		iactif,
+		* nsol,        // pointer to nsol in the calling sequence   
 		maxlibres;
 	BF16 candactif;
 
@@ -66,10 +66,12 @@ public:
 	 * Consider all cells as free.
 	 * Reset number of solution
 	 */
-	void Init(GG ge)
-    {	libres.SetAll_1();
+	void Init(GG ge,USHORT * nsole,GG * ggfe)
+    {	nsol=nsole;
+	    ggf=ggfe;
+		libres.SetAll_1();
 		nlibres=81;
-		nsol=0;
+		(*nsol)=0;
 		tu[0].Init();	// consider all candidates as possible in all cell
 		for(int i=1;i<81;i++)tu[i]=tu[0];
 		gg.Copie(ge);    
@@ -111,7 +113,7 @@ public:
 	 * or a digit has no position in a house), else 0. This return status is 
 	 * independent of the number of single found.
 	 */
-	int Avance(); // tout ce que l'on peut faire
+	int Avance();  
 	
 	//! Brute force recursive method to find solution and to know if number of solutions is >1
 	/**
@@ -149,34 +151,20 @@ public:
 class UN_JEU {
 public: 
 	UNPAS dep;		//< to invoke brute force solver
-	GG gg,			//< puzzle initial string
-		ggf;		//< solution as a string
-	char *gn;		//< pointer to puzzle string
-	
-	// constructor
-	UN_JEU() {
-		gn = gg.pg;
-	}
-	//! get number of solutions (0,1 or 2)
-	/**
-	 * Use the brute force method of UNPAS class to verify the
-	 * uniqueness of puzzle solution
-	 * \return 0,1 or 2 (2 means that the puzzle has several solutions)
-	 */
-	long Analyse(GG & ge) {
+	GG gg;			//< puzzle initial string
+
+	//! has this puzzle one and only one solution
+
+	int  Unicite(GG & ge, GG * puz_solution) {
+		USHORT nsol=0;
 		gg.Copie(ge);
-		dep.Init(gg);
+		dep.Init(gg,& nsol,puz_solution);
         for(int i = 0; i < 81; i++) {
 			char c = gg.pg[i];
 			if(c > '0' && c <= '9')
 				dep.Fixer(i, c - '1');
 		}
         dep.NsolPas();
-		return dep.nsol;
-	}
-    
-	//! has this puzzle one and only one solution
-	int  Unicite(GG & ge) {
-		return(Analyse(ge) == 1);
+		return (nsol == 1);
 	}
 };
