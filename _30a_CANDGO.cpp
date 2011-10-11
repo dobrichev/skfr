@@ -256,7 +256,7 @@ int CANDGO::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 	zcf.StartNestedOne();
 	zcx.StartNestedOne();
 	zcxb.StartNestedOne();
-	BFTAG tt = zcf.h.d.t[tag]; 
+	//BFTAG tt = zcf.h.d.t[tag]; 
 	// see below to = zcf.h_one.dp.t; //forward and back tracking table
 	if(opp) {
 		EE.E("go nested for tag ");
