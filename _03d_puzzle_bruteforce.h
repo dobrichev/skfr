@@ -47,7 +47,7 @@ class UNPAS
 public:   
 	static ULONG nsol; 
 
-	UNP tu[81];			//< candidate and status of cells
+	CELL_VAR tu[81];			//< candidate and status of cells
 	GG gg;				//< puzzle as a string
 	char * gr;			//< pointer on puzzle string that will evolve to the solution
 	BF81 libres;		//< 81 bitfield indicating the empty cell

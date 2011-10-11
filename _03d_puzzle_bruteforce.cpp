@@ -41,7 +41,7 @@ ULONG UNPAS::nsol;
 
 void UNPAS::Clear(int i8,USHORT  ch )
 {
-	P81F *wf=&t81f[i8];			// t81f global variable giving influence zone of all cells
+	CELL_FIX *wf=&t81f[i8];			// t81f global variable giving influence zone of all cells
 	for(int i=0;i<20;i++)
     {
 		USHORT j=wf->pi[i];		// cell index in influence zone
