@@ -241,7 +241,7 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 	if(ch2.QC() < 2)
 		return; // non il faudrait aussi accepter 1 commun à revoir
 	// nothing to do if box/row and box/col (already done)
-	P81F p1 = t81f[cell1], p2=t81f[cell2];
+	CELL_FIX p1 = t81f[cell1], p2=t81f[cell2];
 	if(iel > 17 && ((p1.el == p2.el) || (p1.pl == p2.pl)))
 		return;
 	for(int i1 = 0; i1 < 8; i1++) {
@@ -290,7 +290,7 @@ void TEVENT::PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLO
 		int cell = divf.el81[el][i];
 		if((cell == cell1) || (cell == cell2))
 			continue;
-		UNP p = T81t[cell].v;
+		CELL_VAR p = T81t[cell].v;
 		if(p.ncand < 2)
 			continue;
 		BF16 w = p.cand&com;

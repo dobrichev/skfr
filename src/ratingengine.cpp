@@ -37,11 +37,11 @@ OPSUDO Op;
 FLOG EE;
 TP81 T81dep;
 TP81 * T81,*T81C;		//standard names for main objects of the class
-P81 * T81t,*T81tc;		//and corresponding tables of cells  
+CELL * T81t,*T81tc;		//and corresponding tables of cells  
                       // the corresponding tables are located in class PUZZLE
 UN_JEU un_jeu;
 TP81F tp81f;
-P81F * t81f=tp81f.t81f;			//pointer to speed up the process   
+CELL_FIX * t81f=tp81f.t81f;			//pointer to speed up the process   
 DIVF divf;
 ZTOB aztob; 
 PUZZLE puz;

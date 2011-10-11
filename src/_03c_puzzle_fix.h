@@ -33,8 +33,8 @@ GG   short class to use the grid in 81 or 9*9 mode
 
 I81  to be switched in divf some general function to improve code efficiency
 
-P81F describing the fix date of a cell
-TP81F the table of the fix data for the 81 cells and associated functions
+CELL_FIX describing the fix date of a cell
+TCELL_FIX the table of the fix data for the 81 cells and associated functions
 DIVF fix data for the regions including the region to cell indexes and BF81 pattern
 
 UNP  describing the variable part for a cell 
@@ -96,7 +96,7 @@ public:
 }; //mi81
 
 //!Small class containing the permanent data for a cell
-class P81F {
+class CELL_FIX {
 public:
 	USHORT 
 		i8,		///< cell index (0-80)
@@ -129,7 +129,7 @@ public:
 	}  
 
 	//! is the cell <code>p8</code> visible from <code>this</code>
-	int ObjCommun(P81F* p8) {
+	int ObjCommun(CELL_FIX* p8) {
 		return((el == p8->el) || (pl == p8->pl) || eb == p8->eb);
 	}
 
@@ -139,7 +139,7 @@ public:
 //! Table containing the fix data for the 81 cells
 class TP81F {  
 public:
-	P81F t81f[81]; 
+	CELL_FIX t81f[81]; 
 
 	// constructor making all initialisations 
 	TP81F() {

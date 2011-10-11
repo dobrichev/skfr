@@ -31,7 +31,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 //*** should not be here to be thread safe<<<<<<<<<<<<<<<<<
 
 
-int P81F::BugParite(int ch) {
+int CELL_FIX::BugParite(int ch) {
 	if(aztob.tchbit.el[el].eld[ch].n > 2 ||
 		aztob.tchbit.el[pl + 9].eld[ch].n > 2 ||
 		aztob.tchbit.el[eb + 18].eld[ch].n > 2)

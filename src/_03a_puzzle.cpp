@@ -67,7 +67,7 @@ void GG::Image(char * lib) {
 	}
 }
 
-int P81::Change(int ch) {
+int CELL::Change(int ch) {
 	if(v.cand.Off(ch))
 		return 0;
 	if(puz.CheckChange(f->i8, ch))
@@ -90,7 +90,7 @@ void TP81::Fixer(int ch, int i8, UCHAR typ) {
 }
 
 int TP81::Clear(BF81 &z, int ch) {
-	//EE.E("clear tp81 ");EE.E(ch+1);z.ImagePoints();  EE.Enl();
+	//EE.E("clear tCELL ");EE.E(ch+1);z.ImagePoints();  EE.Enl();
 	int ir = 0;
 	for(int i = 0; i < 81; i++)
 		if(z.On(i))
@@ -178,7 +178,7 @@ void TP81::CandidatsT() {
 		for(j = 0; j < 9; j++) {
 			if((j == 3) ||(j == 6))
 				EE.E("|");
-			P81* pp8 = &t81[9*i + j];
+			CELL * pp8 = &t81[9*i + j];
 			pw = pp8->strcol();		  
 			EE.E(pw);
 			EE.E(Blancs(lcol[j] + 1 - (int)strlen(pw), 1));
@@ -191,8 +191,8 @@ void TP81::CandidatsT() {
 void ZTOB::Genere() {
 	int i, j;
 	for(i = 0; i < 81; i++) {   // on charge tpobit
-		P81F w = t81f[i];
-		UNP x = T81t[i].v;
+		CELL_FIX w = t81f[i];
+		CELL_VAR x = T81t[i].v;
 		tpobit.el[w.el].eld[w.pl].Genpo(x);
 		tpobit.el[w.pl + 9].eld[w.el].Genpo(x);
 		tpobit.el[w.eb + 18].eld[w.pb].Genpo(x);
@@ -486,7 +486,7 @@ void PUZZLE::cFixer(int ich, int i8) {
 
 void PUZZLE::cReport() {    // on charge cand de ztzch
 	for(int i8 = 0; i8 < 81; i8++) {
-		P81 *p8 = &tp8N.t81[i8];
+		CELL *p8 = &tp8N.t81[i8];
 		if(p8->v.typ)
 			continue;
 		p8->v.ncand = 0;
@@ -503,7 +503,7 @@ void PUZZLE::TReport() {    // on charge c de table en mode depart impose
 	for(int i = 0; i < 9; i++)
 		c[i].SetAll_0();
 	for(int i8 = 0; i8 < 81; i8++) {
-		P81 *p8 = &tp8N.t81[i8];
+		CELL *p8 = &tp8N.t81[i8];
 		if(p8->v.typ)
 			continue;
 		for(int i = 0; i < 9; i++)
@@ -567,7 +567,7 @@ int PUZZLE::FaitDirects(int rating) {
 		if(c1 - '0') {     // donc fixée
 			// filter on rating expected
 			int ok = 0;
-			P81F p = t81f[i];
+			CELL_FIX p = t81f[i];
 			switch(rating) {
 			case 10:
 				if((divf.N_Fixes(gg.pg,p.el) == 8) 
@@ -667,7 +667,7 @@ int PUZZLE::Check() {
 		c[i].f = 0;
 	for(i = 0; i < 81; i++) {
 		int w = gg.pg[i]; 
-		P81F w8 = t81f[i]; // TO OPTIMIZE use a pointer to avoid copy of P81F
+		CELL_FIX w8 = t81f[i]; // TO OPTIMIZE use a pointer to avoid copy of CELL _FIX
 		if((w < '1') || (w > '9'))
 			continue;	// empty cell
 		w -= '1';
@@ -1157,7 +1157,7 @@ int PUZZLE::AlignedTripletN() {
 	BF81 z23,	// set of cells that have 2 or 3 candidates (could be excluding cells)
 		zbase;	// set of cells that are visible by one potential excluding cells
 	for(int i = 0 ;i < 81; i++) {
-		UNP p=T81t[i].v;
+		CELL_VAR p=T81t[i].v;
 		if(p.ncand < 2 || p.ncand > 3)
 			continue;
 		z23.Set(i); 
@@ -1302,7 +1302,7 @@ int PUZZLE::AlignedPairN() {
 	BF81 z2, zbase;
 	// look for cells that have 2 candidates
 	for(int i81 = 0; i81 < 81; i81++) {
-		UNP p = T81t[i81].v;	// candidates of the cell
+		CELL_VAR p = T81t[i81].v;	// candidates of the cell
 		if(p.ncand - 2)
 			continue; // only cell with 2 candidates
 		z2.Set(i81);			// put cell to set
@@ -2111,7 +2111,7 @@ int TIR::UnTiroir() {// is there a single required after the locked set to accep
 	if(single) { // will be covered slowly can be any element row, col, box
 		for(int i=0;i<9;i++)  if(wf.Off(i))
 		{USHORT i8=divf.el81[e27][i]; 
-		P81 p=T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
+		CELL p=T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
 		BF16 wc=p.v.cand-wi;
 		for(int j=0;j<9;j++) if (wc.On(j) )// a possible hidden digit
 		{BF16 wcd=aztob.tchbit.el[e27].eld[j].b-wf; // positions still valid
@@ -2254,7 +2254,7 @@ int TPAIRES::UL() {
 		for(int j = id; j < ie - 1; j++) {
 			for(int k = j + 1; k < ie; k++) {
 				USHORT i1 = zpt[j].i8, i2 = zpt[k].i8;
-				P81F p1 = t81f[i1], p2 = t81f[i2];
+				CELL_FIX p1 = t81f[i1], p2 = t81f[i2];
 				if(!(p1.el==p2.el || p1.pl==p2.pl))
 					continue; // start row or col
 				//  EE.E(p1.pt); EE.E(p2.pt);EE.Enl("un depart lig/col");
@@ -2275,9 +2275,9 @@ int TPAIRES::UL() {
 //========================= insert a new cell after el_used correct
 void UL_SEARCH::Set(int i8) { // el_used already ok if necessary
 	cells.Set(i8);  
-	P81F p = t81f[i8];
+	CELL_FIX p = t81f[i8];
 	last = i8; 
-	UNP pv = T81tc[i8].v;
+	CELL_VAR pv = T81tc[i8].v;
 	parity.Inv(p.el);
 	parity.Inv(p.pl + 9);
 	parity.Inv(p.eb + 18);                   
@@ -2333,7 +2333,7 @@ int UL_SEARCH::Add_Chain(int i8) {
 		return Loop_OK();
 	}
 	Set(i8);              // On met le point en place
-	P81F f = t81f[i8];
+	CELL_FIX f = t81f[i8];
 
 	// a défaut une case avec additifs  ligne, puis col, puis bloc en paire
 	// uniquement dans éléments non traités et si pas de double paire
@@ -2360,7 +2360,7 @@ int UL_SEARCH::El_Suite(USHORT ele) {
 			int i8r = divf.el81[ele][i];
 			//EE.E("essai i8=");EE.Enl(t81f[i8r].pt);
 			if(ele > 17) { // in a box, only not row col
-				P81F f = t81f[i8r], f2 = t81f[last];
+				CELL_FIX f = t81f[i8r], f2 = t81f[last];
 				if(f.el == f2.el || f.pl == f2.pl)
 					continue;
 			}
@@ -2383,7 +2383,7 @@ int UL_SEARCH::Is_OK_Suite(USHORT i8) {
 		return 1;
 	if(cells.On(i8))
 		return 0; // false loop  
-	P81F f = t81f[i8]; 
+	CELL_FIX f = t81f[i8]; 
 	if(elcpt[f.el] > 1 || elcpt[f.pl + 9] > 1 || elcpt[f.eb + 18] > 1)
 		return 0;
 	// for the time being, I see no more exclusion
@@ -2485,7 +2485,7 @@ int TPAIRES::BUG() {
 	for(int i = 0; i < 27; i++)
 		el_par_ch[i].f = 0;
 	for(int i = 0; i < ip; i++) {
-		P81 p = T81t[zp[i].i8];  
+		CELL p = T81t[zp[i].i8];  
 		el_par_ch[p.f->el] ^= p.v.cand; 
 		el_par_ch[p.f->pl+9] ^= p.v.cand; 
 		el_par_ch[p.f->eb+18] ^= p.v.cand;         }
@@ -2509,7 +2509,7 @@ int TPAIRES::Bug3a(int rat) {
 			candp_or.f = candnp_or.f = candp_xor.f = candnp_xor.f = nwp = 0;
 			for(int j = 0; j < 9; j++) {
 				int i8 = divf.el81[i][j];
-				P81 p = T81t[i8];
+				CELL p = T81t[i8];
 				if(zplus.On(i8)) { // wplus has the same order as tplus
 					candnp_or |= p.v.cand;
 					candnp_xor ^= p.v.cand;
@@ -2533,7 +2533,7 @@ int TPAIRES::Bug3a(int rat) {
 //===========================
 int TPAIRES::Bug1() {
 	int i8 = zplus.First();
-	P81 p = T81t[i8];
+	CELL p = T81t[i8];
 	BF16 wc = p.v.cand & el_par_ch[p.f->el],
 		w = p.v.cand - wc;
 	if(wc.QC() - 2)
@@ -2552,14 +2552,14 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	BF32 b18;
 	b18.f = 0; // find parity of cells in r/c
 	for(int i = 0; i < ntplus; i++) {
-		P81F p1 = t81f[tplus[i]];
+		CELL_FIX p1 = t81f[tplus[i]];
 		b18.f ^= 1 << p1.el;
 		b18.f ^= 1 << (p1.pl + 9);
 	}
 	BF81 zw;
 	zw.SetAll_1();
 	for(int i = 0; i < ntplus; i++) { // analyse all cells
-		P81 p1 = T81t[tplus[i]];
+		CELL p1 = T81t[tplus[i]];
 		zw &= p1.f->z;
 		BF16 w1;
 		w1.f = 0;
@@ -2586,7 +2586,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	for(int i = 0; i < 27; i++)
 		el_par2_ch[i] = el_par_ch[i];
 	for(int i = 0; i < ntplus; i++) { // change parity for all cells
-		P81F p1 = t81f[tplus[i]]; 
+		CELL_FIX p1 = t81f[tplus[i]]; 
 		BF16 wch = T81t[tplus[i]].v.cand - possible;
 		el_par2_ch[p1.el] ^= wch;
 		el_par2_ch[p1.pl+9] ^= wch;
@@ -2631,7 +2631,7 @@ int TPAIRES::Bug3(int el) {
 		return 0; // would not work with that process
 	// look first row and col with only one cell
 	BF16 wrow, wcol;  // on cherche parite de row/col
-	P81 *pp;
+	CELL *pp;
 	USHORT elx, phx[5];
 	for(int i = 0; i < ntplus; i++) { // first look for parity
 		pp = &T81t[tplus[i]];
@@ -2782,7 +2782,7 @@ int TPAIRES::Bug_lock(int el) {
 	EE.Enl(clock.String());
 	if(!clock.f)
 		return 0; 
-	P81 p1 = T81t[tplus[0]], p2 = T81t[tplus[1]];
+	CELL p1 = T81t[tplus[0]], p2 = T81t[tplus[1]];
 	int el1 = p1.f->el, el2 = p2.f->el; // use the row in priority
 	if(el < 9) {
 		el1 = p1.f->pl + 9;
@@ -2816,7 +2816,7 @@ int TPAIRES::Bug3_4_Nacked(int el) {
 	EE.Enl("recherche  bug3_4 Nacked"); 
 
 	USHORT ctl = ntplus, aig = 1;  
-	P81 *pp;
+	CELL *pp;
 	USHORT elx;
 	BF16 wcx, welim, annul; 
 
@@ -2932,7 +2932,7 @@ int TPAIRES::CommunTrio(int i, int j) {
 
 
 
-P81 * CRIN::ta,*CRIN::tr; // ta action, tr recherche 
+CELL * CRIN::ta,*CRIN::tr; // ta action, tr recherche 
 OBBIEL * CRIN::tchel;
 
 CRIN::CRIN() {	 // constructor
@@ -3066,7 +3066,7 @@ int CRIN::T2_el(USHORT el, USHORT action) {
 		int ppi = divf.el81[el][i];
 		if((ppi == pp1) || (ppi == pp2))
 			continue;
-		UNP v = T81t[ppi].v;
+		CELL_VAR v = T81t[ppi].v;
 		if(v.typ)
 			continue; // given or assigned 
 		// count and store cells including common digits 

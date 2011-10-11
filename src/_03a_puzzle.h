@@ -68,7 +68,7 @@ public:
 /**
  * These data are candidates, number of candidates and status of the cell (free, given or assigned)
  */
-class UNP {
+class CELL_VAR {
 public:  
 	USHORT ncand;	///< number of candidates
 	USHORT typ;		///< status of the cell : 0 free  2 given  1 assigned
@@ -119,14 +119,15 @@ public:
 
 // class describing and managing a cell.
 // as a matter of fact, data have been split in 2 classes, 
-//   P81F permanant data
-//   UNP  non permanant data
+//   CELL_FIX permanant data
+//   CELL _VAR  non permanant data
 // data remaining are related to tagging printing
 // the main table is the basic entry to eliminate candidates
-class P81 {
+class CELL {
 public:   
    char scand[10];         // printing data
-   P81F * f; UNP v;
+   CELL_FIX * f; 
+   CELL_VAR v;
    void Init(){v.Init();}     // at the start
    int Change (int ch) ;      // clear one candate
    int Change (BF16 cb9) {    // clear candidates 
@@ -156,7 +157,7 @@ public:
 	   }
 	   return ir;
    }
-   int ObjCommun(P81* p8) {
+   int ObjCommun(CELL * p8) {
 	   return f->ObjCommun(p8->f);
    }   // same row, column or box
 
@@ -174,7 +175,7 @@ public:
 
 class TP81 { 
 public:
-	P81 t81[81];       
+	CELL t81[81];       
 
 	void init(); 	
 	void Fixer(int ch,int i8,UCHAR typ);
@@ -218,8 +219,8 @@ public:
 	void Raz(){b.f=0;n=0;};
 	//! Set the position <code>i</code> and increment number
 	void Set(int i) {b.Set(i);n++;};
-	//! Generate from UNP <code>p8</code>
-	void Genpo(UNP p8){ n=p8.ncand;b=p8.cand;   };
+	//! Generate from CELL _VAR <code>p8</code>
+	void Genpo(CELL_VAR p8){ n=p8.ncand;b=p8.cand;   };
 };
 
 //! vector for 9 cells or 9 digits  
@@ -452,7 +453,7 @@ class PAIRES {
 public:
 	BF16 pa;
 	USHORT i8;
-	void Charge(P81 & p8) {
+	void Charge(CELL & p8) {
 		pa = p8.v.cand;
 		i8 = p8.f->i8;
 	}
@@ -509,7 +510,7 @@ public:
 		elcpt[27],       // count per elem
 		last,            // last cell number
 		line_count;      // must end with more than 4 to have a valid UL (not a UR)
-	P81F  p;            // last cell row col box 
+	CELL_FIX  p;            // last cell row col box 
 	UL_SEARCH() {}      // empty constructor for the storing table below
 	UL_SEARCH(UL_SEARCH * old) {
 		(*this) = (*old);
@@ -535,7 +536,7 @@ public:
 	void Set(int i8);  //a new cell is added to the search
 	int Add_Chain(int i8);
 	int Loop_OK(int action = 0); 
-	int Valid_Set(P81F f, char c) {
+	int Valid_Set(CELL_FIX f, char c) {
 		int el = f.el;
 		if(c == 'c')
 			el = f.pl + 9;
@@ -588,12 +589,12 @@ public:
 
 
 // class defined to handle Unique rectangles and Unique loops
-// the search for URs is started in TP81, locating potential URs
-// That class is called by TP81
+// the search for URs is started in TCELL , locating potential URs
+// That class is called by TCELL 
 
 class CRIN {
 public:     //on ne traite que deux communs. 
-	static P81 *ta, *tr; // ta action, tr recherche 
+	static CELL *ta, *tr; // ta action, tr recherche 
 	static OBBIEL * tchel;
 	BF16 wc, wou, wr;   
 	int ia, ib, ic, id, deux[4], plus[9], pp1, pp2, // voir pourquoi plus est 9
