@@ -130,42 +130,8 @@ int setTestModeC (int ot, char * logFileName){
  */
 int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 {
-	// final location for the normalized puzzle in a global variable
-	char * d=puz.gg.pg; 
-	for(int i=0;i<81;i++) //get normalised puzzle in puz
-		if(ze[i]-'.') d[i]=ze[i]; else  d[i]='0';
-	// check if the puzzle is correct (no duplicate givens in a house)
-	if (!puz.Check()) 
-	{
-		*er = 0;
-		*ep = 0;
-		*ed = 1;
-		*aig = puz.stop_rating;
-		return 0;
-	}
-	// Check if the puzzle has one and only one solution
-	/* First solution (if any) is kept in global variable 
-	 * <code>puz.solution</code> as a string
-	 */
-	int ir=un_jeu.Unicite(puz.gg);
-	if( ir-1) 
-	{
-		*er = 0;
-		*ep = 0;
-		*ed = 1;
-		*aig = puz.stop_rating;
-		return 0;
-	} 
-	/* the solution is stored in an appropriate form 
-	 * 9 81 bitfield indicating for each digit the positions
-	 * to check later the validity of eliminations
-	 */
-	for(int i=0;i<9;i++) 
-		puz.csol[i].SetAll_0();
-	for(int i=0;i<81;i++) 
-		puz.csol[puz.solution[i]-'1'].Set(i);
 	// do standard processing
-	int rc = puz.Traite();
+	int rc = puz.Traite( ze );
 	*er = puz.ermax;
 	*ep = puz.epmax;
 	*ed = puz.edmax;

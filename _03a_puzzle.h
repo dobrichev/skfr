@@ -256,7 +256,8 @@ public:
 class PUZZLE
 {
 public:
-    GG gg;          //< copy of the puzzle (normalized form - empty cell '0')
+    GG gg,          //< copy of the puzzle (normalized form - empty cell '0')
+       gsolution;   // final result if valid (one solution)
     CELLS tp8N,
 		tp8N_cop;  
 	BF81 
@@ -350,7 +351,7 @@ public:
 	 */
     int Check();
     int Recale();              
-	int Traite();
+	int Traite(char * ze);
 	int Traite_a();
 	int Traite_b();
 	int Traite_c();

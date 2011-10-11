@@ -28,14 +28,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
-// to see later, added by mladen
-//#include "wb_BruteForce.h"
-//#include "ratingengine.h"
-
-
-
-// **** static member to send later in PUZZLE ****
-ULONG UNPAS::nsol; 
 
 
 
@@ -111,9 +103,9 @@ void UNPAS::NsolPas()
 		return;		// blocking
 	if(!nlibres)	// all cells are valued : we have a solution
 	{
-		nsol++;		// count solutions
-		if(nsol==1)  // keep first solution image
-			un_jeu.ggf.Copie(gg); 
+		(*nsol)++;		// count solutions
+		if((*nsol)==1)  // keep first solution image
+			ggf->Copie(gg); 
 		return;  
 	}
 	// look for a cell with a minimal number of candidates
@@ -139,7 +131,7 @@ void UNPAS::NsolPas()
 			UNPAS pn(this);  
 			pn.Fixer(iactif,i);  
 			pn.NsolPas();
-			if((nsol>1)) return ;    
+			if(((*nsol)>1)) return ;    
 		}
 }
 
