@@ -444,11 +444,10 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 					}
 					break;
 				}
-				if(n > 1)
+				if(n - 1)
 					break;	// if ok second round for action	
-				for(int i = 0; i < n; i++) {
-					USHORT j = toff[i]; // candidate in tag form
-					if(((!n) && allsteps.Off(j)) || (n && cum->Off(j^1)) && allsteps.Off(j)) {
+				USHORT j = toff[0]; // candidate in tag form
+				if(allsteps.Off(j)) { // kep only the first one
 						(*step).Set(j);   
 						allsteps.Set(j);
 						hdp[tag].Set(j);// and in the total 
@@ -457,7 +456,7 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 						aig = 1;
 						aig2 = 1;       
 					}
-				}
+				
 				if(opp && aig2) {
 					EE.E("set derive actif ");
 					chx.Image();
@@ -970,11 +969,10 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 					}
 					break;
 				}
-				if(n > 1)
+				if(n - 1)
 					break;	// if ok second round for action	
-				for(int i = 0; i < n; i++) {
-					USHORT j = toff[i]; // candidate in tag form
-					if(((!n) && allsteps.Off(j)) || (n && cum->Off(j ^ 1)) && allsteps.Off(j)) {
+				USHORT j = toff[0]; // candidate in tag form
+				if(allsteps.Off(j)) {
 						(*step).Set(j);   
 						allsteps.Set(j);
 						hdp[tag].Set(j); // and in the total 
@@ -983,7 +981,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 						aig = 1;
 						aig2 = 1;
 					}
-				}
+				
 				if(opp && aig2) {
 					EE.E("set derive actif ");
 					chx.Image();

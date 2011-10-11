@@ -650,7 +650,7 @@ public:
 	bool operator == (const BFTAG &z2) const;
 	//BFTAG BFTAG::operator ~();
 	bool substract(const BFTAG &z2); //perform -= and return IsNotEmpty()
-	inline bool IsNotEmpty() const;
+	bool IsNotEmpty() const;
 	//inline bool IsNotEmpty() const {return !IsEmpty();};
 	bool IsEmpty() const;
 	///\brief get on bits count (limit count to first <code>col+2</code> bits)
