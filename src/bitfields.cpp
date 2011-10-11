@@ -107,7 +107,7 @@ void BFTAG::SetAll_1() {
 		f[i] = -1;
 	//memset(this, -1, sizeof(*this));
 }
-inline bool BFTAG::IsNotEmpty() const {
+bool BFTAG::IsNotEmpty() const {
 	for(int i = 0; i < BFTAG_size; i++)
 		if(f[i])
 			return true;
