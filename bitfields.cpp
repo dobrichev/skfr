@@ -98,24 +98,34 @@ int BF81::io = 0, BF81::jo = 0;
 
 //-----
 void BFTAG::SetAll_0() {
-	for(int i = 0; i < BFTAG_size; i++)
-		f[i] = 0;
-	//memset(this, 0, sizeof(*this));
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	f[i] = 0;
+	for(int i = 0; i < 5; i++)
+		ff[i].clear();
 }
 void BFTAG::SetAll_1() {
-	for(int i = 0; i < BFTAG_size; i++)
-		f[i] = -1;
-	//memset(this, -1, sizeof(*this));
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	f[i] = -1;
+	for(int i = 0; i < 5; i++)
+		ff[i] = maskffff;
 }
 bool BFTAG::IsNotEmpty() const {
-	for(int i = 0; i < BFTAG_size; i++)
-		if(f[i])
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	if(f[i])
+	//		return true;
+	//return false;
+	for(int i = 0; i < 5; i++)
+		if(!ff[i].isZero())
 			return true;
 	return false;
 }
 bool BFTAG::IsEmpty() const {
-	for(int i = 0; i < BFTAG_size; i++)
-		if(f[i])
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	if(f[i])
+	//		return false;
+	//return true;
+	for(int i = 0; i < 5; i++)
+		if(!ff[i].isZero())
 			return false;
 	return true;
 }
@@ -129,11 +139,20 @@ inline unsigned int popCount32(unsigned int v) { // count bits set in this (32-b
 //
 int BFTAG::Count() const {
 	int c = 0;
-	//for(int i = 0; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	c += popCount32((unsigned int) f[i]);
+
+	for(int i = 0; i < 5; i++)
+		c += popcount_128(ff[i].bitmap128.m128i_m128i);
+
+	//for(int i = 0; i < 5; i++)
+	//	for(int j = 0; j < 4; j++)
+	//		c += popCount32(ff[i].bitmap128.m128i_u32[j]);
+
+	//for(int i = 0; i < BFTAG_BitSize; i++)
 	//	if(On(i))
 	//		c++;
-	for(int i = 0; i < BFTAG_size; i++)
-		c += popCount32((unsigned int) f[i]);
+
 	return c;
 }
 
@@ -151,29 +170,38 @@ BFTAG BFTAG::Inverse() const {
 
 BFTAG BFTAG::TrueState() const {
 	BFTAG w = (*this);
-	for(int i = 0; i < BFTAG_size; i++)
-		w.f[i] &= true32;
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	w.f[i] &= true32;
+	for(int i = 0; i < 5; i++)
+		w.ff[i] &= true128;
 	return w;
 };
 
 BFTAG BFTAG::FalseState() const {
 	BFTAG w = (*this);
-	for(int i = 0; i < BFTAG_size; i++)
-		w.f[i] &= false32;
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	w.f[i] &= false32;
+	for(int i = 0; i < 5; i++)
+		w.ff[i] &= false128;
 	return w;
 };
 
 //----
 void BFTAG::String(USHORT * r, USHORT &n) const {
 	n = 0;
-	//for(int i = 2; i < /*puz.col + 2*/ BFTAG_BitSize; i++)
-	//	if(On(i))
-	//		r[n++] = (USHORT)i;
-	for(int i = 0; i < BFTAG_size; i++) {
-		if(f[i]) {
-			for(unsigned int j = 1, k = 0; k < 32; j <<= 1, k++) {
-				if(f[i] & j)
-					r[n++] = (USHORT)(i * 32 + k);
+	//for(int i = 0; i < BFTAG_size; i++) {
+	//	if(f[i]) {
+	//		for(unsigned int j = 1, k = 0; k < 32; j <<= 1, k++) {
+	//			if(f[i] & j)
+	//				r[n++] = (USHORT)(i * 32 + k);
+	//		}
+	//	}
+	//}
+	for(int i = 0; i < 5; i++) {
+		if(!ff[i].isZero()) {
+			for(unsigned int k = 0; k < 128; k++) {
+				if(ff[i].isBitSet(k))
+					r[n++] = (USHORT)(i * 128 + k);
 			}
 		}
 	}
@@ -197,23 +225,30 @@ void BFTAG::String(USHORT * r, USHORT &n) const {
 //	return w;
 //}
 void BFTAG::operator &= (const BFTAG &z2) {
-	for(int i = 0; i < BFTAG_size; i++)
-		f[i] &= z2.f[i];
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	f[i] &= z2.f[i];
+	for(int i = 0; i < 5; i++)
+		ff[i] &= z2.ff[i];
 }
 void BFTAG::operator |= (const BFTAG &z2) {
-	for(int i = 0; i < BFTAG_size; i++)
-		f[i] |= z2.f[i];
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	f[i] |= z2.f[i];
+	for(int i = 0; i < 5; i++)
+		ff[i] |= z2.ff[i];
 }
 //void BFTAG::operator ^= (const BFTAG &z2) {
 //	for(int i = 0; i < BFTAG_size; i++)
 //		f[i] ^= z2.f[i];
 //}
 bool BFTAG::operator == (const BFTAG &z2) const {
-	for(int i = 0; i < BFTAG_size; i++)
-		if(!(f[i] == z2.f[i]))
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	if(!(f[i] == z2.f[i]))
+	//		return false;
+	//return true;
+	for(int i = 0; i < 5; i++)
+		if(!(ff[i] == z2.ff[i]))
 			return false;
 	return true;
-	//return memcmp(this, &z2, sizeof(*this)) == 0;
 }
 //BFTAG BFTAG::operator - (const BFTAG &z2) const {
 //	BFTAG w;
@@ -222,41 +257,51 @@ bool BFTAG::operator == (const BFTAG &z2) const {
 //	  return w;
 //}
 void BFTAG::operator -= (const BFTAG &z2) {
-	  for(int i = 0; i < BFTAG_size; i++)
-		  //f[i] ^= (f[i] & z2.f[i]);
-		  f[i] &= ~z2.f[i];
+	//for(int i = 0; i < BFTAG_size; i++)
+	//	f[i] &= ~z2.f[i];
+	for(int i = 0; i < 5; i++)
+		ff[i] -= z2.ff[i];
 }
 
 bool BFTAG::substract(const BFTAG &z2) {
-	UINT accum = 0;
-	//for(int i = 0; i < BFTAG_size; i++) {
-	//	accum |= (f[i] &= ~z2.f[i]);
-	//}
-	//for(int i = 0; i < BFTAG_size; i++) {
-	//	  f[i] &= ~z2.f[i];
-	//	  accum |= f[i];
-	//}
-	accum |= (f[0] &= ~z2.f[0]);
-	accum |= (f[1] &= ~z2.f[1]);
-	accum |= (f[2] &= ~z2.f[2]);
-	accum |= (f[3] &= ~z2.f[3]);
-	accum |= (f[4] &= ~z2.f[4]);
-	accum |= (f[5] &= ~z2.f[5]);
-	accum |= (f[6] &= ~z2.f[6]);
-	accum |= (f[7] &= ~z2.f[7]);
-	accum |= (f[8] &= ~z2.f[8]);
-	accum |= (f[9] &= ~z2.f[9]);
-	accum |= (f[10] &= ~z2.f[10]);
-	accum |= (f[11] &= ~z2.f[11]);
-	accum |= (f[12] &= ~z2.f[12]);
-	accum |= (f[13] &= ~z2.f[13]);
-	accum |= (f[14] &= ~z2.f[14]);
-	accum |= (f[15] &= ~z2.f[15]);
-	accum |= (f[16] &= ~z2.f[16]);
-	accum |= (f[17] &= ~z2.f[17]);
-	accum |= (f[18] &= ~z2.f[18]);
-	accum |= (f[19] &= ~z2.f[19]);
-	return accum != 0;
+	//UINT accum = 0;
+	////for(int i = 0; i < BFTAG_size; i++) {
+	////	accum |= (f[i] &= ~z2.f[i]);
+	////}
+	////for(int i = 0; i < BFTAG_size; i++) {
+	////	  f[i] &= ~z2.f[i];
+	////	  accum |= f[i];
+	////}
+
+	//accum |= (f[0] &= ~z2.f[0]);
+	//accum |= (f[1] &= ~z2.f[1]);
+	//accum |= (f[2] &= ~z2.f[2]);
+	//accum |= (f[3] &= ~z2.f[3]);
+	//accum |= (f[4] &= ~z2.f[4]);
+	//accum |= (f[5] &= ~z2.f[5]);
+	//accum |= (f[6] &= ~z2.f[6]);
+	//accum |= (f[7] &= ~z2.f[7]);
+	//accum |= (f[8] &= ~z2.f[8]);
+	//accum |= (f[9] &= ~z2.f[9]);
+	//accum |= (f[10] &= ~z2.f[10]);
+	//accum |= (f[11] &= ~z2.f[11]);
+	//accum |= (f[12] &= ~z2.f[12]);
+	//accum |= (f[13] &= ~z2.f[13]);
+	//accum |= (f[14] &= ~z2.f[14]);
+	//accum |= (f[15] &= ~z2.f[15]);
+	//accum |= (f[16] &= ~z2.f[16]);
+	//accum |= (f[17] &= ~z2.f[17]);
+	//accum |= (f[18] &= ~z2.f[18]);
+	//accum |= (f[19] &= ~z2.f[19]);
+	//return accum != 0;
+	bm128 accum;
+	//accum.clear();
+	ff[0] -= z2.ff[0]; accum = ff[0];
+	ff[1] -= z2.ff[1]; accum |= ff[1];
+	ff[2] -= z2.ff[2]; accum |= ff[2];
+	ff[3] -= z2.ff[3]; accum |= ff[3];
+	ff[4] -= z2.ff[4]; accum |= ff[4];
+	return !accum.isZero();
 }
 
 //------
@@ -287,7 +332,7 @@ bool BFTAG::substract(const BFTAG &z2) {
 /* Look (no derived weak link) for the shortest way from start  to end
    the calling sequence provides an empty or partially filled situation
 */
-int BFTAG::SearchChain(BFTAG * to, USHORT start, USHORT end) {
+int BFTAG::SearchChain(const BFTAG *to, USHORT start, USHORT end) {
 	int npas = 0; 
 	// to be safe in nested mode, dimension increased to 200
 	USHORT tta[200], ttb[200], *told = tta, *tnew = ttb, itold, itnew;
@@ -304,10 +349,13 @@ int BFTAG::SearchChain(BFTAG * to, USHORT start, USHORT end) {
 			if(x.substract(*this)) {
 				(*this) |= x; // flag it in the BFTAG and load in new
 				// here tx dimension increased. In nested mode, could require it
-				USHORT tx[40], itx = 0;
-				x.String(tx, itx);
-				for(int i = 0; i < itx; i++)
-					tnew[itnew++] = tx[i];
+				//USHORT tx[40], itx = 0;
+				//x.String(tx, itx);
+				//for(int i = 0; i < itx; i++)
+				//	tnew[itnew++] = tx[i];
+				USHORT itx;
+				x.String(&tnew[itnew], itx);
+				itnew += itx;
 			}
 		}
 
@@ -326,7 +374,7 @@ int BFTAG::SearchChain(BFTAG * to, USHORT start, USHORT end) {
 /* same process, but start == end  (cycle)
    and all tags of the path must belong to the loop
 */
-int BFTAG::SearchCycle(BFTAG * to, USHORT start, BFTAG & loop) {
+int BFTAG::SearchCycle(const BFTAG *to, USHORT start, const BFTAG &loop) {
 	int npas = 0; 
 	USHORT tta[100], ttb[100], *told = tta, *tnew = ttb, itold, itnew;
 	(*this).String(tta, itold);
@@ -341,10 +389,13 @@ int BFTAG::SearchCycle(BFTAG * to, USHORT start, BFTAG & loop) {
 			x &= loop;
 			if(x.IsNotEmpty()) {
 				(*this) |= x; // flag it in the BFTAG and load in new
-				USHORT tx[20], itx = 0;
-				x.String(tx, itx);
-				for(int i = 0; i < itx; i++)
-					tnew[itnew++] = tx[i];
+				//USHORT tx[20], itx = 0;
+				//x.String(tx, itx);
+				//for(int i = 0; i < itx; i++)
+				//	tnew[itnew++] = tx[i];
+				USHORT itx;
+				x.String(&tnew[itnew], itx);
+				itnew += itx;
 			}
 		}
 		if(On(start))
@@ -361,7 +412,7 @@ int BFTAG::SearchCycle(BFTAG * to, USHORT start, BFTAG & loop) {
 /* same process, but partial
    we only go to the tag 'relay' that should come first but may be not
 */
-int BFTAG::SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop) {
+int BFTAG::SearchCycleChain(const BFTAG *to, USHORT i, USHORT relay, const BFTAG &loop) {
 	int npas = 0; 
 	USHORT tta[100], ttb[100], *told = tta, *tnew = ttb, itold, itnew;
 	(*this).String(tta, itold); 
@@ -376,10 +427,13 @@ int BFTAG::SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop) {
 			x &= loop;
 			if(x.IsNotEmpty()) {
 				(*this) |= x; // flag it in the BFTAG and load in new
-				USHORT tx[20], itx = 0;
-				x.String(tx, itx);
-				for(int i = 0; i < itx; i++)
-					tnew[itnew++] = tx[i];
+				//USHORT tx[20], itx = 0;
+				//x.String(tx, itx);
+				//for(int i = 0; i < itx; i++)
+				//	tnew[itnew++] = tx[i];
+				USHORT itx;
+				x.String(&tnew[itnew], itx);
+				itnew += itx;
 			}    
 		}
 		if(On(relay))
@@ -421,7 +475,7 @@ int BFTAG::SearchCycleChain(BFTAG * to, USHORT i, USHORT relay, BFTAG & loop) {
    not yet enough to be revised
    need really to build forward step by step before going backward
  */
-int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT & itt, USHORT relay) const {
+int BFTAG::TrackBack(const BFTAG *to, USHORT start, USHORT end, USHORT * tt, USHORT & itt, USHORT relay) const {
 	// first we have to build forward step by step 
 	if(itt > 40) {
 		/*  debugging infromation to be relocated in the calling sequence
@@ -456,10 +510,13 @@ int BFTAG::TrackBack(BFTAG * to, USHORT start, USHORT end, USHORT * tt, USHORT &
 			if(x.IsNotEmpty()) {
 				(*step) |= x; // flag it in the BFTAG and load in new
 				allsteps |= x; // and in the total 
-				USHORT ty[40], ity = 0;
-				x.String(ty,ity);
-				for(int i=0; i < ity; i++)
-					tb[itb++] = ty[i];
+				//USHORT ty[40], ity = 0;
+				//x.String(ty,ity);
+				//for(int i=0; i < ity; i++)
+				//	tb[itb++] = ty[i];
+				USHORT ity;
+				x.String(&tb[itb], ity);
+				itb += ity;
 			}
 		}
 		if(step->On(end))
