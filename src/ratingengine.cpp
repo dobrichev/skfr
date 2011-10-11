@@ -35,27 +35,27 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 long tdebut; // for debugging purpose start time in PUZZLE traite base
 OPSUDO Op;
 FLOG EE;
-TP81 T81dep;
-TP81 * T81,*T81C;		//standard names for main objects of the class
+CELLS T81dep;
+CELLS * T81,*T81C;		//standard names for main objects of the class
 CELL * T81t,*T81tc;		//and corresponding tables of cells  
                       // the corresponding tables are located in class PUZZLE
 UN_JEU un_jeu;
-TP81F tp81f;
-CELL_FIX * t81f=tp81f.t81f;			//pointer to speed up the process   
+CELLS_FIX CELLS_FIX;
+CELL_FIX * t81f=CELLS_FIX.t81f;			//pointer to speed up the process   
 DIVF divf;
-ZTOB aztob; 
+TWO_REGIONS_INDEX aztob; 
 PUZZLE puz;
 ULT tult;
 TPAIRES zpaires;
-TIR yt;
-CRIN ur;
-CRINT urt;
+SEARCH_LS_FISH yt;
+SEARCH_UR ur;
+SEARCH_URT urt;
 TCHAIN tchain;
 ZGROUPE zgs(& puz);
-TZPTLN zpln(& puz);
-TZCF zcf (&puz);
-ZCXB zcxb (&puz);
-TZCHOIX zcx (&puz);
+CANDIDATES zpln(& puz);
+INFERENCES zcf (&puz);
+SETS_BUFFER zcxb (&puz);
+SETS zcx (&puz);
 TEVENT tevent(&puz);
 TCANDGO tcandgo;
 

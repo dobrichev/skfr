@@ -78,18 +78,18 @@ int CELL::Change(int ch) {
 	return 1;
 }
 
-void TP81::init() {
+void CELLS::init() {
 	for(int i = 0; i < 81; i++) {
 		t81[i].v.Init();
 		t81[i].f = &t81f[i];
 	}
 }
-void TP81::Fixer(int ch, int i8, UCHAR typ) {
+void CELLS::Fixer(int ch, int i8, UCHAR typ) {
 	t81[i8].Fixer(typ, ch);
 	puz.cFixer(ch, i8);
 }
 
-int TP81::Clear(BF81 &z, int ch) {
+int CELLS::Clear(BF81 &z, int ch) {
 	//EE.E("clear tCELL ");EE.E(ch+1);z.ImagePoints();  EE.Enl();
 	int ir = 0;
 	for(int i = 0; i < 81; i++)
@@ -98,7 +98,7 @@ int TP81::Clear(BF81 &z, int ch) {
 	return ir;
 }
 //<<<<<<<<<<<<<<<<<<<<
-int TP81::Clear(BF81 &z, BF16 x) {
+int CELLS::Clear(BF81 &z, BF16 x) {
 	int ir = 0;
 	for(int j = 0; j < 9; j++)
 		if(x.On(j))
@@ -106,7 +106,7 @@ int TP81::Clear(BF81 &z, BF16 x) {
 	return ir;
 }
 //<<<<<<<<<<<<<<<<<<<<    specific ot UR/UL filter to find the lowest length
-int TP81::CheckClear(BF81 &z, BF16 x) {
+int CELLS::CheckClear(BF81 &z, BF16 x) {
 	for(int i = 0; i < 81; i++)
 		if(z.On(i))
 			if((t81[i].v.cand&x).f)
@@ -115,14 +115,14 @@ int TP81::CheckClear(BF81 &z, BF16 x) {
 }// positive as soon as one effect found
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<
-void TP81::Actifs(BF81 & z) {
+void CELLS::Actifs(BF81 & z) {
 	z.SetAll_0();
 	for(int i = 0; i < 81; i++)
 		if(!t81[i].v.typ)
 			z.Set(i);
 }
 //<<<<<<<<<<<<<<<<<
-BF16 TP81::GenCand(BF81 & z) {
+BF16 CELLS::GenCand(BF81 & z) {
 	BF16 w;
 	w.f = 0;
 	for(int i = 0; i < 81; i++)
@@ -131,7 +131,7 @@ BF16 TP81::GenCand(BF81 & z) {
 	return w;
 }
 //<<<<<<<<<<<<<<<<<     y compris assigned pour RIs
-BF16 TP81::GenCandTyp01(BF81 & z) {
+BF16 CELLS::GenCandTyp01(BF81 & z) {
 	BF16 w;
 	w.f = 0;
 	for(int i = 0; i < 81; i++)
@@ -141,12 +141,12 @@ BF16 TP81::GenCandTyp01(BF81 & z) {
 }
 /*
 //<<<<<<<<<<<<<<<<
-void 	 TP81::GenzCand(BF81 & z1,BF81 & z2,int ic)
+void 	 CELLS::GenzCand(BF81 & z1,BF81 & z2,int ic)
 {z2.Init();  for(int i=0;i<81;i++)
 if(z1.On(i)&&(!t81[i].v.typ)&&t81[i].v.cand.On(ic)) z2.Set(i);  }
 */
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-void TP81::CandidatsT() {
+void CELLS::CandidatsT() {
 	if(!Op.ot)
 		return; 
 	int i, j, l, lcol[9], tcol = 0;
@@ -188,7 +188,7 @@ void TP81::CandidatsT() {
 	EE.Enl("\n\n");
 }
 
-void ZTOB::Genere() {
+void TWO_REGIONS_INDEX::Genere() {
 	int i, j;
 	for(i = 0; i < 81; i++) {   // on charge tpobit
 		CELL_FIX w = t81f[i];
@@ -210,7 +210,7 @@ void ZTOB::Genere() {
 
 
 
-int TP81::RIN(int aig) {      // look for unique rectangle 
+int CELLS::RIN(int aig) {      // look for unique rectangle 
 	int ir=0;
 	urt.Init();
 	for(int i0 = 0; i0 < 3; i0++) // band/stack 1 to 3
@@ -783,9 +783,9 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	// case 3, is there a set killing "a"
 	USHORT tch[500], itch = 0;
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		ZCHOIX chx = zcx.zc[ie];
+		SET chx = zcx.zc[ie];
 		int n = 0, nni = chx.ncd; 
-		if(chx.type - CH_base)
+		if(chx.type - SET_base)
 			continue;
 		BFTAG bfw;
 		bfw.SetAll_1();
@@ -870,7 +870,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 				EE.Enl(); 
 			}
 			BFTAG * ptg = &tchte[i];
-			ZCHOIX chx = zcx.zc[tch[i]];
+			SET chx = zcx.zc[tch[i]];
 			int n = 0, nni = chx.ncd; 
 			USHORT ttt[20];
 			for(int j = 0; j < nni; j++)
@@ -986,7 +986,7 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 			// tout ce qui suit est provisoire en cours de calage
 			// pour trouver un équilibre efficacité performance
 
-			TDB::InitParsing();
+			SQUARE_BFTAG::InitParsing();
 			EE.E("contrôle parsing mini ");
 			EE.E(tchain.ParsingMini(75));
 			EE.E(" rating =");
@@ -996,7 +996,7 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 				break; // one cycle;  
 			if(tchain.ichain)
 				break;
-			TDB::InitParsing();
+			SQUARE_BFTAG::InitParsing();
 			zcf.ChainPlus(bf0);	
 			if(tchain.ichain)
 				break;
@@ -1004,7 +1004,7 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 			while(iw++ < 3) {
 				if(!zcf.DeriveCycle(3, 9, 0))
 					break;
-				TDB::InitParsing();
+				SQUARE_BFTAG::InitParsing();
 				zcf.ChainPlus(bf0);
 				if(tchain.ichain)
 					break;// will see later if ok
@@ -2068,7 +2068,7 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 
 
 //<<<<<<<<<<<<<<<<<<<<<   On cherche tiroir dans element  // boucle recurrente sur i
-int OBBIEL::tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et on regarde si fusion n-1  ok
+int REGION_INDEX::tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et on regarde si fusion n-1  ok
 	int i,id=(yt.non.f && (irang-1))? 0:iold+1;  // debut 0 avec pseudos et rang 1
 	for (i=id;i<(11-yt.rangc+irang);i++)  // il doit rester des cases
 	{ 
@@ -2086,7 +2086,7 @@ int OBBIEL::tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et o
 	return 0;
 }
 
-int TIR::Tiroirs(int nn,int hid,int sing) {     //recherche normale des tiroirs
+int SEARCH_LS_FISH::Tiroirs(int nn,int hid,int sing) {     //recherche normale des tiroirs
 	rangv=nn;single=sing;hid_dir=hid; int ir=0;
 	int ied=0,ief=54; 
 	if(!hid_dir )ief=27;if(hid_dir==1 )ied=27;if(single){ied=27;ief=54;}
@@ -2106,7 +2106,7 @@ int TIR::Tiroirs(int nn,int hid,int sing) {     //recherche normale des tiroirs
 	return 0;
 }
 
-int TIR::UnTiroir() {// is there a single required after the locked set to accept it
+int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked set to accept it
 	int ir=0;
 	if(single) { // will be covered slowly can be any element row, col, box
 		for(int i=0;i<9;i++)  if(wf.Off(i))
@@ -2148,7 +2148,7 @@ int TIR::UnTiroir() {// is there a single required after the locked set to accep
 
 
 //<<<<<<<<<<<<<<<<<<<<<   On cherche XW dans lignes ou cols  boucle recurrente sur i
-int TIR::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
+int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
 {   // on progresse sur indice et on regarde si fusion n-1  ok
   for (int i=iold+1;i<9;i++)  // il doit rester des éléments
   { int nn=el[i].eld[ch].n;
@@ -2160,12 +2160,12 @@ int TIR::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
   }
 return 0;}
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< en mode XWING liste objets et chiffres
-int TIR::GroupeObjetsChange(int dobj,int ch)
+int SEARCH_LS_FISH::GroupeObjetsChange(int dobj,int ch)
 {BF16 x(ch); int ir=0;
  for(int i=0;i<9;i++)   if(wf.On(i)) ir+= puz.ChangeSauf(dobj+i,wi,x);
 return ir;}
 //<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
-int TIR::XW(int nn)
+int SEARCH_LS_FISH::XW(int nn)
 {char *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
               "Whale (XW6)","Leviathan (XW7)" };
  BF16 w; rangc=nn;
@@ -2932,20 +2932,20 @@ int TPAIRES::CommunTrio(int i, int j) {
 
 
 
-CELL * CRIN::ta,*CRIN::tr; // ta action, tr recherche 
-OBBIEL * CRIN::tchel;
+CELL * SEARCH_UR::ta,*SEARCH_UR::tr; // ta action, tr recherche 
+REGION_INDEX * SEARCH_UR::tchel;
 
-CRIN::CRIN() {	 // constructor
+SEARCH_UR::SEARCH_UR() {	 // constructor
 	ta = T81t;
 	tr = T81tc;
 	tchel = aztob.tchbit.el;
 }
 
-int CRIN::GetElPlus() {
-	return tp81f.GetLigCol(pp1,pp2);
+int SEARCH_UR::GetElPlus() {
+	return CELLS_FIX.GetLigCol(pp1,pp2);
 } // assuming nplus=2
 
-int CRIN::IsDiag() {
+int SEARCH_UR::IsDiag() {
 	if(divf.IsObjet(deux[0],deux[1]))
 		diag=0;
 	else
@@ -2953,19 +2953,19 @@ int CRIN::IsDiag() {
 	return diag;
 }
 
-int CRIN::Jumeau(USHORT a,USHORT b,USHORT ch) {
-	USHORT el = tp81f.GetLigCol(a,b);
+int SEARCH_UR::Jumeau(USHORT a,USHORT b,USHORT ch) {
+	USHORT el = CELLS_FIX.GetLigCol(a,b);
 	return Jum(el, ch);
 }
 
-void CRIN::ImageRI(char * lib,USHORT a) {
+void SEARCH_UR::ImageRI(char * lib,USHORT a) {
 	EE.E(lib);
 	EE.E(tr[a].f->pt);
 	EE.E(" ");
 	EE.E(tr[a].scand);
 }
 
-void CRIN::ImageRI(char * lib) {
+void SEARCH_UR::ImageRI(char * lib) {
 	if(!Op.ot) return;
 	EE.E( "->UR" );
 	EE.E(lib);
@@ -3001,7 +3001,7 @@ summary of rating having "equalled" hidden and naked as in lksudoku 1.2.5.0
 
 
 */
-int CRIN::T2(USHORT action) {
+int SEARCH_UR::T2(USHORT action) {
 	int ir1 = 0, ir2 = 0, iel = GetElPlus();
 	if(iel >= 0) {
 		ir1 = T2_el(iel, action);
@@ -3020,7 +3020,7 @@ int CRIN::T2(USHORT action) {
 }
 
 // same but el is now identified 
-int CRIN::T2_el(USHORT el, USHORT action) {
+int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 	//look mode 1 for a bivalue of one of the common digits
 	if(0) {
 		ImageRI("");
@@ -3124,7 +3124,7 @@ int CRIN::T2_el(USHORT el, USHORT action) {
 // it need more code, but it should be faster and easier to debug
 
 // look for hidden  
-int CRIN::T2_el_set_hidden(USHORT len)
+int SEARCH_UR::T2_el_set_hidden(USHORT len)
 {	// first pattern, take it if direct 
  if(nth==len)   // not the expected length
  { // identify extra digits in hidden locked set
@@ -3155,7 +3155,7 @@ int CRIN::T2_el_set_hidden(USHORT len)
 return 0;}
 
 // look for nacked sets n
-int CRIN::T2_el_set_nacked(USHORT len)
+int SEARCH_UR::T2_el_set_nacked(USHORT len)
  {if(ntd<(nautres-1)) return 0;  // minimum without extra digit
 
  if(ntd && (nautres==2)&&(len==1)) // look for a nacked pair
@@ -3293,7 +3293,7 @@ if(nnh>=(nautres+1)&& (len==(nnh-3)) )
 // one posible location for a UR;
 // no assigned position, 2 and only 2 common digits
 
-int CRIN::RID(int i1,int i2,int c1,int c2) {
+int SEARCH_UR::RID(int i1,int i2,int c1,int c2) {
 	ia = I81::Pos(i1, c1);
 	ib = I81::Pos(i1, c2);
 	ic = I81::Pos(i2, c1);
@@ -3342,7 +3342,7 @@ int CRIN::RID(int i1,int i2,int c1,int c2) {
 	return 0; //store if something else seen
 }
 
-int CRIN::RID3() {
+int SEARCH_UR::RID3() {
 	if(nautres - 1)
 		return 0;
 	BF81 zw;

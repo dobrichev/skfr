@@ -47,7 +47,7 @@ public:
 	BFTAG  *cum ,* step; 
 	USHORT *ta,*tb,ita,itb;
 	CANDGO(){opp=0;} // print option in nested
-	TDB dpn,dn; // in nested mode, dynamic set of primary links
+	SQUARE_BFTAG dpn,dn; // in nested mode, dynamic set of primary links
 	// look first for direct 
 
 	int GoCand(USHORT tag);  // locate the contradiction

@@ -86,7 +86,7 @@ void EVENT::Load(USHORT tage, EVENT_TYPE evt, EVENTLOT & evb, EVENTLOT & evx) {
 
 /* we have found the 2 sets (EVENLOT) linked to the event
    create the entry in the table TEVENT
-   if first set is more than one create entry in TCHOIX
+   if first set is more than one create entry in TSET
    else generate directly conflicts for candidates in conflict
         if they don't belong to the pattern 
    evt event type
@@ -121,7 +121,7 @@ void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT
 	USHORT evv = event_vi + (it);
 	t[it++].Load(evv, evt, evb, evx); 
 	eva.tcd[eva.itcd] = evv;
-	zcx.ChargeSet(eva.tcd, eva.itcd + 1, CH_set); // set loaded
+	zcx.ChargeSet(eva.tcd, eva.itcd + 1, SET_set); // set loaded
 }
 
  /* the event has been created by  "tagfrom" for the event "tagevent"
@@ -203,7 +203,7 @@ void TEVENT::LoadXW() {
 /* we have identified an XW pattern
    generate if any the set or the direct event weak links  */
 void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT & eva, EVENTLOT & evx) {
-	OBBITD el1d = aztob.tchbit.el[el1].eld[ch], el2d = aztob.tchbit.el[el2].eld[ch];
+	REGION_CELL el1d = aztob.tchbit.el[el1].eld[ch], el2d = aztob.tchbit.el[el2].eld[ch];
 	for(int i = 0; i < 9; i++)
 		if(el1d.b.On(i))
 			if((i - p1) && (i - p2))

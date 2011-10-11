@@ -173,7 +173,7 @@ public:
 
 // class collecting all datas for the cells and managing a cell oriented process
 
-class TP81 { 
+class CELLS { 
 public:
 	CELL t81[81];       
 
@@ -209,9 +209,9 @@ private:
 //! For one digit positions and number of positions
 /**
  * <b>QUESTION : </b> Is there an other use like <br>
- * for one cell candidates and number of candidates see OBBITD::Genpo
+ * for one cell candidates and number of candidates see REGION_CELL::Genpo
  */
-class OBBITD {
+class REGION_CELL {
 public:
 	BF16 b;  //< bitfield for 9 positions
 	USHORT n; //< number of postions
@@ -224,18 +224,18 @@ public:
 };
 
 //! vector for 9 cells or 9 digits  
-class OBBIEL {
+class REGION_INDEX {
 public: 
-	OBBITD eld [9];
+	REGION_CELL eld [9];
 	//! TO EXPLAIN
 	/** Defined in file ecs.cpp */
 	int tiroir(BF16 fd, int iold, int irang);
 };
 
 //! grouping the 27 regions : rows/cols/boxes
-class TOBBIT {
+class ONE_REGIONS_INDEX {
 public: 
-	OBBIEL el[27];  //< possible position of each digit for each region
+	REGION_INDEX el[27];  //< possible position of each digit for each region
 };
 
 //! Main class giving regional alternative index or candidates
@@ -243,10 +243,10 @@ public:
  * There is a unique instance of this class 
  * Positions are updated once per cycle
  */
-class ZTOB {
+class TWO_REGIONS_INDEX {
 public: 
-	TOBBIT tpobit;  // entry region -> position -> digit
-	TOBBIT tchbit;  // entry region -> digit -> position
+	ONE_REGIONS_INDEX tpobit;  // entry region -> position -> digit
+	ONE_REGIONS_INDEX tchbit;  // entry region -> digit -> position
 
     void Genere();  // update
 };
@@ -257,7 +257,7 @@ class PUZZLE
 {
 public:
     GG gg;          //< copy of the puzzle (normalized form - empty cell '0')
-    TP81 tp8N,
+    CELLS tp8N,
 		tp8N_cop;  
 	BF81 
 		c[9],
@@ -410,7 +410,7 @@ private:
 
 // such algorithms are using  recursive routines 
 
-class TIR 
+class SEARCH_LS_FISH 
 {
 public:
 	BF16 non,
@@ -425,7 +425,7 @@ public:
 		aiggo,
 		single,
 		hid_dir; //0 dir,1 hidden; 2 both
-	OBBIEL * el;
+	REGION_INDEX * el;
 	UCHAR ch; 
 
 	void InitTir(BF16 none,BF16 casese, int rangc,int rangv);
@@ -592,10 +592,10 @@ public:
 // the search for URs is started in TCELL , locating potential URs
 // That class is called by TCELL 
 
-class CRIN {
+class SEARCH_UR {
 public:     //on ne traite que deux communs. 
 	static CELL *ta, *tr; // ta action, tr recherche 
-	static OBBIEL * tchel;
+	static REGION_INDEX * tchel;
 	BF16 wc, wou, wr;   
 	int ia, ib, ic, id, deux[4], plus[9], pp1, pp2, // voir pourquoi plus est 9
 		ndeux, nplus, nwc, ch1, ch2, chc1, chc2, nautres, diag, rating;
@@ -605,7 +605,7 @@ public:     //on ne traite que deux communs.
 	BF16 wh, wd, wnh, wnd, wdp;
 	BF81 zwel; // to prepare clearing of naked sets
 
-	CRIN();	 // constructor
+	SEARCH_UR();	 // constructor
 
 	// short functions called by the mains ones
 
@@ -695,16 +695,16 @@ public:     //on ne traite que deux communs.
 
 };
 
-// CRINT is a table storing possible UR type other than 1 for further processing
-class CRINT {
+// SEARCH_URT is a table storing possible UR type other than 1 for further processing
+class SEARCH_URT {
 public:
-	CRIN tur[20];  
+	SEARCH_UR tur[20];  
 	int n;
 
 	void Init() {
 		n = 0;
 	}
-	void Store(CRIN *x) {
+	void Store(SEARCH_UR *x) {
 		if(n < 20)
 			tur[n++] = (*x);
 	}

@@ -163,7 +163,7 @@ class ZGROUPE     // en fixe 81 points 8       puis  54 groupes
 
 
 
-class ZPTLN {
+class CANDIDATE {
 public:  
 	USHORT   ch,  // digit
 		ig;  // cell id
@@ -175,10 +175,10 @@ public:
 };
 
 #define zpln_lim 320
-class TZPTLN {
+class CANDIDATES {
 public:
 	   PUZZLE * parentpuz;
-	   ZPTLN zp[zpln_lim];
+	   CANDIDATE zp[zpln_lim];
 	   BFCAND candtrue; 
 	   USHORT ip;            // index to zp
 	   USHORT indexc[9*81];  // digits 81 cells -> cand
@@ -187,7 +187,7 @@ public:
 
 	   USHORT Getch(int i){return zp[i].ch;};
 
-	   TZPTLN(PUZZLE * parent) {parentpuz=parent;}
+	   CANDIDATES(PUZZLE * parent) {parentpuz=parent;}
 	   void Init();
 	   USHORT Charge0();
 
@@ -219,7 +219,7 @@ public:
 
 
  
-class TDB {
+class SQUARE_BFTAG {
 public:  
 static BFTAG done[50]; // already in the path
 static USHORT ich,mode,length,mmfin;
@@ -239,10 +239,10 @@ void Init() {
 		t[i]=t[0];
 	}
 }
-void ExpandAll(TDB & from);
-void ExpandShort(TDB & from,int npas);
-void AllParents(TDB & from);
-int SearchEliminations(TDB & from,BFTAG & elims);
+void ExpandAll(SQUARE_BFTAG & from);
+void ExpandShort(SQUARE_BFTAG & from,int npas);
+void AllParents(SQUARE_BFTAG & from);
+int SearchEliminations(SQUARE_BFTAG & from,BFTAG & elims);
 inline void Set(int i, int m) {t[i].Set(m);};
 inline int Is(int i,int m){return t[i].On(m);};
 inline int IsConflit(int m1, int m2) {return Is(m1,m2^1);}
@@ -282,9 +282,9 @@ enum WL_TYPE {
 	wl_ev_direct
 };
 
-/*TZCF is somehow the key class in the tagging process.
+/*INFERENCES is somehow the key class in the tagging process.
   it contains 
-  PHASE a couple of TDB bit maps   of the same links in the form a=>~b
+  PHASE a couple of SQUARE_BFTAG bit maps   of the same links in the form a=>~b
     one bit map is the primary table the second one is the extended table.
 	each time a new cycle of derivation is done, a "start situation" is needed 
 	 this is the hstart  
@@ -292,10 +292,10 @@ enum WL_TYPE {
 
 	some cleaning has still to be done in that class
  */
-class TZCF {
+class INFERENCES {
 	class PHASE {
 	public:
-		TDB d, dp;
+		SQUARE_BFTAG d, dp;
 		int icf;
 		void Init() {
 			d.Init();
@@ -306,12 +306,12 @@ class TZCF {
 public:
 	PUZZLE * parentpuz;
 	PHASE h, hstart, h_one, h_nest;
-	TDB dpbase;
+	SQUARE_BFTAG dpbase;
 	USHORT ic, iphase, ic_one, ic1;  // value of ic at the end of the common loading phase
 	BFTAG  xb, xi, xbr, xbr2; 
 	BFCAND tbf[BFCAND_BitSize], tbfwl[BFCAND_BitSize], isbival;
 
-	TZCF(PUZZLE * parent){parentpuz=parent;}
+	INFERENCES(PUZZLE * parent){parentpuz=parent;}
 
 	inline BFTAG * Getd(int m) {
 		return & h.d.t[m];
@@ -410,9 +410,9 @@ public:
 	void ExplainPath(BFTAG &forward, int start, int send, int npas, USHORT relay);
 	int Fast_Aic_Chain();// quick eliminations high rating reached
 
-	int Nested_QuickForcing(TDB &xt, BFTAG &elims); 
-	int Nested_QuickMulti(TDB &xt, BFTAG &elims); 
-	int Nested_QuickDynamic(TDB &xt,BFTAG &elims) ; 
+	int Nested_QuickForcing(SQUARE_BFTAG &xt, BFTAG &elims); 
+	int Nested_QuickMulti(SQUARE_BFTAG &xt, BFTAG &elims); 
+	int Nested_QuickDynamic(SQUARE_BFTAG &xt,BFTAG &elims) ; 
 
 	void ChainPlus(BFCAND &dones);
 
@@ -432,16 +432,16 @@ private:
 /* new design for the "sets" table
    all entries in candidates mode + 'event' if any
    no duplicate check
-   limit to size ZCHOIX_max
+   limit to size SET_max
 */
 
 
-#define zcxb_lim 100000
-class ZCXB   // buffer for candidates + "events"
+#define setsbuffer_lim 100000
+class SETS_BUFFER   // buffer for candidates + "events"
 {public: 
  PUZZLE * parentpuz;
- USHORT zs[zcxb_lim],izs,izs_one;
- ZCXB(PUZZLE * parent){parentpuz=parent;}
+ USHORT zs[setsbuffer_lim],izs,izs_one;
+ SETS_BUFFER(PUZZLE * parent){parentpuz=parent;}
  inline void Init(){izs=0;}
  inline void LockNestedOne() {izs_one=izs;}
  inline void StartNestedOne() {izs=izs_one;}
@@ -451,21 +451,21 @@ class ZCXB   // buffer for candidates + "events"
 
 
 
-/* in SE we keep sets in candidate mode (index in TZPTLN)
+/* in SE we keep sets in candidate mode (index in CANDIDATES)
    identical sets are sorted out before 
    types identified (enum list) are
-   CH_base  cell or region list of candidates
-   CH_set   event set, last "candidate" is the event 
+   SET_base  cell or region list of candidates
+   SET_set   event set, last "candidate" is the event 
 */
-enum CHOIX_TYPE{CH_base,CH_set=4};
-class ZCHOIX
+enum SET_TYPE{SET_base,SET_set=4};
+class SET
 {public:      
  USHORT *tcd,  // "set" table pointer to TCXI
-        ix,   // index in TCHOIX 
+        ix,   // index in TSET 
 		ncd,   // number of candidates + "event"
-		type; // as of CHOIX_TYPE 
+		type; // as of SET_TYPE 
 
- int Prepare (USHORT * mi,USHORT nmi,CHOIX_TYPE ty,USHORT ixe);
+ int Prepare (USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe);
 
  void GetCand(BFCAND & ms)// init à la charge de l'appelant
            {for(int i=0;i<ncd;i++) ms.Set(tcd[i]);}
@@ -479,20 +479,20 @@ class ZCHOIX
 
 
 
-#define zcx_lim 20000
-class TZCHOIX {
+#define sets_lim 20000
+class SETS {
 public: 
 	PUZZLE * parentpuz;
-	ZCHOIX zc[zcx_lim];
+	SET zc[sets_lim];
 	USHORT izc,     //index to zc
 		izc_one,
 		direct,  // 0 except if derivation from direct weak links
 		nmmin,nmmax;    //min  max  size seen for a set
 	BFTAG tce[20],  // storing used BFTAG in a set analyzed
 		*t;       // pointer to zcf.h.d.t or zcf.h.dp.t depending on direct
-	TDB allparents; // table for derivation
+	SQUARE_BFTAG allparents; // table for derivation
 
-	TZCHOIX(PUZZLE * parent){parentpuz=parent;}
+	SETS(PUZZLE * parent){parentpuz=parent;}
 	void Init();
 	inline void LockNestedOne() {
 		izc_one = izc;
@@ -501,7 +501,7 @@ public:
 		izc=izc_one;
 	}
 
-	int ChargeSet(USHORT * mi, USHORT nmi, CHOIX_TYPE ty);
+	int ChargeSet(USHORT * mi, USHORT nmi, SET_TYPE ty);
 	int CopySet(int ie);
 
 	void DeriveDirect() {
@@ -510,8 +510,8 @@ public:
 		direct=0;
 	}
 	void Derive(int min, int max, int maxs); 
-	void DeriveBase(ZCHOIX & chx);
-	void DeriveSet(ZCHOIX & chx);
+	void DeriveBase(SET & chx);
+	void DeriveSet(SET & chx);
 
 	int Interdit_Base80() ;	 
 

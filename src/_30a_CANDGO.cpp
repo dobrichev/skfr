@@ -59,10 +59,10 @@ void CHAINSTORE::Print(USHORT index) {
 
 void CANDGO::GoSets() {
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		const ZCHOIX &chx = zcx.zc[ie];
+		const SET &chx = zcx.zc[ie];
 		int n = 0, nni = chx.ncd, aig2 = 0; 
 		switch (chx.type) {
-		case CH_base:  // must be n-1 false or n false (then all is ok)
+		case SET_base:  // must be n-1 false or n false (then all is ok)
 			for(int i = 0; i < nni; i++) { // max one free 
 				if(cum->Off((chx.tcd[i] <<1 ) ^ 1)) {
 					n++;
@@ -90,7 +90,7 @@ void CANDGO::GoSets() {
 			}
 
 			break;
-		case CH_set: // in a set all components must be on
+		case SET_set: // in a set all components must be on
 			for(int i = 0; i < (nni - 1); i++) {
 				if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
 					n++;
@@ -410,10 +410,10 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 	// check now sets
 
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		const ZCHOIX &chx = zcx.zc[ie];
+		const SET &chx = zcx.zc[ie];
 		int n = 0, nni = chx.ncd, aig2 = 0, toff[10]; 
 		switch (chx.type) {
-		case CH_base:  // must be n-1 false or n false (then all is ok)
+		case SET_base:  // must be n-1 false or n false (then all is ok)
 			// check if active 0 to 2 cand unknown
 			{
 				BFTAG bfw;
@@ -463,7 +463,7 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 					EE.Enl();}
 			}
 			break;
-		case CH_set: // in a set all components must be on
+		case SET_set: // in a set all components must be on
 			for(int i = 0; i < (nni - 1); i++) {
 				if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
 					n++;
@@ -583,13 +583,13 @@ and the source of all new strong links used
 
 void CANDGO::NestedMultiShort(BFTAG & elims) {
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		const ZCHOIX &chx = zcx.zc[ie];
+		const SET &chx = zcx.zc[ie];
 		int nni = chx.ncd, aig2 = 1; 
 		BFTAG zt;
 		zt.SetAll_1();
 		zt = zt.FalseState();
 		zt -= allsteps;
-		if(chx.type - CH_base)
+		if(chx.type - SET_base)
 			continue;
 		// must be  n false 
 		for(int i = 0; i < nni; i++) { // max one free 
@@ -845,14 +845,14 @@ int CANDGO::GoBack(USHORT tag, int pr) {
 							}
 					}
 					else {  // it comes from a set, we know which one
-						const ZCHOIX &chx = zcx.zc[tsets[x]];
+						const SET &chx = zcx.zc[tsets[x]];
 						if(0) {
 							EE.E("set");
 							chx.Image();
 							EE.Enl();
 						}
 						int n = chx.ncd;
-						if(chx.type == CH_set)
+						if(chx.type == SET_set)
 							n--; // for a set, forget the event
 						for(int j = 0; j < n; j++) {
 							USHORT y = chx.tcd[j] << 1;
@@ -931,10 +931,10 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 	// check now sets
 
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		const ZCHOIX &chx = zcx.zc[ie];
+		const SET &chx = zcx.zc[ie];
 		int n = 0, nni = chx.ncd, aig2 = 0, toff[10]; 
 		switch (chx.type) {
-		case CH_base:  // must be n-1 false or n false (then all is ok)
+		case SET_base:  // must be n-1 false or n false (then all is ok)
 			{
 				// check if active 0 to 2 cand unknown
 				BFTAG bfw;
@@ -991,7 +991,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 				}
 			}
 			break;
-		case CH_set : // in a set all components must be on
+		case SET_set : // in a set all components must be on
 			for(int i = 0; i < (nni - 1); i++) {
 				if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
 					n++;
@@ -1129,10 +1129,10 @@ USHORT itret1=0,nestedlength=0;  itret=0;
             if(z && bf.Off(z)) {tret[itret++]=z;bf.Set(z);}
            }
 	   else  if(index>0) // it comes from a set, we know which one
-	        {ZCHOIX chx=zcx.zc[tsets[x]];
+	        {SET chx=zcx.zc[tsets[x]];
 	        if(0 && pr)
 			   {EE.E("set");chx.Image(); EE.Enl();}
-			int n=chx.ncd; if(chx.type==CH_set) n--; // for a set, forget the event
+			int n=chx.ncd; if(chx.type==SET_set) n--; // for a set, forget the event
 		   for(int j=0;j<n;j++) 
 		   {USHORT y=chx.tcd[j]<<1; if(y==x) continue;
 		    y^=1; if(bf.Off(y)){tret[itret++]=y;bf.Set(y);}
@@ -1168,7 +1168,7 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 		  int index=tsets[wt];
 	      if(!index) 	     EE.Enl();  // direct no comment
 		  else  if(index>0) // it comes from a set, we know which one
-	        {ZCHOIX chx=zcx.zc[index];
+	        {SET chx=zcx.zc[index];
 	         EE.E(" through set ");chx.Image(); EE.Enl(); 		    
 	        }
 
@@ -1253,7 +1253,7 @@ and the source of all new strong links used
 
 void CANDGO::NestedMulti(BFTAG & elims) {
 	for(int ie = 1; ie < zcx.izc; ie++) {
-		const ZCHOIX &chx = zcx.zc[ie];
+		const SET &chx = zcx.zc[ie];
 		int nni = chx.ncd, aig2 = 0; 
 		BFTAG zt;
 		zt.SetAll_1();
@@ -1262,7 +1262,7 @@ void CANDGO::NestedMulti(BFTAG & elims) {
 		BFTAG ttt = allsteps;
 		ttt |= elims;
 		zt -= ttt;
-		if(chx.type - CH_base)
+		if(chx.type - SET_base)
 			continue;
 		// must be  n false 
 		for(int i = 0; i < nni; i++) { // max one free 
