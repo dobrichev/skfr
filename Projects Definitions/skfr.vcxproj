@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\t_128.cpp" />
     <ClCompile Include="..\src\bitfields.cpp" />
     <ClCompile Include="..\src\flog.cpp" />
     <ClCompile Include="..\src\opsudo.cpp" />
