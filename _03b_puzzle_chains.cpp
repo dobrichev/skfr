@@ -377,7 +377,7 @@ void SQUARE_BFTAG::Parents(USHORT x) {
    partial mode are found in the BFTAG functions
    */ 
 
-//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
+//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 1 by GP
 //	(*this)=from; // be sure to start with the set of primary data
 //	for(int i=2;i< puz.col;i++) {
 //		if (t[i].IsEmpty())
@@ -398,27 +398,89 @@ void SQUARE_BFTAG::Parents(USHORT x) {
 //		} // end j  while
 //	} 
 //}// end i   proc
-void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
+
+//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 2 by MD
+//	(*this) = from; // be sure to start with the set of primary data
+//	for(int i = 2; i < puz.col; i++) {
+//		if(t[i].IsEmpty())
+//			continue;
+//		int n = 1;
+//		while(n) {
+//			n = 0;
+//			for(int j = 2; j < puz.col; j++) {
+//				if(j == i)
+//					continue;
+//				if(t[i].On(j)) {
+//					BFTAG x = t[j];
+//					if(x.substract(t[i])) {
+//						t[i] |= x;
+//						n = 1;
+//					}
+//				}
+//			} // j
+//		} // while
+//	} 
+//}// end i   proc
+
+//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 3 by MD
+//	BFTAG tiOld;
+//	(*this) = from; // be sure to start with the set of primary data
+//	for(int i = 2; i < puz.col; i++) {
+//		if(t[i].IsEmpty())
+//			continue;
+//		do {
+//			tiOld = t[i];
+//			for(int j = 2; j < puz.col; j++) {
+//				if(j == i)
+//					continue;
+//				if(t[i].On(j)) {
+//					t[i] |= t[j];
+//				}
+//			} // j
+//		} while(!(t[i] == tiOld));
+//	} 
+//}// end i   proc
+
+//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 4 by MD
+//	(*this) = from; // be sure to start with the set of primary data
+//	BFTAG t1, t2;
+//	for(int i = 2; i < puz.col; i++) {
+//		if(t[i].IsEmpty()) //check prior to copy
+//			continue;
+//		t1 = t[i];
+//		do {
+//			t2 = t[i];
+//			for(int j = 2; j < puz.col; j++) {
+//				if(j == i)
+//					continue;
+//				if(t1.On(j)) {
+//					t[i] |= t[j];
+//				}
+//			} // j
+//			t1 = t[i]; //all bits
+//			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
+//		} while(t1.IsNotEmpty());
+//	} 
+//}// end i   proc
+
+void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 5 by MD
 	(*this) = from; // be sure to start with the set of primary data
+	BFTAG t1, t2;
+	USHORT p[640], np;
 	for(int i = 2; i < puz.col; i++) {
-		if(t[i].IsEmpty())
-			continue;
-		int n = 1;
-		while(n) {
-			n = 0;
-			for(int j = 2; j < puz.col; j++) {
-				if(j == i)
+		t[i].String(p, np);
+		while(np) {
+			t2 = t[i];
+			for(int j = 0; j < np; j++) {
+				if(p[j] == i)
 					continue;
-				if(t[i].On(j)) {
-					BFTAG x = t[j];
-					if(x.substract(t[i])) {
-						t[i] |= x;
-						n = 1;
-					}
-				}
+				t[i] |= t[p[j]];
 			} // j
-		} // while
-	} 
+			t1 = t[i]; //all bits
+			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
+			t1.String(p, np);
+		}
+	}
 }// end i   proc
 
 

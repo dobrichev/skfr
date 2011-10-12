@@ -6,7 +6,7 @@
 
 typedef union __declspec(intrin_type) _CRT_ALIGN(16) t_128 {
     unsigned __int64    m128i_u64[2];
-    //unsigned __int8     m128i_u8[16];
+    unsigned __int8     m128i_u8[16];
     //unsigned __int16    m128i_u16[8];
     unsigned __int32    m128i_u32[4];
 	__m128i				m128i_m128i;
@@ -65,6 +65,9 @@ public:
 	inline bool isInvalid() const {return equals(bitmap128.m128i_m128i, maskffff.m128i_m128i);};
 	inline static bool isZero(const __m128i &r) {return equals(r, _mm_setzero_si128());};
 	inline bool isZero() const {return equals(bitmap128.m128i_m128i, _mm_setzero_si128());};
+
+	inline int nonzeroOctets() const {return 0x0000ffff ^ _mm_movemask_epi8(_mm_cmpeq_epi8(bitmap128.m128i_m128i, _mm_setzero_si128()));}
+
 	inline static bm128* allocate(const int size) {return (bm128*)_mm_malloc(size * sizeof(bm128), 16);};
 	inline static void deallocate(void *ptr) {_mm_free(ptr);};
 	int toPseudoPuzzle(const char* digits, char* r) const {int n = 0; for(int i = 0; i < 81; i++) r[i] = isBitSet(i) ? n++, 0 : digits[i]; return n;}
