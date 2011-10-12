@@ -32,63 +32,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 BF_CONVERT bfconv;
 
-// BFCAND
-int BFCAND::io, BFCAND::jo;
-
-BFCAND BFCAND::operator & (const BFCAND &z2) const {
-	BFCAND w;
-	for(int i = 0; i < BFCAND_size; i++)
-		w.f[i] = f[i] & z2.f[i];
-	return w;
-}
-BFCAND BFCAND::operator | (const BFCAND  &z2) const {
-	BFCAND w;
-	for(int i = 0; i < BFCAND_size; i++)
-		w.f[i] = f[i]|z2.f[i];
-	return w;
-}
-BFCAND BFCAND::operator ^ (const BFCAND &z2) const {
-	BFCAND w;
-	for(int i = 0; i < BFCAND_size; i++)
-		w.f[i] = f[i] ^ z2.f[i];
-	return w;
-}
-void BFCAND::operator &= (const BFCAND &z2) {
-	for(int i = 0; i < BFCAND_size; i++)
-		f[i] &= z2.f[i];
-}
-void BFCAND::operator |= (const BFCAND &z2) {
-	for(int i = 0; i < BFCAND_size; i++)
-		f[i] |= z2.f[i];
-}
-void BFCAND::operator ^= (const BFCAND &z2) {
-	for(int i = 0; i < BFCAND_size; i++)
-		f[i] ^= z2.f[i];
-}
-int BFCAND::operator == (const BFCAND &z2) const {
-	for(int i = 0; i < BFCAND_size; i++)
-		if(!(f[i] == z2.f[i]))
-			return 0;
-	return 1;
-}
-BFCAND BFCAND::operator - (const BFCAND &z2) const {
-	BFCAND w;
-	for(int i = 0; i < BFCAND_size; i++)
-		w.f[i] = f[i] ^ (f[i] & z2.f[i]);
-	return w;
-}
-void BFCAND::operator -= (const BFCAND &z2) {
-	  for(int i = 0; i < BFCAND_size; i++)
-		  f[i] ^= (f[i] & z2.f[i]);
-}
-int BFCAND::Count()  {
-	return bfconv.cpt(f, BFCAND_size);
-}
-
-
 // BF81
 // global variable for class BF81
-int BF81::io = 0, BF81::jo = 0;
+//int BF81::io = 0, BF81::jo = 0;
 
 // BFTAG
 // global variable for class BFTAG
@@ -197,11 +143,26 @@ void BFTAG::String(USHORT * r, USHORT &n) const {
 	//		}
 	//	}
 	//}
+
+	//for(int i = 0; i < 5; i++) {
+	//	if(!ff[i].isZero()) {
+	//		for(unsigned int k = 0; k < 128; k++) {
+	//			if(ff[i].isBitSet(k))
+	//				r[n++] = (USHORT)(i * 128 + k);
+	//		}
+	//	}
+	//}
+
 	for(int i = 0; i < 5; i++) {
-		if(!ff[i].isZero()) {
-			for(unsigned int k = 0; k < 128; k++) {
-				if(ff[i].isBitSet(k))
-					r[n++] = (USHORT)(i * 128 + k);
+		int m = ff[i].nonzeroOctets(); // 16-bit mask of octets having non-zero bits
+		for(int oct = 0; m && oct < 16; m >>= 1, oct++) {
+			if(m & 1) { //octet has a bit set
+				int b = ff[i].bitmap128.m128i_u8[oct];
+				for (int bit = 0; b && bit < 8; b >>= 1, bit++) {
+					if(b & 1) {
+						r[n++] = (USHORT)(i * 128 + oct * 8 + bit);
+					}
+				}
 			}
 		}
 	}

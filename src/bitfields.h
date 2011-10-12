@@ -315,19 +315,13 @@ public:
  * triplet for instance
  */
 class BF81 {
-	static int io, jo;
 	//! Split position in 2 index
 	/** To calculate which int in <code>i0</code> and 
 	 * which position in this int in <code>j0</code> for a global position<br>
 	 * <b>WARNING : </b> not thread safe !
 	 */
-    void ij(int v) 
-	{
-		io = v >> 5;
-		jo = v & 0x1F;
-	};   //v/32  v%32
-public:  
 	unsigned  int f[3];   // bitfield
+public:  
 
     BF81(){SetAll_0();}
     BF81(int i1) {
@@ -348,27 +342,19 @@ public:
     inline void SetAll_0() {
 		f[0] = f[1] = f[2] = 0;
 	}
-	//!Is position <code>v</code> On
-    inline int On(int v) const {
-		int io = v >> 5;
-		int jo = v & 0x1F;
-		//ij(v);
-		return (f[io] & (1 << jo));
+
+	inline int On(int v) const {
+		return (f[v >> 5] & (1 << (v & 31)));
 	}
-	////!Is position <code>v</code> Off
-	inline int Off(int v) {
-		ij(v);
-		return (!(f[io] & (1 << jo)));
+	inline int Off(int v) const {
+		return ((f[v >> 5] & (1 << (v & 31))) == 0);
 	}
-	//!Set position <code>v</code> to On
-    inline void Set(int v) {
-		ij(v);
-		f[io] |= 1 << jo;
+	inline void Set(int v) {
+		f[v >> 5] |= (1 << (v & 31));
 	}
 	//!Clear position <code>v</code>
     inline void Clear(int v) {
-		ij(v);
-		f[io] &= ~(1 << jo);
+		f[v >> 5] &= (~(1 << (v & 31)));
 	}
 	//!Is there any bit On
     inline int IsNotEmpty() const {
@@ -432,14 +418,6 @@ public:
 			f[i] ^= (f[i] & b.f[i]);
 	}
 
-	BF81 operator ~() const {
-		BF81 w;
-		w.f[0] = ~f[0];
-		w.f[1] = ~f[1];
-		w.f[2] = ~f[2];
-		return w;
-	}
-
     int operator ==(const BF81 & b) const {
 		return ((f[0] == b.f[0]) && (f[1] == b.f[1]) && (f[2] == b.f[2]));
 	}
@@ -500,11 +478,6 @@ public:
 
 class BFCAND {
 	UINT f[BFCAND_size];     // the bit field
-	static int io, jo, odd, even;
-	void ij(int v) {
-		io = v >> 5;
-		jo = v & 31;
-	};
 public:
 	BFCAND() {
 		SetAll_0();
@@ -522,48 +495,17 @@ public:
 			f[i] = 0;
 	} 
 	inline int On(int v) const {
-		int io = v >> 5;
-		int jo = v & 31;
-		//ij(v);
-		return (f[io] & (1 << jo));
+		return (f[v >> 5] & (1 << (v & 31)));
 	}
 	inline int Off(int v) const {
-		int io = v >> 5;
-		int jo = v & 31;
-		//ij(v);
-		return ((f[io] & (1 << jo)) == 0);
+		return ((f[v >> 5] & (1 << (v & 31))) == 0);
 	}
 	inline void Set(int v) {
-		ij(v);
-		f[io] |= (1 << jo);
+		f[v >> 5] |= (1 << (v & 31));
 	}
-	inline void Clear(int v) {
-		ij(v);
-		if(On(v))
-			f[io] ^= (1 << jo);
-	}
-	BFCAND operator & (const BFCAND &z2) const;
-	BFCAND operator | (const BFCAND &z2) const;
-	BFCAND operator ^ (const BFCAND &z2) const;
-	BFCAND operator - (const BFCAND &z2) const;
-	void operator &= (const BFCAND &z2);
-	void operator |= (const BFCAND &z2);
-	void operator ^= (const BFCAND &z2);
-	void operator -= (const BFCAND &z2);
-	int operator == (const BFCAND &z2) const;
-	int IsNotEmpty() const {
-		for(int i = 0; i < BFCAND_size; i++)
-			if(f[i])
-				return 1;
-		return 0;
-	}     
-	int IsEmpty() const {
-		for(int i = 0; i < BFCAND_size; i++)
-			if(f[i])
-				return 0;
-		return 1;
-	}
-	int Count() ;
+	//inline void Clear(int v) {
+	//	f[v >> 5] &= (~(1 << (v & 31)));
+	//}
 };
 
 /* BFTAG is the key bitfield in the tagging process.
@@ -616,7 +558,7 @@ public:
 	}
 	///\brief Clear all bits
 	void SetAll_0();
-	///\brief Set all bits (limited to <code>isize</code> int)
+	///\brief Set all bits
 	void SetAll_1();
 	///\brief is bit in position <code>v</code> On
 	inline int On(int v) const {

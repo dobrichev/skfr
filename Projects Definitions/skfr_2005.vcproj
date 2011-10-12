@@ -224,6 +224,10 @@
 				RelativePath="..\src\_00_hfiles.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\t_128.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
