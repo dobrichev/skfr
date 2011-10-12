@@ -39,9 +39,8 @@ CELLS T81dep;
 CELLS * T81,*T81C;		//standard names for main objects of the class
 CELL * T81t,*T81tc;		//and corresponding tables of cells  
                       // the corresponding tables are located in class PUZZLE
-UN_JEU un_jeu;
-CELLS_FIX CELLS_FIX;
-CELL_FIX * t81f=CELLS_FIX.t81f;			//pointer to speed up the process   
+CELLS_FIX tp81f;
+CELL_FIX * t81f=tp81f.t81f;			//pointer to speed up the process   
 DIVF divf;
 TWO_REGIONS_INDEX aztob; 
 PUZZLE puz;
@@ -152,7 +151,7 @@ char *orig1="RCB ";
 
 
 #include "_03c_puzzle_fix.cpp"
-#include "_03d_puzzle_bruteforce.cpp"
+//#include "_03d_puzzle_bruteforce.cpp"
 
 
 #include "_03a_puzzle.cpp"
