@@ -569,6 +569,7 @@ PUZZLE::PUZZLE() {
 	T81C = &tp8N_cop;
 	T81t = T81->t81;
 	T81tc = T81C->t81;
+	yt.Init(this);
 }
 
 
@@ -1819,6 +1820,8 @@ int PUZZLE::Traite_a() {
 		return 1;
 	}  //1.7
 
+
+
 	Step(HiddenPair_single);
 	if(rating_ir > 1)
 		return 0;
@@ -1930,6 +1933,10 @@ int PUZZLE::Traite_a() {
 		return 1;
 	}  //4.0
 
+    if(Op.ot)
+		T81->Candidats();
+
+
     Copie_T_c(); // to be done now copie for UR same rating
     zpaires.CreerTable();  
 
@@ -1953,8 +1960,6 @@ int PUZZLE::Traite_a() {
 		return 1;
 	}  //4.4
 
-    if(Op.ot)
-		T81->Candidats();
 
 	Step(UniqueRect1);
 	if(rating_ir > 1)
@@ -2206,23 +2211,29 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 	return ir;
 }
 
-
+ void SEARCH_LS_FISH::Init(PUZZLE * parent){
+ parentpuz=parent;
+ regindp=aztob.tpobit.el;
+ regindch=aztob.tchbit.el;
+ regindchcol=&regindch[9];
+}
 
 //<<<<<<<<<<<<<<<<<<<<<   On cherche tiroir dans element  // boucle recurrente sur i
-int REGION_INDEX::tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et on regarde si fusion n-1  ok
-	int i,id=(yt.non.f && (irang-1))? 0:iold+1;  // debut 0 avec pseudos et rang 1
-	for (i=id;i<(11-yt.rangc+irang);i++)  // il doit rester des cases
+int SEARCH_LS_FISH::Tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et on regarde si fusion n-1  ok
+	int i,id=(non.f && (irang-1))? 0:iold+1;  // debut 0 avec pseudos et rang 1
+	for (i=id;i<(11-rangc+irang);i++)  // il doit rester des cases
 	{ 
-		if(eld[i].n<2 ||eld[i].n>yt.rangv) continue;
-		if( yt.non.On(i))continue; //pour pseudo
-		BF16 wf=eld[i].b|fd; 
-		if (wf.QC() >yt.rangv) continue;
-		if(irang==(yt.rangc-2))
-		{yt.wf=wf;yt.wi.Set(i);
-		if(wf.QC() ==yt.rangv)return 1; else return 0; }
+		if(eld[i].n<2 ||eld[i].n>rangv) continue;
+		if( non.On(i))continue; //pour pseudo
+		BF16 wx=eld[i].b|fd; 
+		int nx=wx.QC();
+		if (nx >rangv) continue;
+		if(irang==(rangc-2))
+		{wf=wx;wi.Set(i);
+		if(nx ==rangv)return 1; else return 0; }
 		// une erreur a tester    on poursuit si <
 		// il peut manquer des tiroirs!!!!! curieux que jamais détecté!!!!
-		if(tiroir(wf,i,irang+1)){yt.wi.Set(i); return 1; }
+		if(Tiroir(wx,i,irang+1)){wi.Set(i); return 1; }
 	}
 	return 0;
 }
@@ -2231,15 +2242,18 @@ int SEARCH_LS_FISH::Tiroirs(int nn,int hid,int sing) {     //recherche normale d
 	rangv=nn;single=sing;hid_dir=hid; int ir=0;
 	int ied=0,ief=54; 
 	if(!hid_dir )ief=27;if(hid_dir==1 )ied=27;if(single){ied=27;ief=54;}
+	
 	for( e=ied;e<ief;e++)   // direct, hidden or both upon request
 	{rangc=rangv; non.f=cases.f=0; if(e<27) e27=e; else e27=e-27;
-	if(puz.NonFixesEl(e%27) < (rangv +1)) continue;
+	if(parentpuz -> NonFixesEl(e%27) < (rangv +1)) continue;
+
 	for(int i=0;i<9-rangv+1;i++)
-	{int nn= aztob.tpobit.el[e].eld[i].n;
+	{eld=regindp[e].eld;
+	int nn= eld[i].n;
 	if(nn<2 || nn>rangv) continue;
-	BF16 w;w=aztob.tpobit.el[e].eld[i].b;
+	BF16 w;w=eld[i].b;
 	wi.f=0; wi.Set(i);
-	if(!aztob.tpobit.el[e].tiroir(w,i,0)) continue;
+	if(!Tiroir(w,i,0)) continue;
 	if (UnTiroir())ir= 1;	
 	}  
 	}
@@ -2255,10 +2269,10 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 		CELL p=T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
 		BF16 wc=p.v.cand-wi;
 		for(int j=0;j<9;j++) if (wc.On(j) )// a possible hidden digit
-		{BF16 wcd=aztob.tchbit.el[e27].eld[j].b-wf; // positions still valid
+		{BF16 wcd=regindch[e27].eld[j].b-wf; // positions still valid
 		if(wcd.QC()==1)
 		{EE.Enl("ecs assignment");
-		puz.FaitGoA(i8,j+'1',4);// stop at first assignment
+		parentpuz -> FaitGoA(i8,j+'1',4);// stop at first assignment
 		ir=1; break;}
 		}// end for j if
 
@@ -2266,8 +2280,9 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 		if(!ir) return 0;// no single found
 	}// end if single
 
-	else if(e<27) {if (!puz.ChangeSauf(e,wi,wf)&&(!ir) )return 0;  }
-	else   { if (!puz.Keep(e27,wf,wi) &&(!ir))return 0;  }
+	else if(e<27) {
+		    if (!parentpuz ->ChangeSauf(e,wi,wf)&&(!ir) )return 0;  }
+	else   { if (!parentpuz ->Keep(e27,wf,wi) &&(!ir))return 0;  }
 
 	if(!Op.ot) return 1; 
 	// describe the LS even if no more eliminations after an assignment
@@ -2292,10 +2307,12 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
 {   // on progresse sur indice et on regarde si fusion n-1  ok
   for (int i=iold+1;i<9;i++)  // il doit rester des éléments
-  { int nn=el[i].eld[ch].n;
+  { int nn=eld[ch].n;
 	 if(nn<2 ||nn>rangv) continue;
-    BF16 wfu=el[i].eld[ch].b|fd;      if (wfu.QC() >rangv) continue;
-    if(irang==(rangv-2)){ if(wfu.QC() - rangv)continue;
+    BF16 wfu=regxw[i].eld[ch].b|fd; 
+	int nx=wfu.QC();
+	if (nx >rangv) continue;
+    if(irang==(rangv-2)){ if(nx - rangv)continue;
                          wf=wfu; wi.Set(i);return 1; }
       else if(XW(wfu,i,irang+1)) {wi.Set(i); return 1; }
   }
@@ -2303,7 +2320,7 @@ return 0;}
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< en mode XWING liste objets et chiffres
 int SEARCH_LS_FISH::GroupeObjetsChange(int dobj,int ch)
 {BF16 x(ch); int ir=0;
- for(int i=0;i<9;i++)   if(wf.On(i)) ir+= puz.ChangeSauf(dobj+i,wi,x);
+ for(int i=0;i<9;i++)   if(wf.On(i)) ir+= parentpuz ->ChangeSauf(dobj+i,wi,x);
 return ir;}
 //<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
 int SEARCH_LS_FISH::XW(int nn)
@@ -2313,9 +2330,11 @@ int SEARCH_LS_FISH::XW(int nn)
  for(int i=0;i<9;i++)
   {ch=(UCHAR)i;
    for(int iel=0;iel<10-rangv;iel++)
-   {el=aztob.tchbit.el; int nn=el[iel].eld[i].n;
+   { regxw=regindch;
+	 eld=regxw[iel].eld;     
+   	 int nn=eld[i].n;
     if(nn>1 &&nn<=rangv)
-    { w=el[iel].eld[i].b; wi.f=0; wi.Set(iel);
+    { w=eld[i].b; wi.f=0; wi.Set(iel);
       if( XW(w,iel,0) )
        { if(GroupeObjetsChange(9,i) )  // action colonnes
 	     {EE.E(gxw[rangv-2]);	 EE.E(" digit ");     EE.E(i+1); 
@@ -2323,9 +2342,11 @@ int SEARCH_LS_FISH::XW(int nn)
 		  EE.E(" rows ");  EE.Enl(wi.String());     
 		  return 1; 	 }}
        }
-     el=&aztob.tchbit.el[9];nn=el[iel].eld[i].n;
+	 regxw=regindchcol;
+	 eld=regxw[iel].eld;
+     nn=eld[i].n;
      if(nn<2 || nn>rangv) continue;
-     w=el[iel].eld[i].b;  	wi.f=0; wi.Set(iel);
+     w=eld[i].b;  	wi.f=0; wi.Set(iel);
      if( XW(w,iel,0) )
       { if(GroupeObjetsChange(0,i) ) // action lignes
 	   {EE.E(gxw[rangv-2]);	 EE.E(" digit ");
