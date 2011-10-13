@@ -27,7 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 #pragma once
-
+class PUZZLE;
 
 class GG {
 public:
@@ -390,11 +390,79 @@ public:
 	}
 };
 
+
+
+//That class is dedicated to the processing of algorithms building 
+//  a progressive collection of cells
+// looking for locked sets
+// looking for fishes.
+
+// such algorithms are using  recursive routines 
+
+class SEARCH_LS_FISH 
+{
+public:
+	PUZZLE * parentpuz;
+	REGION_CELL * eld;
+	REGION_INDEX * regindp,* regindch,* regindchcol,*regxw;
+
+	BF16 non,
+		cases,
+		wf,
+		wi; 
+	int rangc,
+		rangv,
+		e,
+		e27,
+		typeqc,
+		aiggo,
+		single,
+		hid_dir; //0 dir,1 hidden; 2 both
+
+	UCHAR ch; 
+
+    void Init(PUZZLE * parent);
+
+	void InitTir(BF16 none,BF16 casese, int rangc,int rangv);
+
+	void InitXW();
+
+	int Tiroirs(int nn,int hidden,int sing);
+
+	int Tiroir(BF16 fd,int iold,int irang) ;
+
+	int UnTiroir();
+
+	int XW(int nn);  
+
+	int XW(BF16 fd ,int iold,int irang);
+
+	int GroupeObjetsChange(int decalage,int ch);
+ }; 
+
+
+
+
+// class collecting cell with 2 digits to find XWings and XYZ wings
+// basis for all kinds of bugs as well
+// also used in tagging to establish corresponding stong links
+class PAIRES {
+public:
+	BF16 pa;
+	USHORT i8;
+	void Charge(CELL & p8) {
+		pa = p8.v.cand;
+		i8 = p8.f->i8;
+	}
+};
+
+
 class PUZZLE
 {
 public:
 
     UN_JEU un_jeu;
+    SEARCH_LS_FISH yt;
 
 
     GG gg,          //< copy of the puzzle (normalized form - empty cell '0')
@@ -543,63 +611,6 @@ private:
 	int FaitGo(int i8,char c1,char c2);
 };
 
-
-
-//That class is dedicated to the processing of algorithms building 
-//  a progressive collection of cells
-// looking for locked sets
-// looking for fishes.
-
-// such algorithms are using  recursive routines 
-
-class SEARCH_LS_FISH 
-{
-public:
-	BF16 non,
-		cases,
-		wf,
-		wi; 
-	int rangc,
-		rangv,
-		e,
-		e27,
-		typeqc,
-		aiggo,
-		single,
-		hid_dir; //0 dir,1 hidden; 2 both
-	REGION_INDEX * el;
-	UCHAR ch; 
-
-	void InitTir(BF16 none,BF16 casese, int rangc,int rangv);
-
-	void InitXW();
-
-	int Tiroirs(int nn,int hidden,int sing);
-
-	int UnTiroir();
-
-	int XW(int nn);  
-
-	int XW(BF16 fd ,int iold,int irang);
-
-	int GroupeObjetsChange(int decalage,int ch);
- }; 
-
-
-
-
-// class collecting cell with 2 digits to find XWings and XYZ wings
-// basis for all kinds of bugs as well
-// also used in tagging to establish corresponding stong links
-class PAIRES {
-public:
-	BF16 pa;
-	USHORT i8;
-	void Charge(CELL & p8) {
-		pa = p8.v.cand;
-		i8 = p8.f->i8;
-	}
-};
 
 class TPAIRES {
 public: 

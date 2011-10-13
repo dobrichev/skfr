@@ -46,7 +46,6 @@ TWO_REGIONS_INDEX aztob;
 PUZZLE puz;
 ULT tult;
 TPAIRES zpaires;
-SEARCH_LS_FISH yt;
 SEARCH_UR ur;
 SEARCH_URT urt;
 TCHAIN tchain;
