@@ -159,7 +159,7 @@ int CANDGO::GoNestedCase1(USHORT cand, USHORT base) {
 
 	//now go forward  till nothing or a contradiction
 
-	to = zcf.dpbase.t; // we use the table without derivations
+	to = zcf.hdp_dynamic.t; // we use the table without derivations
 	for(int i = 0; i < 640; i++)
 		tsets[i] = 0;
 	npas = 0;
@@ -269,7 +269,7 @@ int CANDGO::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 
 	//now go forward  till nothing or a contradiction
 
-	to = zcf.dpbase.t; // we use the table without derivations
+	to = zcf.hdp_dynamic.t; // we use the table without derivations
 	for(int i = 0; i < 640; i++)
 		tsets[i] = 0;
 	npas = 0;
@@ -547,7 +547,7 @@ void CANDGO::GoNestedWhileShort(USHORT tag,USHORT base) {
 void CANDGO::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check tagelim empty 
 	dpn.Init(); 
 	const BFTAG &tt = zcf.h.d.t[tag];
-	BFTAG * tdp = zcf.h.dp.t;
+	BFTAG * tdp = zcf.hdp_base.t;
 	USHORT tagc = tag;
 	if(tagc & 1) tagc ^= 1;
 	for(int j = 2; j < puz.col; j++) {
@@ -618,7 +618,7 @@ int CANDGO::GoCand(USHORT tag) {
 		zpln.ImageTag(tag);
 		EE.Enl();
 	}
-	to = zcf.dpbase.t; // we use the table without derivations
+	to = zcf.hdp_base.t; // we use the table without derivations
 	for(int i = 0; i < 640; i++)
 		tsets[i]=0;
 	npas = 0;
@@ -718,7 +718,7 @@ int CANDGO::GoOne(USHORT tag, const BFTAG &tagse) {
 		zpln.ImageTag(tag); 
 		puz.Image(tagse ,"killing one of these", 0);
 	}
-	to = zcf.dpbase.t; // we use the table without derivations
+	to = zcf.hdp_base.t; // we use the table without derivations
 	for(int i = 0; i < 640; i++)
 		tsets[i]=0;
 	npas = 0;
@@ -1078,7 +1078,7 @@ void CANDGO::GoNestedWhile(USHORT tag,USHORT base) {
 void CANDGO::Gen_dpn(USHORT tag)
 {          // create the reduced set of tags check tagelim empty 
  dpn.Init(); 
- BFTAG tt=allsteps ,      * tdp=zcf.h.dp.t;
+ BFTAG tt=allsteps ,      * tdp=zcf.hdp_base.t;
 
 
  for (int j=2;j< puz.col;j++) 

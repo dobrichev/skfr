@@ -570,6 +570,7 @@ PUZZLE::PUZZLE() {
 	T81t = T81->t81;
 	T81tc = T81C->t81;
 	yt.Init(this);
+	zpaires.Init(this);
 }
 
 
@@ -844,7 +845,7 @@ void PUZZLE::InitNested() { // common part before starting nested processing
 	if(Op.ot) {
 		EE.Enl("Init  nested levels  ");
 	}
-	zcf.ResetOne(); // restore the index in zcf 
+	zcf.h.dp=zcf.hdp_dynamic; // restore the index in zcf 
 	zcf.ExpandAll();// not derived weak links
 	zcf.LockNestedOne();
 	zcx.LockNestedOne();
@@ -1084,7 +1085,7 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 			zcf.Aic_Cycle(opt & 3);     // several tags
 			break;
 		case 75: //  once derived weak links from directs
-			zcf.CloseOne(); // save basic weak links
+			zcf.hdp_base=zcf.h.dp; // save basic weak links
 			zcx.DeriveDirect();   
 			zcf.ExpandShort(5); 
 			zcf.ChainPlus(bf0);	
@@ -1216,7 +1217,7 @@ int PUZZLE::Rating_base_85() {
 		EE.Enl("start rating base 8.5 dynamic forcing chain");
 	tchain.SetMaxLength(85);
 	BFCAND bf0; // init to no candidate found 
-	zcf.CloseOne(); // store the index and basic weak links
+	zcf.hdp_base=zcf.h.dp; // store the index and basic weak links
 	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
 	zcf.DeriveCycle(3, 3, 0, 4); // one cycle short sets
 	zcf.DeriveCycle(3, 7, 0, 10); // one more limited to set of 7 candidates
@@ -1243,9 +1244,9 @@ int PUZZLE::Rating_base_90() {
 	if(Op.ot)
 		EE.Enl("start rating base 9.0 dynamic forcing chains plus");
 	tchain.SetMaxLength(90);
-	zcf.ResetOne(); // restore the index in zcf  
+	zcf.h.dp=zcf.hdp_base; // restore the index in zcf  
 	tevent.LoadAll();
-	zcf.CloseOne(); // store the index and basic weak links
+	zcf.hdp_dynamic=zcf.h.dp; // store it for next steps
 
 	zcf.h.d.ExpandShort(zcf.h.dp, 2);
 	BFCAND bf0; // init to no candidate found 
@@ -1938,7 +1939,7 @@ int PUZZLE::Traite_a() {
 
 
     Copie_T_c(); // to be done now copie for UR same rating
-    zpaires.CreerTable();  
+    zpaires.CreerTable(T81t);  
 
 	Step(XYWing);
 	if(rating_ir > 1)
@@ -2357,18 +2358,20 @@ int SEARCH_LS_FISH::XW(int nn)
   }    // end i niv
 return 0;}
 
+void TPAIRES::Init(PUZZLE * parent){
+parentpuz=parent;
+}
 
 
 
-
-void TPAIRES::CreerTable() {
+void TPAIRES::CreerTable(CELL * tt) {
 	ip = 0;
 	ntplus = aigpmax = 0;
 	zplus.SetAll_0();
 	for(int i = 0; i < 81; i++) {
-		int n = T81t[i].v.ncand;
+		int n = tt[i].v.ncand;
 		if(n == 2) {
-			zp[ip].Charge(T81t[i]);
+			zp[ip].Charge(tt[i]);
 			zpt[ip] = zp[ip++];
 		}
 		else if(n > 2) {
