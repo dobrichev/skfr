@@ -557,11 +557,11 @@ void SQUARE_BFTAG::Image() {EE.Enl( "Image zone tdb");
 
 
 int INFERENCES::DeriveCycle(int nd, int nf, int ns, int npas) {
-	int icd = ic;  // to check if something new comes
+	load_done=0;  // to check if something new comes
 	hstart = h; // copy to have the situation at the start
-	PlusPhase(); // save for later comments in test mode
+//	PlusPhase(); // save for later comments in test mode
 	zcx.Derive(nd, nf, ns);
-	if(ic == icd) return 0;
+	if(!load_done) return 0;
 	if(!npas)
 		h.d.ExpandAll(h.dp);
 	else
@@ -569,26 +569,16 @@ int INFERENCES::DeriveCycle(int nd, int nf, int ns, int npas) {
 	return 1;
 }
 
-// put in the table if there is some room
-// return 1 if no room
-int INFERENCES::LoadVoid(USHORT cd1, USHORT cd2, WL_TYPE type, USHORT ph) {
-	ic++;
-	//if(ic>=zcf_lim) {EE.Elimite("ZCF");return 1;}
-	//f[ic++].Load(cd1,cd2,type,ph);
-	return 0;
-} 
+
 
 // entry for basic weak link a - b
 void INFERENCES::LoadBase(USHORT cd1 ,USHORT cd2) {
-	if(LoadVoid(cd1, cd2, wl_basic, 0))
-		return;  
 	Entrep(cd1 << 1, cd2 << 1);
 }
 
 // entry for bi value  a = b thru a - b and ã - ~b   
 void INFERENCES::LoadBivalue(USHORT cd1, USHORT cd2) {
-	if(LoadVoid(cd1, cd2, wl_bivalue, 0))
-		return;  
+	load_done=1;
 	Entrep((cd1 << 1) ^ 1, (cd2 << 1) ^ 1);  
 	isbival.Set(cd1);
 	isbival.Set(cd2);
@@ -596,22 +586,19 @@ void INFERENCES::LoadBivalue(USHORT cd1, USHORT cd2) {
 
 // entry for weak link derived from a set  a -> b
 void INFERENCES::LoadDerivedTag(USHORT tg1, USHORT cd2) {
-	if(LoadVoid(tg1, cd2, wl_set, iphase))
-		return;
+	load_done=1;
 	Plusp(tg1, cd2 << 1);  //  a -> b
 }
 
 // entry for event  a - b
 void INFERENCES::LoadEventTag(USHORT tg1, USHORT cd2) {
-	if(LoadVoid(tg1, cd2, wl_event, iphase))
-		return;
+	load_done=1;
 	Plusp(tg1, (cd2 << 1) ^ 1); // a -> ~b
 }
 
 // entry for direct event  ~a - b
 void INFERENCES::LoadEventDirect(USHORT cd1, USHORT cd2) {
-	if(LoadVoid(cd1, cd2, wl_ev_direct, iphase))
-		return;
+	load_done=1;
 	Plusp((cd1 <<1 ) ^ 1, (cd2 << 1) ^ 1); 
 }
 
@@ -686,7 +673,7 @@ void INFERENCES::ChainPlus(BFCAND & dones) {
 						continue;// should never be
 					// if chain 2 starts by a strong link, reduce the count by one
 					//if((zcf.dpbase.t[i^1] & cg2.cumsteps[1]).IsNotEmpty())
-					BFTAG ttt = zcf.dpbase.t[i ^ 1];
+					BFTAG ttt = zcf.hdp_base.t[i ^ 1];
 					ttt &= cg2.cumsteps[1];
 					if(ttt.IsNotEmpty())
 						l2--;
@@ -1304,8 +1291,8 @@ void SETS::Derive(int min,int max,int maxs)
  int maxt=(max>maxs)?max:maxs;
 
  if(Op.ot && 0)
-  {EE.E("debut Derive min= ");EE.E(min);EE.E("  max= ");EE.E(max);;EE.E("  maxs= ");EE.E(maxs);
-   EE.E("  zcf.ic= ");EE.Enl(zcf.ic); }  
+  {EE.E("debut Derive min= ");EE.E(min);EE.E("  max= ");EE.E(max);
+  EE.E("  maxs= "); EE.Enl(maxs); }  
 
  if(direct) {t= zcf.h.dp.t; allparents.AllParents(zcf.h.dp);}
   else {t= zcf.h.d.t; allparents.AllParents(zcf.h.d);}// usually direct=0
@@ -1316,7 +1303,6 @@ void SETS::Derive(int min,int max,int maxs)
 	 case SET_set : if(nnm<=maxs)DeriveSet(zc[ie]); break;	
 	 }   
    }
-if(Op.ot && 0)  {EE.E("end Derive  zcf.ic= ");EE.Enl(zcf.ic); }  
 }
 void SETS::DeriveBase(SET & chx) // each candidate can be the target
 {if(0){EE.E("on traite"); chx.Image(); EE.Enl();     }

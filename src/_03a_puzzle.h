@@ -227,9 +227,6 @@ public:
 class REGION_INDEX {
 public: 
 	REGION_CELL eld [9];
-	//! TO EXPLAIN
-	/** Defined in file ecs.cpp */
-	int tiroir(BF16 fd, int iold, int irang);
 };
 
 //! grouping the 27 regions : rows/cols/boxes
@@ -457,6 +454,46 @@ public:
 };
 
 
+class TPAIRES {
+public: 
+    PUZZLE * parentpuz;
+	PAIRES zp[80], zpt[80]; // collection of bivalues in cells
+	int izpd[50];           // start/end index in zp for tp table
+	BF16 tp[50],            // collection of different possibilities for bivalues in cells
+		el_par_ch[27],    // parity fo digits in pairs in any elements
+		el_par2_ch[27],   // parity copie for final check
+		candp_or,         // within an elem parity or for paired cells
+		candnp_or,        // same for non paired cells
+		candp_xor,        // parity for paired (redundancy)
+		candnp_xor,       // parity for non paired cells
+		wplus[10];        // BF16 within the element for non pair cells (virtual clearing)
+
+	BF81 zplus;             // cells with more than 2
+	int tplus[10], ntplus;  // same in table limited to 8
+	USHORT tpa[10],         // table for pairs in tha active row/col/bx
+		ntpa,            // and number of pairs
+		nwp;             // index for wplus
+	int ip, np, aigpmax, aigun, brat;
+
+	void Init(PUZZLE * parent);
+	void CreerTable(CELL * tt);
+	int CommunPaires(int i, int j);
+	int CommunTrio(int i, int j);
+	int XYWing(); 
+	int XYZWing();
+	int UL();           // called in SE for type 1 storing others
+	int BUG();  // process all bugs forms
+	int Bug1();
+	int Bug2();
+	int Bug3a(int rat);
+	int Bug3(int el);
+	int Bug_lock(int el);
+	int Bug3_4_Nacked(int el);
+	int Nacked_Go(BF16 welim);
+	void BugMess(char * lib);
+	void CommunLib(int i, int j, int k, char * lib);
+};
+
 class PUZZLE
 {
 public:
@@ -611,43 +648,6 @@ private:
 	int FaitGo(int i8,char c1,char c2);
 };
 
-
-class TPAIRES {
-public: 
-	PAIRES zp[80], zpt[80]; // collection of bivalues in cells
-	int izpd[50];           // start/end index in zp for tp table
-	BF16 tp[50],            // collection of different possibilities for bivalues in cells
-		el_par_ch[27],    // parity fo digits in pairs in any elements
-		el_par2_ch[27],   // parity copie for final check
-		candp_or,         // within an elem parity or for paired cells
-		candnp_or,        // same for non paired cells
-		candp_xor,        // parity for paired (redundancy)
-		candnp_xor,       // parity for non paired cells
-		wplus[10];        // BF16 within the element for non pair cells (virtual clearing)
-
-	BF81 zplus;             // cells with more than 2
-	int tplus[10], ntplus;  // same in table limited to 8
-	USHORT tpa[10],         // table for pairs in tha active row/col/bx
-		ntpa,            // and number of pairs
-		nwp;             // index for wplus
-	int ip, np, aigpmax, aigun, brat;
-	void CreerTable();
-	int CommunPaires(int i, int j);
-	int CommunTrio(int i, int j);
-	int XYWing(); 
-	int XYZWing();
-	int UL();           // called in SE for type 1 storing others
-	int BUG();  // process all bugs forms
-	int Bug1();
-	int Bug2();
-	int Bug3a(int rat);
-	int Bug3(int el);
-	int Bug_lock(int el);
-	int Bug3_4_Nacked(int el);
-	int Nacked_Go(BF16 welim);
-	void BugMess(char * lib);
-	void CommunLib(int i, int j, int k, char * lib);
-};
 
 class UL_SEARCH {
 public:

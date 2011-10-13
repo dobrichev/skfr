@@ -305,11 +305,15 @@ class INFERENCES {
 
 public:
 	PUZZLE * parentpuz;
+
 	PHASE h, hstart, h_one, h_nest;
-	SQUARE_BFTAG dpbase;
-	USHORT ic, iphase, ic_one, ic1;  // value of ic at the end of the common loading phase
+
+	SQUARE_BFTAG hdp_base,hdp_dynamic;
+
+	USHORT load_done;
+
 	BFTAG  xb, xi, xbr, xbr2; 
-	BFCAND tbf[BFCAND_BitSize], tbfwl[BFCAND_BitSize], isbival;
+	BFCAND isbival;
 
 	INFERENCES(PUZZLE * parent){parentpuz=parent;}
 
@@ -329,61 +333,29 @@ public:
 			return 1;
 		return h.d.IsConflit(m1, m2);
 	}
-	inline int IsOu(int m1, int m2) {
-		return IsConflit(m1 ^ 1, m2 ^ 1);
-	}
-	inline int Is(int i, int j) {
-		return h.d.Is(i, j);
-	}
 	inline int IsStart(int i, int j) {
 		return hstart.d.Is(i, j);
 	}
 	inline int Isp(int i, int j) {
 		return h.dp.Is(i, j);
 	}
-	inline int IsXorp(int i, int j) {
-		return (h.dp.Is(i, j ^ 1) && h.dp.Is(i ^ 1, j));
-	}
-	inline int IsCandToCand(USHORT cd1, USHORT cd2) {
-		return tbf[cd1].On(cd2);
-	}
-	inline void CloseOne() {
-		ic1 = ic;
-		dpbase = h.dp;
-	}
-	inline void ResetOne() {
-		ic = ic1;
-		h.dp = dpbase;
-	}
+
 	inline void LockNestedOne() {
-		ic_one = ic;
 		h_one = h;
 	}
 	inline void StartNestedOne() {
-		ic = ic_one; h = h_one;
+		h = h_one;
 	}
 
 	void Init() {
-		ic = 1;
-		iphase = 0;
 		h.Init();
 		isbival.SetAll_0();
-		tbf[0].SetAll_0();
-		tbfwl[0]=tbf[0];
-		for(int i = 0; i < BFCAND_BitSize; i++) {
-			tbf[i] = tbf[0];
-			tbfwl[i] = tbf[0];
-		}
 	} 
 	void ExpandAll() {
 		h.d.ExpandAll(h.dp);
 	}
-	void PlusPhase() {
-		iphase++;
-	} 
 	void NewPhase() {
 		h.d.ExpandAll(h.dp);
-		PlusPhase();
 	}
 	int DeriveCycle(int nd, int nf, int ns, int npas = 0);
 	void ExpandShort(int npas) {
@@ -395,10 +367,6 @@ public:
 	void LoadEventTag(USHORT tg1, USHORT cd2);
 	void LoadEventDirect(USHORT cd1, USHORT cd2);
 
-	//  int LChemin(USHORT m1,USHORT m2)
-	//           {h.d.Parents(m2); h.d.parents.Set(m2);
-	//            h.dp.Direct_Path(m1,m2,h.d.parents); 
-	//            return h.dp.length;}
 
 	// that lot is  designed to process X Y XY cycles and eliminations
 	// either in std mode or in fast mode
@@ -407,6 +375,7 @@ public:
 	void Aic_YcycleD(USHORT t1, USHORT t2, BFTAG &loop, USHORT cand);
 	void Aic_YcycleD2(USHORT t1, USHORT t2, BFTAG &loop, USHORT cand);
 	int Aic_Ycycle_start(USHORT t1, USHORT t1a, USHORT t2, BFTAG &loop, PATH &result);
+
 	void ExplainPath(BFTAG &forward, int start, int send, int npas, USHORT relay);
 	int Fast_Aic_Chain();// quick eliminations high rating reached
 
@@ -417,14 +386,13 @@ public:
 	void ChainPlus(BFCAND &dones);
 
 private:
-	int LoadVoid(USHORT cd1, USHORT cd2, WL_TYPE type, USHORT ph); 
 	int Plusp(int m1, int m2) {
 		return h.dp.Plus(m1, m2);
 	}
 	int Entrep(int m1, int m2) {
 		return (Plusp(m1, m2 ^ 1) + Plusp(m2, m1 ^ 1));
 	}
-}; //zcf;
+}; 
 
 
 

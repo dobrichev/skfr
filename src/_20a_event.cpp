@@ -340,8 +340,6 @@ void TEVENT::LoadFin() {
 
 	EE.E("check after having loaded events nb events=");
 	EE.Enl(it);
-	EE.E("zcf ic=");
-	EE.Enl(zcf.ic);
 	EE.E("zcx izc=");
 	EE.Enl(zcx.izc);
 	for(int i = 1; i < it; i++) {
