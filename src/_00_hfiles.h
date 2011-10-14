@@ -11,9 +11,10 @@
 
 #include "_03a_puzzle.h"           // general class to solve a puzzle
 
-#include "_03b_puzzle_chains.h"    //  puzzles chain eliminations
 
 #include "_20a_event.h"
-#include "_30a_CANDGO.h"   
+
+#include "_30a_CANDGO.h"  
+
 #include "_30a_TCANDGO.h"  
 

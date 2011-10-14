@@ -494,6 +494,14 @@ public:
 	void CommunLib(int i, int j, int k, char * lib);
 };
 
+
+#include "_03b_puzzle_chains.h"    //  puzzles chain eliminations
+
+
+
+
+#define pasmax 70
+
 class PUZZLE
 {
 public:
@@ -512,9 +520,8 @@ public:
     BF81 zactif,
 		elza81[27],
 		csol[9];   //< Solution as positions of the 9 digits
-    BFTAG pointK;
 
-
+ 
     int coup,
 		coupMM,
 		couprem; 
@@ -542,6 +549,24 @@ public:
 	              bit 3=1 if split ok (bit 1 = 0)
 	            */
 	     c_ret;
+
+
+   /* set of data formerly in CANDGO
+      preparing a move of all candgo process in PUZZLE
+	  should improve performance through less initialisations
+   */
+
+	USHORT aig,ret_code,npas;
+	int opp;
+	short tsets[640];
+	USHORT tx[pasmax][200],itx[pasmax];
+	USHORT tret[300],pasret[300],itret;
+	BFTAG steps[pasmax],cumsteps[pasmax],allsteps, * to;  
+	BFTAG  *cum ,* step; 
+	USHORT *ta,*tb,ita,itb;
+	SQUARE_BFTAG dpn,dn; // in nested mode, dynamic set of primary links
+	// look first for direct 
+
 
 
 
@@ -612,7 +637,6 @@ public:
     int TraiteLocked2(int eld, int elf); // detail for ratings 2.6  2.8
     void PKInit() {
 		couprem = 0;
-		pointK.SetAll_0();
 	}
     void PointK();
     void UsePK(USHORT i);
@@ -643,6 +667,30 @@ public:
 	void Image(const BFTAG & zz,char * lib, int mmd) const;
  	void Elimite(char * lib);
 	void Estop(char * lib);
+
+/* redefine here for translation all routines
+   formerly in CANDGO 
+   */
+	int GoCand(USHORT tag);  // locate the contradiction
+	int GoOne(USHORT tag, const BFTAG &tagse); // find all targets
+	void GoSets();
+	int GoBack(USHORT tag,int pr);  // compute the length for one chain 
+	int GoBackNested(USHORT tag,int pr);  // compute the length for one chain 
+	void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
+	//int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
+	int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
+	int GoNestedCase2_3(USHORT base      // locate the contradiction  
+		,USHORT tag,USHORT target);  // case 2 or case 3
+	void GoNestedWhile(USHORT tag,USHORT base);
+	void GoNestedWhileShort(USHORT tag,USHORT base);
+	void Gen_dpn(USHORT tag);
+	void Gen_dpnShort(USHORT tag);
+	void NestedForcing(BFTAG & elims);
+	void NestedForcingShort(BFTAG & elims);
+	void NestedMulti(BFTAG & elims);
+	void NestedMultiShort(BFTAG & elims);
+
+
 
 private:
 	int FaitGo(int i8,char c1,char c2);
