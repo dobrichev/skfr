@@ -35,7 +35,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 in dynamic mode and later
 */
 
-#define pasmax 70
 class CANDGO {
 public:
 	USHORT aig,ret_code,npas;
@@ -54,18 +53,4 @@ public:
 	int GoOne(USHORT tag, const BFTAG &tagse); // find all targets
 	void GoSets();
 	int GoBack(USHORT tag,int pr);  // compute the length for one chain 
-	int GoBackNested(USHORT tag,int pr);  // compute the length for one chain 
-	void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
-	//int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
-	int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
-	int GoNestedCase2_3(USHORT base      // locate the contradiction  
-		,USHORT tag,USHORT target);  // case 2 or case 3
-	void GoNestedWhile(USHORT tag,USHORT base);
-	void GoNestedWhileShort(USHORT tag,USHORT base);
-	void Gen_dpn(USHORT tag);
-	void Gen_dpnShort(USHORT tag);
-	void NestedForcing(BFTAG & elims);
-	void NestedForcingShort(BFTAG & elims);
-	void NestedMulti(BFTAG & elims);
-	void NestedMultiShort(BFTAG & elims);
 };
