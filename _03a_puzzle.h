@@ -661,12 +661,17 @@ public:
 	int Rating_baseNest(USHORT base, int quick);  // nesting  95 forcing chains
 	int Rating_base_95_Quick();  // quick nesting   
 	void Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target);
-    void ImagePoints(BF81 & zz) const;  
+
+	void ChainPlus(BFCAND &dones); // formerly in INFERENCES
+
+	
+	void ImagePoints(BF81 & zz) const;  
 	void ImageCand(BFCAND & zz ,char * lib) const;
 	void GetCells(BFCAND & zz,BF81 & cells) const;
 	void Image(const BFTAG & zz,char * lib, int mmd) const;
  	void Elimite(char * lib);
 	void Estop(char * lib);
+
 
 /* redefine here for translation all routines
    formerly in CANDGO 
