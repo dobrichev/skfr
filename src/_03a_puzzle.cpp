@@ -1000,43 +1000,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	return Rating_end(200);
 }
 
-/* find the target in dynamic mode for a set of tags
-*/
-void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
-	// filter if target if part of the set
-	USHORT ctarg = target >> 1;
-	for(int i = 0; i < ntags; i++)
-		if(ttags[i] >> 1 == ctarg)
-			return;	
-	if(1 && Op.ot) {
-		EE.E("entry rating nested ntags =");
-		EE.E(ntags);
-		EE.E(" target ");
-		zpln.ImageTag(target);
-		EE.E( "  through" );
-		zpln.ImageTag(ttags[0]);
-		EE.Esp();
-		zpln.ImageTag(ttags[1]);
-		EE.Enl(); 
-	}
 
-	USHORT length = 0;
-	for (int i = 0; i < ntags; i++) {
-		
-		USHORT lx = GoNestedCase2_3(base, ttags[i], target);
-		if(!lx)
-			return; //should never be
-		length += lx;
-	}
-
-	int ratch = tchain.GetRating(length, target >> 1);
-	if(ratch) { // chain is accepted load it (more comments in test mode)
-		if(Op.ot) { // this can be complex and will be developped later
-			EE.E("chain plus killing "); zpln.ImageTag(target);   EE.Enl();	     
-		}
-		tchain.LoadChain(ratch, "chain plus through set", target >> 1);
-	}// end if
-}
 
 //former _12a_PUZZLE_Chaines.cpp follows
 /* main routine to process chains
@@ -1050,7 +1014,7 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 	TaggingInit();
 	tchain.SetMaxLength(base);
 	// long tta,ttc;// provisoire, pour test de temps
-	int ir = 0, iw;   
+	int ir = 0;   
 	if(Op.ot) {
 		EE.E("entree chaining opt=");
 		EE.E(opt);
@@ -1083,47 +1047,12 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 			zcf.Aic_Cycle(opt & 3);     // several tags
 			break;
 		case 75: //  once derived weak links from directs
-			zcf.hdp_base=zcf.h.dp; // save basic weak links
-			zcx.DeriveDirect();   
-			zcf.ExpandShort(5); 
-			zcf.ChainPlus(bf0);	
-			if(tchain.IsOK(78))
-				return; // the shortest should come here
+			zcf.hdp_base=zcf.hdp_dynamic=zcf.h.dp; // save basic weak links
+	        zcf.ExpandAll();
+         	while(zcf.DeriveCycle(3, 9, 0))
+      	    	;// and full expansion
+	        ChainPlus(bf0);
 
-			zcf.DeriveCycle(3, 6, 0, 10); // one cycle;
-			if(tchain.IsOK(78))
-				return;  // in case multi chain found
-			// zcf.ListeForIdPhase(wl_set,zcf.iphase);
-			zcf.ChainPlus(bf0);	
-			if(tchain.ichain)
-				break; // final?? , stop if found
-
-			// tout ce qui suit est provisoire en cours de calage
-			// pour trouver un équilibre efficacité performance
-
-			SQUARE_BFTAG::InitParsing();
-			EE.E("contrôle parsing mini ");
-			EE.E(tchain.ParsingMini(75));
-			EE.E(" rating =");
-			EE.Enl(tchain.rating);
-
-			if(!zcf.DeriveCycle(3,7,0,10))
-				break; // one cycle;  
-			if(tchain.ichain)
-				break;
-			SQUARE_BFTAG::InitParsing();
-			zcf.ChainPlus(bf0);	
-			if(tchain.ichain)
-				break;
-			iw = 1;
-			while(iw++ < 3) {
-				if(!zcf.DeriveCycle(3, 9, 0))
-					break;
-				SQUARE_BFTAG::InitParsing();
-				zcf.ChainPlus(bf0);
-				if(tchain.ichain)
-					break;// will see later if ok
-			}
 			break;
 	}
 }
@@ -1221,7 +1150,7 @@ int PUZZLE::Rating_base_85() {
 	zcf.DeriveCycle(3, 7, 0, 10); // one more limited to set of 7 candidates
 	while(zcf.DeriveCycle(3, 9, 0))
 		;// and full expansion
-	zcf.ChainPlus(bf0);
+	/*zcf.*/ChainPlus(bf0);
 	return Rating_end(200);
 }
 
@@ -1252,9 +1181,90 @@ int PUZZLE::Rating_base_90() {
 	zcf.DeriveCycle(3, 7, 7, 10); // one cycle;  
 	while(zcf.DeriveCycle(3, 9, 7))
 		;
-	zcf.ChainPlus(bf0);
+	/*zcf.*/ChainPlus(bf0);
 	return Rating_end(200);
 }
+
+
+
+/* looking for elimination in dynamic mode
+   in SE, such eliminations are always worked out of 2 chains
+   analyzed from the left to the right.
+
+   That process works in the same way, so elimination is one of the followings
+
+   a-> b  and a -> ~b  (the classical  form a->~a is included here)
+   x-> ~a and ~x -> ~a   
+   region or cell multi chain  a -> {~x ~y ~z);
+
+   the process has been reshaped to fit with search at higher levels
+   */
+
+void PUZZLE::ChainPlus(BFCAND & dones) {
+	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
+	for(int i = 2; i < puz.col; i += 2) {
+		BFTAG zw1 = t[i];
+		zw1 &= (t[i].Inverse()).TrueState();
+		//BFTAG zw2 = (t[i] & t[i^1]).FalseState();
+		BFTAG zw2 = t[i];
+		zw2 &= t[i ^ 1];
+		zw2 = zw2.FalseState();
+		if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
+			if(1 && Op.ot) {
+				//long tw=GetTimeMillis();
+				//  int dt=tw-tdebut;
+				// EE.E("time =");EE.Enl(dt);
+				EE.E("found active a->x and a->~x");
+				puz.Image(zw1," elims",i);
+			}
+
+ 		GoNestedCase1(i>>1,tchain.base); 
+
+		}
+		// if we start froma bi value, SE does not say
+		// ~x but goes immediatly to the bi-value  saving one step.
+		if(zw2.IsNotEmpty()) { // this is x-> ~a and ~x -> ~a
+			if(1 && Op.ot) {
+				EE.E("found active x->~a and ~x->~a");
+				puz.Image(zw2,"elims", i);
+			}
+		    USHORT ttt[]={i,i^1};
+            for(int j = 3; j < puz.col; j += 2) if(zw2.On(j))	
+				Rating_Nested(tchain.base,ttt,2,j);
+			
+		}// end if zw2
+	} // end for i
+
+	if(tchain.base < 85)
+		return;
+
+	// now check multichains in a similar way but not for nishio
+	for(int ie = 1; ie < zcx.izc; ie++) {
+		const SET &chx = zcx.zc[ie];
+		if(chx.type - SET_base)
+			break; // only base sets can be used
+		int n = chx.ncd;
+		USHORT *tcd = chx.tcd,ttt[20];
+		BFTAG tbt, bfset;
+		tbt.SetAll_1();
+		for(int i = 0; i < n; i++){
+			ttt[i]=(tcd[i] << 1);
+			bfset.Set(ttt[i] ^ 1);
+		}
+		for(int i = 0; i < n; i++) {
+			BFTAG tw = t[tcd[i] << 1];
+			tw -= bfset;
+			tbt &= tw;
+		}
+		if(tbt.IsEmpty())
+			continue;
+        for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
+				Rating_Nested(tchain.base,ttt,n,j);
+
+	}// end for ie
+}
+
+
 
 //former _12a_PUZZLE_AlignedTriplet.cpp follows
 
@@ -3853,13 +3863,14 @@ Dynamic search in nested mode for a candidate
 int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 	opp = 0; //(Op.ot && jdk.couprem>14);
 	USHORT tag = cand << 1; 
-	zcf.StartNestedOne();
-	zcx.StartNestedOne();
-	zcxb.StartNestedOne();
+	if(base>90){
+	   zcf.StartNestedOne();
+	   zcx.StartNestedOne();
+	   zcxb.StartNestedOne();
+	}
 	BFTAG tt = zcf.h.d.t[tag]; 
-	// see below to = zcf.h_one.dp.t; //forward and back tracking table
 
-	if(opp) {
+	if(1) {
 		    EE.E("go nested for cand ");
 		    zpln.Image(cand);
 		    EE.Enl();
@@ -3898,7 +3909,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 		GoNestedWhile(tag, base);                    // while cycle
 
 
-		if(opp) {
+		if(0) {
 			EE.E("fin step=");
 			EE.E(npas);
 			puz.Image((*step),"step ", 0);
@@ -3954,7 +3965,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 
 /* 
 Dynamic search in nested mode for a candidate
-   cleared through a set or the 2 sattes of a candidate
+   cleared through a set  of  candidates
  
  ttags:  the sets or the 2 states in tag form
  ntags   the number of tags to process
@@ -3963,10 +3974,50 @@ Dynamic search in nested mode for a candidate
 
  expand each tag of ttags till target is found
 */
+/* find the target in dynamic mode for a set of tags
+*/
+void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
+	// filter if target if part of the set
+	USHORT ctarg = target >> 1;
+	for(int i = 0; i < ntags; i++)
+		if(ttags[i] >> 1 == ctarg)
+			return;	
+	if(1 && Op.ot) {
+		EE.E("entry rating nested ntags =");
+		EE.E(ntags);
+		EE.E(" target ");
+		zpln.ImageTag(target);
+		EE.E( "  through" );
+		zpln.ImageTag(ttags[0]);
+		EE.Esp();
+		zpln.ImageTag(ttags[1]);
+		EE.Enl(); 
+	}
+
+	USHORT length = 0;
+	for (int i = 0; i < ntags; i++) {
+		
+		USHORT lx = GoNestedCase2_3(base, ttags[i], target);
+		if(!lx)
+			return; //should never be
+		length += lx;
+	}
+
+	int ratch = tchain.GetRating(length, target >> 1);
+	if(ratch) { // chain is accepted load it (more comments in test mode)
+		if(Op.ot) { // this can be complex and will be developped later
+			EE.E("chain plus killing "); zpln.ImageTag(target);   EE.Enl();	     
+		}
+		tchain.LoadChain(ratch, "chain plus through set", target >> 1);
+	}// end if
+}
+
 int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
-	zcf.StartNestedOne();
-	zcx.StartNestedOne();
-	zcxb.StartNestedOne();
+	if(base>90){
+	  zcf.StartNestedOne();
+	  zcx.StartNestedOne();
+	  zcxb.StartNestedOne();
+	}
 	//BFTAG tt = zcf.h.d.t[tag]; 
 	// see below to = zcf.h_one.dp.t; //forward and back tracking table
 	if(opp) {
@@ -4040,11 +4091,9 @@ int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 */
 void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 	USHORT aignl = 1;
-	BFTAG * tdpn = dpn.t,  // new set of direct links
-		* hdp = zcf.h.dp.t; // basic set of direct links including dynamic effects
+	BFTAG  * hdp = zcf.h.dp.t; // basic set of direct links including dynamic effects
 
 	// look first for direct 
-
 	for(int it = 0; it < ita; it++) {
 		BFTAG x = to[ta[it]];
 		//x -= allsteps;	  // still free and in the overall path
@@ -4055,12 +4104,11 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 			(*step) |= x; // flag it in the BFTAG and load in new
 			allsteps |= x; // and in the total 
 			hdp[tag] |= x;
-			USHORT ty[30], ity=0;
-			x.String(ty, ity);
-			for(int i = 0; i < ity; i++)
-				tb[itb++]=ty[i];
-			aig = 1;
-		}    
+			aig=1;
+		} 
+		if(aig){
+			(*step).String(tb, itb);
+        }
 	}
 
 	// check now sets
@@ -4104,6 +4152,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 					}
 					break;
 				}
+
 				if(n - 1)
 					break;	// if ok second round for action	
 				USHORT j = toff[0]; // candidate in tag form
@@ -4127,6 +4176,8 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 			}
 			break;
 		case SET_set : // in a set all components must be on
+			if(base<80) break; // not for Nishio
+
 			for(int i = 0; i < (nni - 1); i++) {
 				if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
 					n++;
@@ -4159,8 +4210,10 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 		} // end switch
 	}// end proc
 
-	if((*step).IsNotEmpty())
-		return;
+	   // stop if not nested mode or something found
+
+	if((base<95) || (*step).IsNotEmpty())
+		return;    
 
 	// we look for indirect hints
 	Gen_dpn(tag);    // create a fresh reduced set of tags 

@@ -377,92 +377,6 @@ void SQUARE_BFTAG::Parents(USHORT x) {
    partial mode are found in the BFTAG functions
    */ 
 
-//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 1 by GP
-//	(*this)=from; // be sure to start with the set of primary data
-//	for(int i=2;i< puz.col;i++) {
-//		if (t[i].IsEmpty())
-//			continue;
-//		int n=1;
-//		while(n) {
-//			n=0;
-//			for(int j=2;j< puz.col;j++)
-//				if((j-i) && t[i].On(j)) {
-//					BFTAG x = t[j];
-//					x -= t[i];
-//					if(x.IsNotEmpty()) {
-//						t[i] |= x;
-//						//n++;
-//						n = 1;
-//					}
-//				}
-//		} // end j  while
-//	} 
-//}// end i   proc
-
-//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 2 by MD
-//	(*this) = from; // be sure to start with the set of primary data
-//	for(int i = 2; i < puz.col; i++) {
-//		if(t[i].IsEmpty())
-//			continue;
-//		int n = 1;
-//		while(n) {
-//			n = 0;
-//			for(int j = 2; j < puz.col; j++) {
-//				if(j == i)
-//					continue;
-//				if(t[i].On(j)) {
-//					BFTAG x = t[j];
-//					if(x.substract(t[i])) {
-//						t[i] |= x;
-//						n = 1;
-//					}
-//				}
-//			} // j
-//		} // while
-//	} 
-//}// end i   proc
-
-//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 3 by MD
-//	BFTAG tiOld;
-//	(*this) = from; // be sure to start with the set of primary data
-//	for(int i = 2; i < puz.col; i++) {
-//		if(t[i].IsEmpty())
-//			continue;
-//		do {
-//			tiOld = t[i];
-//			for(int j = 2; j < puz.col; j++) {
-//				if(j == i)
-//					continue;
-//				if(t[i].On(j)) {
-//					t[i] |= t[j];
-//				}
-//			} // j
-//		} while(!(t[i] == tiOld));
-//	} 
-//}// end i   proc
-
-//void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 4 by MD
-//	(*this) = from; // be sure to start with the set of primary data
-//	BFTAG t1, t2;
-//	for(int i = 2; i < puz.col; i++) {
-//		if(t[i].IsEmpty()) //check prior to copy
-//			continue;
-//		t1 = t[i];
-//		do {
-//			t2 = t[i];
-//			for(int j = 2; j < puz.col; j++) {
-//				if(j == i)
-//					continue;
-//				if(t1.On(j)) {
-//					t[i] |= t[j];
-//				}
-//			} // j
-//			t1 = t[i]; //all bits
-//			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
-//		} while(t1.IsNotEmpty());
-//	} 
-//}// end i   proc
-
 void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 5 by MD
 	(*this) = from; // be sure to start with the set of primary data
 	BFTAG t1, t2;
@@ -557,9 +471,9 @@ void SQUARE_BFTAG::Image() {EE.Enl( "Image zone tdb");
 
 
 int INFERENCES::DeriveCycle(int nd, int nf, int ns, int npas) {
+	EE.Enl("derive cycle");
 	load_done=0;  // to check if something new comes
 	hstart = h; // copy to have the situation at the start
-//	PlusPhase(); // save for later comments in test mode
 	zcx.Derive(nd, nf, ns);
 	if(!load_done) return 0;
 	if(!npas)
@@ -1291,7 +1205,8 @@ void SETS::Derive(int min,int max,int maxs)
  int maxt=(max>maxs)?max:maxs;
 
  if(Op.ot && 0)
-  {EE.E("debut Derive min= ");EE.E(min);EE.E("  max= ");EE.E(max);
+  {EE.E("debut Derive izc= ");EE.E(izc); EE.E("  direct= ");EE.E(direct);
+   EE.E("  min= ");EE.E(min);EE.E("  max= ");EE.E(max);
   EE.E("  maxs= "); EE.Enl(maxs); }  
 
  if(direct) {t= zcf.h.dp.t; allparents.AllParents(zcf.h.dp);}
