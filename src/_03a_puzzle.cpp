@@ -1124,6 +1124,7 @@ int PUZZLE::Rating_base_80() {
 	zpln.RegionLinks(1);
 	zpln.GenCellsSets();
 	zpln.GenRegionSets();
+	zcf.hdp_base=zcf.hdp_dynamic=zcf.h.dp; // save basic weak links
 	tchain.SetMaxLength(80);
 	zcf.ExpandAll();
 	if(zcx.Interdit_Base80())
@@ -1147,13 +1148,19 @@ int PUZZLE::Rating_base_85() {
 		EE.Enl("start rating base 8.5 dynamic forcing chain");
 	tchain.SetMaxLength(85);
 	BFCAND bf0; // init to no candidate found 
-	zcf.hdp_base=zcf.h.dp; // store the index and basic weak links
+	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
+    zcf.ExpandShort(3);
 	zcf.DeriveCycle(3, 3, 0, 4); // one cycle short sets
-	zcf.DeriveCycle(3, 7, 0, 10); // one more limited to set of 7 candidates
+	ChainPlus(bf0);
+	if(tchain.IsOK(87))      //filter  short paths
+        return Rating_end(200);
+
 	while(zcf.DeriveCycle(3, 9, 0))
 		;// and full expansion
-	/*zcf.*/ChainPlus(bf0);
+	ChainPlus(bf0);
+	
+
 	return Rating_end(200);
 }
 
@@ -1182,9 +1189,13 @@ int PUZZLE::Rating_base_90() {
 	BFCAND bf0; // init to no candidate found 
 	zcf.DeriveCycle(3, 4, 7, 2); // one cycle;
 	zcf.DeriveCycle(3, 7, 7, 10); // one cycle;  
+	ChainPlus(bf0);
+	if(tchain.IsOK(92))      //filter  short paths
+        return Rating_end(200);
+
 	while(zcf.DeriveCycle(3, 9, 7))
 		;
-	/*zcf.*/ChainPlus(bf0);
+	ChainPlus(bf0);
 	return Rating_end(200);
 }
 
