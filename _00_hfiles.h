@@ -14,7 +14,7 @@
 
 #include "_20a_event.h"
 
-#include "_30a_CANDGO.h"  
+//#include "_30a_CANDGO.h"  
 
 #include "_30a_TCANDGO.h"  
 

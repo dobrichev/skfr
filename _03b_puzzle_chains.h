@@ -383,7 +383,6 @@ public:
 	int Nested_QuickMulti(SQUARE_BFTAG &xt, BFTAG &elims); 
 	int Nested_QuickDynamic(SQUARE_BFTAG &xt,BFTAG &elims) ; 
 
-	void ChainPlus(BFCAND &dones);
 
 private:
 	int Plusp(int m1, int m2) {
