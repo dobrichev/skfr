@@ -1048,7 +1048,10 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 			break;
 		case 75: //  once derived weak links from directs
 			zcf.hdp_base=zcf.hdp_dynamic=zcf.h.dp; // save basic weak links
-	        zcf.ExpandAll();
+	        zcf.ExpandShort(3);
+            zcf.DeriveCycle(3, 9, 0,3);
+	        ChainPlus(bf0);
+            if(tchain.IsOK(77)) break;   // most often very short
          	while(zcf.DeriveCycle(3, 9, 0))
       	    	;// and full expansion
 	        ChainPlus(bf0);
@@ -1211,9 +1214,6 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		zw2 = zw2.FalseState();
 		if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
 			if(1 && Op.ot) {
-				//long tw=GetTimeMillis();
-				//  int dt=tw-tdebut;
-				// EE.E("time =");EE.Enl(dt);
 				EE.E("found active a->x and a->~x");
 				puz.Image(zw1," elims",i);
 			}
@@ -1244,7 +1244,8 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		if(chx.type - SET_base)
 			break; // only base sets can be used
 		int n = chx.ncd;
-		USHORT *tcd = chx.tcd,ttt[20];
+		USHORT *tcd = chx.tcd,
+			   ttt[20];
 		BFTAG tbt, bfset;
 		tbt.SetAll_1();
 		for(int i = 0; i < n; i++){
@@ -3682,6 +3683,22 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 					}
 					break;
 				}
+				if(!n){  // nothing valid switch to a contradiction on any candidate
+                    for(int i = 0; i < nni; i++) { 
+                         USHORT cd = chx.tcd[i], j = cd << 1;
+						 if(allsteps.Off(j)) {
+						      (*step).Set(j);   
+						      allsteps.Set(j);
+						      hdp[tag].Set(j); // and in the total 
+						      tb[itb++] = j;
+						      tsets[j] = ie;
+					          aig = 1;
+						      aig2 = 1;
+						 }
+					}
+					break;
+				}
+
 				if(n - 1)
 					break;	// if ok second round for action	
 				USHORT j = toff[0]; // candidate in tag form
@@ -4018,10 +4035,9 @@ int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 	  zcx.StartNestedOne();
 	  zcxb.StartNestedOne();
 	}
-	//BFTAG tt = zcf.h.d.t[tag]; 
-	// see below to = zcf.h_one.dp.t; //forward and back tracking table
-	if(opp) {
-		EE.E("go nested for tag ");
+
+	if(1) {
+		EE.E("go nested case 2_3for tag ");
 		zpln.ImageTag(tag);
 		EE.Enl();
 	}
@@ -4056,7 +4072,7 @@ int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 		itb = 0;
 
 		GoNestedWhile(tag, base);                    // while cycle
-		if(opp) {
+		if(0) {
 			EE.E("fin step=");
 			EE.E(npas);
 			puz.Image((*step),"step ", 0);
@@ -4137,7 +4153,8 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 				}
 
 				USHORT cd1 = toff[0], cd2 = toff[1]; 
-				if(n == 2) {
+				if(n == 2) {    // this is a new strong link
+                  if(base>90){  // only for nested
 					if(hdp[cd1].Off(cd2 ^ 1) || 
 					   hdp[cd2].Off(cd1 ^ 1) || 
 					   hdp[cd1 ^ 1].Off(cd2) || 
@@ -4149,6 +4166,22 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 						hdp[cd2 ^ 1].Set(cd1);
 						aignl = 0;
 						tcandgo.AddStrong(cd1 >> 1, cd2 >> 1, bfw, nni - 2);
+					}
+				  }
+					break;
+				}
+				if(!n){  // nothing valid switch to a contradiction on any candidate
+                    for(int i = 0; i < nni; i++) { 
+                         USHORT cd = chx.tcd[i], j = cd << 1;
+						 if(allsteps.Off(j)) {
+						      (*step).Set(j);   
+						      allsteps.Set(j);
+						      hdp[tag].Set(j); // and in the total 
+						      tb[itb++] = j;
+						      tsets[j] = ie;
+					          aig = 1;
+						      aig2 = 1;
+						 }
 					}
 					break;
 				}
