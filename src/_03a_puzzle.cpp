@@ -1151,9 +1151,12 @@ int PUZZLE::Rating_base_85() {
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
     zcf.ExpandShort(3);
+	ChainPlus(bf0);
+	if(tchain.IsOK(88))      //filter  short paths
+        return Rating_end(200);
 	zcf.DeriveCycle(3, 3, 0, 4); // one cycle short sets
 	ChainPlus(bf0);
-	if(tchain.IsOK(87))      //filter  short paths
+	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
 
 	while(zcf.DeriveCycle(3, 9, 0))
@@ -1188,9 +1191,12 @@ int PUZZLE::Rating_base_90() {
 	zcf.h.d.ExpandShort(zcf.h.dp, 2);
 	BFCAND bf0; // init to no candidate found 
 	zcf.DeriveCycle(3, 4, 7, 2); // one cycle;
-	zcf.DeriveCycle(3, 7, 7, 10); // one cycle;  
 	ChainPlus(bf0);
 	if(tchain.IsOK(92))      //filter  short paths
+        return Rating_end(200);
+	zcf.DeriveCycle(3, 7, 7, 5); // one cycle;  
+	ChainPlus(bf0);
+	if(tchain.IsOK(94))      //filter  short paths
         return Rating_end(200);
 
 	while(zcf.DeriveCycle(3, 9, 7))
@@ -4029,6 +4035,8 @@ void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT tar
 		if(!lx)
 			return; //should never be
 		length += lx;
+	    int ratch = tchain.GetRating(length, target >> 1);
+		if(!ratch) break; // stop as soon as possible
 	}
 
 	int ratch = tchain.GetRating(length, target >> 1);
