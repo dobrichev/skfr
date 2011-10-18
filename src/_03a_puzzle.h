@@ -552,11 +552,11 @@ public:
 
 
    /* set of data formerly in CANDGO
-      preparing a move of all candgo process in PUZZLE
-	  should improve performance through less initialisations
    */
 
-	USHORT aig,ret_code,npas;
+	USHORT nested_aig,
+		   ret_code,npas,
+		   nested_print_option;
 	int opp;
 	short tsets[640];
 	USHORT tx[pasmax][200],itx[pasmax];
@@ -680,7 +680,7 @@ public:
 	int GoOne(USHORT tag, const BFTAG &tagse); // find all targets
 	void GoSets();
 	int GoBack(USHORT tag,int pr);  // compute the length for one chain 
-	int GoBackNested(USHORT tag,int pr);  // compute the length for one chain 
+	int GoBackNested(USHORT tag);  // compute the length for one chain 
 	void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
 	//int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
 	int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
