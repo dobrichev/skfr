@@ -1149,12 +1149,13 @@ int PUZZLE::Rating_base_85() {
 	tchain.SetMaxLength(85);
 	BFCAND bf0; // init to no candidate found 
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
-	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
+//	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
     zcf.ExpandShort(3);
+	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
 	ChainPlus(bf0);
 	if(tchain.IsOK(88))      //filter  short paths
         return Rating_end(200);
-	zcf.DeriveCycle(3, 3, 0, 4); // one cycle short sets
+	zcf.DeriveCycle(3, 9, 0, 5); // one cycle short sets
 	ChainPlus(bf0);
 	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
@@ -1231,8 +1232,10 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		zw2 = zw2.FalseState();
 		if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
 			if(1 && Op.ot) {
-				EE.E("found active a->x and a->~x");
-				puz.Image(zw1," elims",i);
+				EE.E("\n\nfound active a->x and a->~x  a=" );
+				zpln.ImageTag(i);
+				EE.Enl();
+				//puz.Image(zw1," elims",i);
 			}
 
  		GoNestedCase1(i>>1,tchain.base); 
@@ -1242,7 +1245,7 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		// ~x but goes immediatly to the bi-value  saving one step.
 		if(zw2.IsNotEmpty()) { // this is x-> ~a and ~x -> ~a
 			if(1 && Op.ot) {
-				EE.E("found active x->~a and ~x->~a");
+				EE.E("\n\nfound active x->~a and ~x->~a");
 				puz.Image(zw2,"elims", i);
 			}
 		    USHORT ttt[]={i,i^1};
@@ -3959,7 +3962,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
 				if(0) {
-					EE.E("found active a -> x and a -> ~x");
+					EE.E("\n\nfound active a -> x and a -> ~x");
 					zpln.ImageTag(tgx);
 					EE.E(" step=");
 					EE.Enl(npas);   
@@ -3978,7 +3981,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 				if(ratch) { // chain is accepted load it (more comments in test mode)
 					if(Op.ot) { // this can be complex and will be developped later
 						nested_print_option=1;
-						EE.E("chain plus killing ");
+						EE.E("\n\nchain plus killing ");
 						zpln.Image(tag >> 1);
 						EE.Enl();	     
 						EE.E("chain 1 ");
@@ -4018,20 +4021,15 @@ void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT tar
 	for(int i = 0; i < ntags; i++)
 		if(ttags[i] >> 1 == ctarg)
 			return;	
-	if(1 && Op.ot) {
-		EE.E("entry rating nested ntags =");
-		EE.E(ntags);
-		EE.E(" target ");
-		zpln.ImageTag(target);
-		EE.E( "  through" );
-		zpln.ImageTag(ttags[0]);
-		EE.Esp();
-		zpln.ImageTag(ttags[1]);
-		EE.Enl(); 
-	}
+
+
 
 	USHORT length = 0;
-	nested_print_option=0;
+	if(base==85) length--;
+	// to revise later cell or region bi values instead of that if valid
+
+
+	nested_print_option= 0;
 	for (int i = 0; i < ntags; i++) {
 		
 		USHORT lx = GoNestedCase2_3(base, ttags[i], target);
@@ -4042,10 +4040,20 @@ void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT tar
 		if(!ratch) break; // stop as soon as possible
 	}
 
+
+
 	int ratch = tchain.GetRating(length, target >> 1);
+
+
 	if(ratch) { // chain is accepted load it (more comments in test mode)
 		if(Op.ot) { 
-			EE.E("rating nested killing "); zpln.ImageTag(target);   EE.Enl();	  
+			EE.E("\n\nrating nested killing "); zpln.ImageTag(target);  
+			EE.E( "  through  " );
+			for(int it=0;it<ntags;it++){			 
+		       zpln.ImageTag(ttags[it]);
+		       EE.Esp();
+			}
+			EE.Enl();	  
 			// we restart the process in print mode
 
 	        nested_print_option=1;
