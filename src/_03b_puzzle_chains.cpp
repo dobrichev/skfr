@@ -406,7 +406,7 @@ void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
 	   n=0;
 	   for(int j=2;j< puz.col;j++)
 		   if((j-i) && t[i].On(j)) {
-			   BFTAG x = from.t[j];
+			   BFTAG x(from.t[j]);
 			   //x -= t[i];
 			   //if(x.IsNotEmpty()) {
 			   if(x.substract(t[i])) {
@@ -424,6 +424,55 @@ void SQUARE_BFTAG::AllParents(SQUARE_BFTAG & from)
  for(int i=2;i< puz.col;i++) for(int j=2;j< puz.col;j++) 
 	 if(from.t[i].On(j)) t[j].Set(i);
 // EE.Enl("parents"); Image();
+}
+
+
+/* select tags having a chance to have the shortest path
+   this is a filter for the contradiction chains of the form
+   x -> ~a  and   ~x -> ~a
+   for each tag set to 1 in "x" 
+     compute the total of steps needed to get it with both starts
+	 keep only tags below  minimal total + n (2) 
+   */
+void SQUARE_BFTAG::Shrink(BFTAG & x,USHORT it)
+{USHORT tt[300],itt,     // tags in table
+        ntt[300],min=200,j,lim,ir; 
+ x.String(tt,itt);  // put tags in table	
+ for(int i=0;i<itt;i++) {
+    j=tt[i];
+    lim=min+1;
+    ir=ExpandToFind(it,j,lim)+ExpandToFind(it^1,j,lim);
+    ntt[i]=ir;
+    if(ir<min) min=ir;
+ }
+ lim=min+1;
+ for(int i=0;i<itt;i++) {
+    if(ntt[i]> lim)
+      x.Clear(tt[i]);
+ }
+}
+/* subroutine for Shrink
+*/
+
+int SQUARE_BFTAG::ExpandToFind(USHORT td,USHORT tf,USHORT lim){
+  BFTAG tagw(t[td]);  // tag to expand
+  int npas=0;
+  while(1){  // endless loop till tf found or no more expansion or min +2 passed
+      if(tagw.On(tf)) return npas;
+      if(npas++>lim) return 100; // 
+         // now expand one more step
+      int n=0; // to check whether something is done
+      for(int j=2;j< puz.col;j++)    if( tagw.On(j)) {
+	       BFTAG x(t[j]);
+	       if(x.substract(tagw)) {
+				   tagw |= x;
+				   n++;
+			}
+      }
+  if(!n) return 100;
+
+  }
+
 }
 
 /* That process is valid only if no derived weak link has been produced

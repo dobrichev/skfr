@@ -869,7 +869,6 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		GoNestedTag(i,base);
 	}   
 
-	//if(Op.ot && puz.couprem==5)  zcf.h_nest.d.Image();//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	// we have now fully expanded tags in zcf.h_nest.d
 	// we look for potential eliminations
 
@@ -879,10 +878,10 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	BFTAG elims1, elims2, elims3, elimst2[300], tchte[500]; 
 	USHORT t2[300], it2 = 0;
 	for(int i = 2; i < col; i += 2) {
-		BFTAG tw = zcf.h_nest.d.t[i];
-		BFTAG tw1 = tw;
+		BFTAG tw (zcf.h_nest.d.t[i]);
+		BFTAG tw1 (tw);
 		tw1 &= tw.Inverse();
-		BFTAG tw2 = tw;
+		BFTAG tw2 ( tw);
 		tw2 &= zcf.h_nest.d.t[i ^ 1];
 		tw2 = tw2.FalseState();
 		tw1 = tw1.TrueState();
@@ -947,7 +946,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		return Rating_end(200);
 	}
 	// not quick mode, go step by step to find the lowest rating
-	if(1 && Op.ot) {
+	if(0 && Op.ot) {
 		EE.E("action it2 =");
 		EE.E(it2);
 		EE.E(" itch =");
@@ -977,7 +976,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 
 	if(itch) { // some case 3 through sets to apply
 		for(int i = 0; i < itch; i++) {
-			if(1 && Op.ot) {
+			if(0 && Op.ot) {
 				EE.E("action itch pour i =");
 				EE.E(i);
 				EE.E(" set=");
@@ -1199,7 +1198,8 @@ int PUZZLE::Rating_base_90() {
 	ChainPlus(bf0);
 	if(tchain.IsOK(94))      //filter  short paths
         return Rating_end(200);
-
+	if(Op.ot)
+		EE.Enl("rating  dynamic forcing chains plus empty after 2 cycles");
 	while(zcf.DeriveCycle(3, 9, 7))
 		;
 	ChainPlus(bf0);
@@ -1237,19 +1237,21 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 				EE.Enl();
 				//puz.Image(zw1," elims",i);
 			}
-
  		GoNestedCase1(i>>1,tchain.base); 
 
 		}
-		// if we start froma bi value, SE does not say
+		// if we start from a bi value, SE does not say
 		// ~x but goes immediatly to the bi-value  saving one step.
+		// 
 		if(zw2.IsNotEmpty()) { // this is x-> ~a and ~x -> ~a
 			if(1 && Op.ot) {
 				EE.E("\n\nfound active x->~a and ~x->~a");
 				puz.Image(zw2,"elims", i);
 			}
 		    USHORT ttt[]={i,i^1};
-            for(int j = 3; j < puz.col; j += 2) if(zw2.On(j))	
+            zcf.h.dp.Shrink(zw2,i);
+			puz.Image(zw2,"elims solde", i);
+            for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )	
 				Rating_Nested(tchain.base,ttt,2,j);
 			
 		}// end if zw2
@@ -1279,6 +1281,7 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		}
 		if(tbt.IsEmpty())
 			continue;
+  //      zcf.h.d.Shrink(tbt);
         for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
 				Rating_Nested(tchain.base,ttt,n,j);
 
@@ -3580,16 +3583,25 @@ void CHAINSTORE::Print(USHORT index) {
 */
 
 void PUZZLE::GoNestedTag(USHORT tag,USHORT base) {
-	const BFTAG &tt = zcf.h_nest.d.t[tag]; 
+	opp = 0;     //if((base== 95) && (tag>58 && tag<64)) opp=1; else opp=0;
+
+	const BFTAG &tt (zcf.h_nest.d.t[tag]); 
+    if(opp) {
+			EE.E("start gonested tag ");
+			EE.E(tag);
+			zpln.ImageTag(tag);
+			Image(tt,"depart nested",0); 
+			EE.Enl(); 
+		}	 	
 	if(tt.IsEmpty())
 		return;
 	zcf.StartNestedOne();
 	zcx.StartNestedOne();
 	zcxb.StartNestedOne();
-	opp = 0;//if(tag>107 && tag<112) opp=1; else opp=0;
 	to = zcf.h_one.dp.t; //forward and back tracking table 
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
+	zcf.hdp_base_nested=zcf.hdp_base;
 
 	//now go forward  till nothing or a contradiction
 
@@ -3645,7 +3657,9 @@ void PUZZLE::GoNestedTag(USHORT tag,USHORT base) {
 void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	USHORT aignl = 1;
 	BFTAG * tdpn = dpn.t,  // new set of direct links
-		* hdp = zcf.h.dp.t; // basic set of direct links including dynamic effects
+//		* hdp = zcf.h.dp.t, // basic set of direct links including dynamic effects
+	    * hdpb =zcf.hdp_base_nested.t; // to receive new strong links
+
 
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
@@ -3657,7 +3671,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 			if(opp)
 				puz.Image(x,"applied std" ,ta[it]);	   
 			allsteps |= x; // and in the total 
-			hdp[tag] |= x;
+//			hdp[tag] |= x;
 			USHORT ty[30], ity=0;
 			x.String(ty, ity);
 			for(int i = 0; i < ity; i++)
@@ -3693,11 +3707,14 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 
 				USHORT cd1 = toff[0], cd2 = toff[1]; 
 				if(n == 2) {
-					if(hdp[cd1].Off(cd2 ^ 1) || hdp[cd2].Off(cd1 ^ 1) || hdp[cd1 ^ 1].Off(cd2) || hdp[cd2 ^ 1].Off(cd1)) {
-						hdp[cd1].Set(cd2 ^ 1);
-						hdp[cd2].Set(cd1 ^ 1);
-						hdp[cd1 ^ 1].Set(cd2);
-						hdp[cd2 ^ 1].Set(cd1);
+					if(hdpb[cd1].Off(cd2 ^ 1) || 
+					   hdpb[cd2].Off(cd1 ^ 1) ||
+					   hdpb[cd1 ^ 1].Off(cd2) || 
+					   hdpb[cd2 ^ 1].Off(cd1)) {
+						hdpb[cd1].Set(cd2 ^ 1);
+						hdpb[cd2].Set(cd1 ^ 1);
+						hdpb[cd1 ^ 1].Set(cd2);
+						hdpb[cd2 ^ 1].Set(cd1);
 						aignl = 0;
 						tcandgo.AddStrong(cd1 >> 1, cd2 >> 1, bfw, nni - 2);
 					}
@@ -3709,7 +3726,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 						 if(allsteps.Off(j)) {
 						      (*step).Set(j);   
 						      allsteps.Set(j);
-						      hdp[tag].Set(j); // and in the total 
+	//					      hdp[tag].Set(j); // and in the total 
 						      tb[itb++] = j;
 						      tsets[j] = ie;
 					          nested_aig = 1;
@@ -3725,7 +3742,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 				if(allsteps.Off(j)) { // kep only the first one
 						(*step).Set(j);   
 						allsteps.Set(j);
-						hdp[tag].Set(j);// and in the total 
+	//					hdp[tag].Set(j);// and in the total 
 						tb[itb++] = j;
 						tsets[j] = ie;
 						nested_aig = 1;
@@ -3756,7 +3773,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 					continue;
 				(*step).Set(j);  
 				allsteps.Set(j);
-				hdp[tag].Set(j); // and in the total 
+	//			hdp[tag].Set(j); // and in the total 
 				tb[itb++] = j;
 				tsets[j] = ie;
 				nested_aig = 1;
@@ -3779,18 +3796,20 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	// zcf.h_one.dp.Image();dpn.Image();
 	Gen_dpnShort(tag);
 
+
 	BFTAG elims; 
 	NestedForcingShort(elims); 
 
 	BFTAG x = elims.Inverse();
 	//x -= hdp[tag];
 	//if(x.IsNotEmpty()) { // force false so use elims.inverse()
-	if(x.substract(hdp[tag])) { // force false so use elims.inverse()
+//	if(x.substract(hdp[tag])) { // force false so use elims.inverse()
+	if(x.substract(allsteps)) { // force false so use elims.inverse()
 		(*step) |= x; // flag it in the BFTAG and load in new
 		if(opp)
 			puz.Image(x,"forcing chain elims" ,0);	
 		allsteps |= x; // and in the total 
-		hdp[tag] |= x;
+//		hdp[tag] |= x;
 		USHORT ty[200], ity = 0;
 		x.String(ty, ity);
 		if(ity > 200)
@@ -3810,7 +3829,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
 		allsteps |= x; // and in the total 
-		hdp[tag] |= x;
+//		hdp[tag] |= x;
 		USHORT ty[200], ity = 0;
 		x.String(ty, ity);
 		for(int i = 0; i < ity; i++)
@@ -3822,19 +3841,21 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 
 void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check tagelim empty 
 	dpn.Init(); 
-	const BFTAG &tt = zcf.h.d.t[tag];
-	BFTAG * tdp = zcf.hdp_base.t;
+//	const BFTAG &tt (zcf.h.d.t[tag]);
+	BFTAG * tdp = zcf.hdp_base_nested.t;
 	USHORT tagc = tag;
 	if(tagc & 1) tagc ^= 1;
 	for(int j = 2; j < puz.col; j++) {
 		if(j == tagc)
 			continue; // don't process the start point
-		if(tt.On(j))
+//		if(tt.On(j))
+		if(allsteps.On(j))
 			continue; // that tag is defined
-		if(tt.On(j ^ 1))
+//		if(tt.On(j ^ 1))
+		if(allsteps.On(j ^ 1))
 			continue; // that tag is defined as well (to check)
 		dpn.t[j] = tdp[j];
-		dpn.t[j] -= tt; // reduce the primary weak links
+		dpn.t[j] -= allsteps; // reduce the primary weak links
 	}
 	if(0) {
 		EE.Enl("image dpn de dpnshort");
@@ -3915,6 +3936,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
+	zcf.hdp_base_nested=zcf.hdp_base;
 
 	//now go forward  till nothing or a contradiction
 
@@ -4014,6 +4036,13 @@ Dynamic search in nested mode for a candidate
  expand each tag of ttags till target is found
 */
 /* find the target in dynamic mode for a set of tags
+
+  pending optimisation on bi values with ntags==2
+  if base = 75 (Nishio), nothing to do
+  if base = 85, it is always a bi value
+  if Base > 85 reduce by one if
+    first step in chain only one candidate and a "true" form
+
 */
 void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
 	// filter if target if part of the set
@@ -4025,7 +4054,7 @@ void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT tar
 
 
 	USHORT length = 0;
-	if(base==85) length--;
+	if((ntags==2) && (base==85) )length--;
 	// to revise later cell or region bi values instead of that if valid
 
 
@@ -4082,6 +4111,7 @@ int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
+	zcf.hdp_base_nested=zcf.hdp_base;
 
 	//now go forward  till nothing or a contradiction
 
@@ -4141,8 +4171,7 @@ int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 */
 void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 	USHORT aignl = 1;
-	BFTAG  * hdp = zcf.h.dp.t; // basic set of direct links including dynamic effects
-
+	BFTAG  * hdpb = zcf.hdp_base_nested.t; // to receive new strong links
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
 		BFTAG x = to[ta[it]];
@@ -4153,7 +4182,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 				puz.Image(x,"applied std", ta[it]);
 			(*step) |= x; // flag it in the BFTAG and load in new
 			allsteps |= x; // and in the total 
-			hdp[tag] |= x;
+//			hdp[tag] |= x;
 			nested_aig=1;
 		} 
 		if(nested_aig){
@@ -4189,15 +4218,15 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 				USHORT cd1 = toff[0], cd2 = toff[1]; 
 				if(n == 2) {    // this is a new strong link
                   if(base>90){  // only for nested
-					if(hdp[cd1].Off(cd2 ^ 1) || 
-					   hdp[cd2].Off(cd1 ^ 1) || 
-					   hdp[cd1 ^ 1].Off(cd2) || 
-					   hdp[cd2 ^ 1].Off(cd1)) {
+					if(hdpb[cd1].Off(cd2 ^ 1) || 
+					   hdpb[cd2].Off(cd1 ^ 1) || 
+					   hdpb[cd1 ^ 1].Off(cd2) || 
+					   hdpb[cd2 ^ 1].Off(cd1)) {
 
-						hdp[cd1].Set(cd2 ^ 1);
-						hdp[cd2].Set(cd1 ^ 1);
-						hdp[cd1 ^ 1].Set(cd2);
-						hdp[cd2 ^ 1].Set(cd1);
+						hdpb[cd1].Set(cd2 ^ 1);
+						hdpb[cd2].Set(cd1 ^ 1);
+						hdpb[cd1 ^ 1].Set(cd2);
+						hdpb[cd2 ^ 1].Set(cd1);
 						aignl = 0;
 						tcandgo.AddStrong(cd1 >> 1, cd2 >> 1, bfw, nni - 2);
 					}
@@ -4210,7 +4239,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 						 if(allsteps.Off(j)) {
 						      (*step).Set(j);   
 						      allsteps.Set(j);
-						      hdp[tag].Set(j); // and in the total 
+	//					      hdp[tag].Set(j); // and in the total 
 						      tb[itb++] = j;
 						      tsets[j] = ie;
 					          nested_aig = 1;
@@ -4226,7 +4255,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 				if(allsteps.Off(j)) {
 						(*step).Set(j);   
 						allsteps.Set(j);
-						hdp[tag].Set(j); // and in the total 
+	//					hdp[tag].Set(j); // and in the total 
 						tb[itb++] = j;
 						tsets[j] = ie;
 						nested_aig = 1;
@@ -4262,7 +4291,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 					continue;
 				(*step).Set(j);  
 				allsteps.Set(j);
-				hdp[tag].Set(j);// and in the total 
+//				hdp[tag].Set(j);// and in the total 
 				tb[itb++] = j;
 				tsets[j] = ie;
 				nested_aig = 1;
@@ -4293,7 +4322,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 	if(elims.IsNotEmpty()) {
 		(*step) |= elims; // flag it in the BFTAG and load in new
 		allsteps |= elims; // and in the total 
-		hdp[tag] |= elims;
+//		hdp[tag] |= elims;
 		//USHORT ty[100], ity = 0; //test 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
 		USHORT ty[150], ity = 0;
 		elims.String(ty, ity);
@@ -4312,7 +4341,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 	if(elims2.IsNotEmpty()) {
 		(*step) |= elims2; // flag it in the BFTAG and load in new
 		allsteps |= elims2; // and in the total 
-		hdp[tag] |= elims2;
+//		hdp[tag] |= elims2;
 		USHORT ty[150], ity = 0;
 		elims2.String(ty, ity);
 		for(int i = 0; i < ity; i++)
@@ -4489,18 +4518,18 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 void PUZZLE::Gen_dpn(USHORT tag)
 {          // create the reduced set of tags check tagelim empty 
  dpn.Init(); 
- BFTAG tt=allsteps ,      * tdp=zcf.hdp_base.t;
+ BFTAG    * tdp=zcf.hdp_base_nested.t;
 
 
  for (int j=2;j< puz.col;j++) 
 	{if(j==tag) continue; // don't process the start point
-	 if(tt.On(j)) continue; // that tag is defined
-	 if(tt.On(j^1))
+	 if(allsteps.On(j)) continue; // that tag is defined
+	 if(allsteps.On(j^1))
 		 continue; // that tag is defined as well (to check)
       dpn.t[j] = tdp[j];
-	  dpn.t[j] -= tt; // reduce the primary weak links
+	  dpn.t[j] -= allsteps; // reduce the primary weak links
 	 }
-  if(0)   {puz.Image(tt,"allsteps at gen time",0);
+  if(0)   {puz.Image(allsteps,"allsteps at gen time",0);
 		   zcf.h.dp.Image();
 		   dpn.Image();
           }
