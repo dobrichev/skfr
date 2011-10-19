@@ -258,7 +258,8 @@ inline void StoreTbf(){tbf_endok=tbf_end;}
 inline void GetBackTbf() {tbf_end=tbf_endok;}
 
 void Parents(USHORT x);
-
+int ExpandToFind(USHORT td,USHORT tf,USHORT lim);
+void Shrink(BFTAG & x,USHORT it);
 int Plus (int m1,int m2)  {if (!t[m1].On(m2))
 		  { t[m1].Set(m2);  return 1; }else return 0;};
 int  Entre(int m1,int m2){ return (Plus(m1,m2^1)+ Plus(m2,m1^1));};
@@ -308,7 +309,9 @@ public:
 
 	PHASE h, hstart, h_one, h_nest;
 
-	SQUARE_BFTAG hdp_base,hdp_dynamic;
+	SQUARE_BFTAG hdp_base,         // must contain only basic strong and weak links
+		         hdp_dynamic,      // same plus direct events effects
+				 hdp_base_nested;  // hdp_base plus nested strong links
 
 	USHORT load_done;
 

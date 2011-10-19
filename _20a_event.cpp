@@ -48,7 +48,7 @@ int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type) {
 		USHORT cand2 = tcd[i], tag2 = (cand2 << 1) ^ 1;
 		if(zcf.Isp(tag, tag2))
 			continue;// only if not yet defined
-		if(1 && (tag ==(tag2 ^ 1))) {
+		if(0 && (tag ==(tag2 ^ 1))) {
 			EE.E("gen contraire");
 			Image();
 			return 1;
