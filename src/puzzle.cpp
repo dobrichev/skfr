@@ -29,7 +29,72 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 
 
+//former (r96) _03c_puzzle_fix.cpp start
+// DIVF implementation
+DIVF::DIVF() {  // constructor making initialisations
+	for(int r = 0; r < 9; r++) {
+		for(int c = 0; c < 9; c++) {	// loop on cells
+			int p = I81::Pos(r, c); // cell index (0-80)
+			el81[r][c] = p;		// cell is in row r
+			el81[c + 9][r] = p;		// cell is in column c
+			int eb = I81::Boite(r, c), pb = I81::PosBoite(r, c); 
+			el81[eb + 18][pb] = p;	// cell is in box eb and position in box pb
+		}
+	}
+	for(int i = 0; i < 27; i++) {	// convert array to bitfield
+		//BF81 z;   
+		//for(int j = 0; j < 9; j++) 
+		//	z.Set(el81[i][j]);  
+		//elz81[i] = z;
+		for(int j = 0; j < 9; j++) 
+			elz81[i].Set(el81[i][j]);  
+	}
+}
 
+int DIVF::IsObjetI(BF81 const &ze, int i) const {
+	return (ze.EstDans(elz81[i]));
+}
+
+int DIVF::IsObjet(BF81 &ze) const {
+	for(int i = 0; i < 27; i++)
+		if(IsObjetI(ze,i)) 
+			return 1;  
+	return 0;
+}
+	
+int DIVF::IsBox(BF81 &ze) const {
+	for(int i = 18; i < 27; i++) 
+		if(IsObjetI(ze, i))
+			return i; 
+	return 0;
+} 
+
+int DIVF::IsObjet(USHORT p1, USHORT p2) const {
+	BF81 z(p1, p2);
+	return IsObjet(z);
+}
+
+int DIVF::IsAutreObjet(BF81 &ze, int obje, int &objs) const {
+	for(int i = 0; i < 27; i++) {
+		if(i == obje)
+			continue;
+		if(IsObjetI(ze, i)) {
+			objs=i;
+			return 1; 
+		}
+	}
+	return 0;
+}
+ 
+int DIVF::N_Fixes(char * pg,int el) const {
+	int n = 0; 
+	for(int i = 0; i < 9; i++) 
+		if(pg[el81[el][i]] - '0') 
+			n++;
+	return n;
+}
+
+//former _03c_puzzle_fix.cpp end
 
 
 GG::GG() {	// constructor
@@ -1083,7 +1148,6 @@ void PUZZLE::TaggingInit() {
 	zcf.Init();     // elementary weak links
 	zcx.Init();     // sets (choices) in use
 	// tevent.Init();   // event
-	//BFTAG::SetMax(); //MD: it is always at max
 }
 
 // chain call 1=biv 2= cell_bivalue 4=nishio 8dynamic 16=multi_chain
@@ -4624,4 +4688,1491 @@ USHORT itret1=0,nestedlength=0;  itret=0;
     }
 return itret + nestedlength;}
 
+//former (r96) _03b_puzzle_chains.cpp start
 
+void PATH::PrintPathTags() {
+	zpln.PrintImply(pth,ipth);
+}
+
+
+void CHAIN::Load(USHORT cande) {
+	urem = puz.couprem;
+	cand=cande;
+}
+
+/*	Upper bound for chains is actually unbounded: the longer chain, the higher rating.
+ */
+
+USHORT  steps[] = {4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128,
+            192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192};
+/* clean a candidate if the final rating is ok
+*/
+int CHAIN::Clean() // clear candidates
+     {if(Op.ot){EE.E("clean for UREM=");EE.Enl(urem);}
+      CANDIDATE cw=zpln.zp[cand];
+	  return T81t[cw.ig].Change(cw.ch);}
+/* accelerator for the search of loops
+   to be revised
+*/
+void TCHAIN::SetMaxLength( int bw)  
+       {base=bw;
+		if(bw<rating) 
+			{if(bw<75) maxlength=16; // same as no limit
+			 else maxlength=100;}
+		     // chexk why, but more creates a problem in bitfield
+		else if(bw>80 || bw==75) maxlength=100;// linked to CANDGO
+		else if(bw==rating )  maxlength=4;// equivalent to loop length 6
+		else {int ii=rating - bw; maxlength=steps[ii]/2+2;}
+       }
+/* same gaol in dynamic mode
+   to be revised as well
+   */
+USHORT TCHAIN::ParsingMini(USHORT basee) {if(rating>(basee+10)) return 200; //max
+                                   if(rating <=basee) return 6; // mini
+								   int ii=rating - basee; return(steps[ii]/2+2);}
+/* another function to be revised
+*/
+int TCHAIN::GetYlower(int lg) // limit for a shorter chain/loop
+       {int xl=2*(lg-1); //  equivalent length pure Y mode
+        if(xl<7 ) return 0; //nothing shorter can be found 
+		if(xl>32) return 0;// should never happen
+		xl-=2; // the length for index
+		for(int ii=0;ii<6;ii++) if(xl<steps[ii+1])	return steps[ii]/2+2;
+        return 0;} // shoul never happen
+/* new function to control performances
+   the target is the following
+   a chain has been found, what is the maximum length for a loop
+     having a lower rating
+  in 'X' 'Y' mode, the base is 0.1 lower
+  in 'XY' mode the base is the same
+  modexy is 1 if "XY" else it must be 0
+*/
+ int TCHAIN::GetLimit(int lg,int modexy) // limit for that group
+       {lg-=2; // the length for index
+		for(int ii=0;ii<10;ii++) if(lg<=steps[ii])	
+			return (steps[ii]-modexy);
+        return 0;} // shoul never happen
+/* attempt to enter the table of pending eliminations.
+   compute the rating and return 0 if
+    . higher than current rating, 
+	. equal to current rating and 
+	   - table is full
+	   - or the cand is already in pending eliminations
+   if not
+   return the rating found
+*/
+int TCHAIN::GetRatingBase(USHORT bb,USHORT lengthe,USHORT cand)
+       { if(lengthe<2) return 0; // should not happen
+		  USHORT wrating=300,length=lengthe-2; int ii;
+          for(ii=0;ii<22;ii++) 
+	         if(length<= steps[ii]) {wrating=bb+ii; break;}
+          if(wrating>rating) return 0;
+		  if(wrating==rating )
+			  {if(ichain >=30)  return 0;
+		       for(int i=0;i<ichain;i++) if(chains[i].cand==cand) return 0;
+		      }
+		  return wrating;}
+
+ /* Load after GetRating
+    check for safety the load is valid
+*/
+void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
+{ if(rat>rating) return ;
+  if(rat<rating) {ichain=0;  rating=rat;}
+  if(ichain>=30) return;
+  if(Op.ot)
+           {EE.Enl();puz.PointK(); EE.Esp(); EE.Enl(lib);
+			EE.E(" load tchain rating=");EE.E(rat);
+		    EE.E(" elimination of ");zpln.Image(cand);
+			EE.Enl();}
+   chains[ichain++].Load(cand);
+}
+
+int TCHAIN::IsOK(USHORT x) {
+	int ir=((rating <= x) || (rating <= puz.ermax));
+	if(ir && Op.ot) {
+		EE.E(" sortie isok chaine x=");
+		EE.E(x); 
+		EE.E(" rating=");
+		EE.E(rating);  
+		EE.E(" ermax==");
+		EE.Enl(puz.ermax); }
+	return ir;
+	//{return ((rating <= x ) || (rating <= Op.ermax));}
+}
+
+void TCHAIN::Status() {
+	EE.E("tchain ichain=");
+	EE.E(ichain);
+	EE.E(" rating=");
+	EE.Enl(rating);
+}
+
+
+
+ZGROUPE::ZGROUPE (PUZZLE * parent)          
+{   parentpuz=parent;
+	int i,j;
+	BF81 z0,z1; 
+	z0.SetAll_0(); 
+	z1.SetAll_1();
+	for(i=0;i<81;i++)
+	{
+		z[i]=z0;
+		z[i].Set(i);
+	}  // les z de 81 cases
+	int k,n=0,il=81;                    // puis les z de groupe
+	for(i=0;i<18;i++)
+		for(j=0;j<3;j++)
+		{
+			z[il].SetAll_0();
+			if(i<9)
+				for(k=0;k<3;k++)
+					z[il].Set(n++);
+			else
+			{
+				int c=i-9; 
+				for(k=0;k<3;k++)
+					z[il].Set(c+27*j+9*k);
+			}
+		il++; 
+		}
+	ReInit();
+}
+
+//------ pour les additions
+USHORT ZGROUPE::Charge(BF81  &ze)
+{
+	if(ze.IsEmpty())
+	{
+		parentpuz->Estop( "zgs groupe IsEmpty");
+		return 0;
+	}
+	for(int i=0;i<iz;i++) 
+		if(z[i]==ze) 
+			return i;
+	if(iz<zgs_lim) 
+	{
+		z[iz++]=ze ;
+		return (iz-1);
+	}
+	parentpuz->Elimite( "ZGS");return 0;
+}
+
+
+
+BF81 * CANDIDATE::GetZ() {
+	return &zgs.z[ig];
+}     
+
+void CANDIDATE::Clear(){T81t[ig].Change(ch); }
+void CANDIDATE::Image(int no) {EE.Esp();if(no)EE.E("~");
+                     EE.E(ch+1);EE.E(t81f[ig].pt); }
+
+/* creates the table of candidates
+   and the direct index cell+ digit -> cand
+   looks for true candidates
+   init table zcf
+   set up the usefull limit for BFCAND and CB1024 
+ */
+
+
+void CANDIDATES::Init() {
+	ip=1;
+	candtrue.SetAll_0();
+	for(int i = 0; i < 9 * 81; i++)
+		indexc[i]=0;
+	for(UCHAR i = 0; i < 81; i++) {
+		if(T81t[i].v.ncand < 2)
+			continue;
+		BF16 chs = T81t[i].v.cand;  
+		for(UCHAR j = 0; j < 9; j++)
+			if(chs.On(j)) {
+				zp[0].Charge(i, j); 
+				if(puz.solution[i] == (j + '1'))
+					candtrue.Set(ip);
+				indexc[81 * j + i] = Charge0();
+			}
+	}
+	puz.col=2*ip;
+}
+/* just put zp[0] in the next position 
+   check for free room just in case
+   if no free room, puz.stop_rating is set to 1 thru Elimite
+*/
+USHORT CANDIDATES::Charge0()
+{if(ip>=zpln_lim){  parentpuz->Elimite("TZPLN"); return 0;}
+ USHORT ir=ip; zp[ip++]=zp[0]; return ir;}
+
+/* send in INFERENCES all weak links
+   if it is a bi value, then 2 weak links are created
+      a - b  and   ~a - ~b
+   one entry for 'X' mode and one entry for 'Y' mode
+   in 'X' mode we check for no double entry
+
+*/
+
+// this is a process specific to 'Y' mode
+// only cell bivalues + 
+void  CANDIDATES::CellStrongLinks()
+{ for(int i=0;i<81;i++) if(T81t[i].v.ncand==2) 
+  {iptsch=0; 
+   for(int ich=0,jp=i;ich<9;ich++,jp+=81)
+	    {int j=indexc[jp];if(j)  ptsch[iptsch++]=j;  }
+	 zcf.LoadBivalue(ptsch[0],ptsch[1]);
+  }
+}
+/* generate weak and strong links from cells.
+   if biv=1, no generation of strong links
+   (if not, biv=3)
+*/
+void  CANDIDATES::CellLinks() 
+{ el=0; // to shunt the filter in WeaklinksD
+ for(int i=0;i<81;i++) if(T81t[i].v.ncand<2) continue;
+else 
+  {iptsch=0;  
+   for(int ich=0,jp=i;ich<9;ich++,jp+=81)
+    {int j=indexc[jp];if(j) ptsch[iptsch++]=j;   }
+   if(iptsch==2) { zcf.LoadBivalue(ptsch[0],ptsch[1]);
+                   zcf.LoadBase(ptsch[0],ptsch[1]);}
+   else  if(iptsch)WeakLinksD();
+ }
+}
+void  CANDIDATES::RegionLinks(USHORT ich,int biv)
+{for (el=0;el<27;el++)
+   { iptsch=0;  if(aztob.tchbit.el[el].eld[ich].n <2 )continue;
+     for(int i=0;i<9;i++)
+       {USHORT w=indexc[divf.el81[el][i]+81*ich]; 
+		if(w) ptsch[iptsch++]=w;}
+	if(iptsch==2 && biv) {zcf.LoadBivalue(ptsch[0],ptsch[1]);
+	                      zcf.LoadBase(ptsch[0],ptsch[1]);}
+	else    if(iptsch)WeakLinksD();
+   }
+}
+void  CANDIDATES::WeakLinksD()
+{for(int j=0;j<iptsch-1;j++)// look for all pairs
+     {USHORT p1=ptsch[j],ig1=zp[p1].ig;
+      for(int k=j+1;k<iptsch;k++)
+       { USHORT p2=ptsch[k],ig2=zp[p2].ig;
+	     // don't generate twice if box/row or box/column 
+	    if(el>17 &&   // it is a box
+		   (t81f[ig1].el==t81f[ig2].el  ||  t81f[ig1].pl==t81f[ig2].pl ) )continue;
+	   zcf.LoadBase(p1,p2)    ;
+       }  }}
+
+//---------- gen sets of candidates in a row column box 
+void CANDIDATES::GenRegionSets()     // can only be one per row col box, only if more than 2 candidates
+{  USHORT mch[10];       
+   for( int ich=0;ich<9;ich++) for (int el=0;el<27;el++)
+   {USHORT nmch=aztob.tchbit.el[el].eld[ich].n,ipts=0;;
+	if(nmch<3) continue; // minimum set size is 3
+	BF81 zel=divf.elz81[el]&puz.c[ich];  int j;
+    for(j=1;j<ip;j++)
+     {if(zp[j].ch-ich )continue;
+      if(zel.On(zp[j].ig) ) mch[ipts++]=j; 
+     }
+     zcx.ChargeSet(mch,nmch,SET_base);
+    }
+}
+void  CANDIDATES::GenCellsSets()
+{for(USHORT i=0;i<81;i++)
+  {USHORT n= T81t[i].v.ncand; if(n<3 || n>chx_max) continue;    
+   BF16 ch8=T81t[i].v.cand;  
+   USHORT nm=0,tm[9];    for(int j=0,jp=i;j<9;j++,jp+=81) if(ch8.On(j))
+     {tm[nm++]=indexc[jp];}
+     zcx.ChargeSet(tm,nm,SET_base);  
+    }  }
+
+void CANDIDATES::Liste()
+{EE.Enl("Liste des candidats ");
+ for(int j=1;j<ip;j++)  {zp[j].Image();   EE.Enl();}  }
+
+void CANDIDATES::ListeIndexc()
+{EE.Enl("Liste des candidats via index ");
+ for(int i=0;i<81;i++) for(int ich=0;ich<9;ich++) 
+ {USHORT j=indexc[ich*81+i];
+ if(j)  {zp[j].Image();   EE.Enl();}  }
+}
+
+ void  CANDIDATES::PrintPath(USHORT * tp,USHORT np)
+{if(!Op.ot) return; EE.Echem();
+ for(int i=0;i<np;i++)
+  {ImageTag(tp[i]);
+  if(i<np-1) if(i&1)EE.Esl(); else EE.Ewl(); } 
+ EE.Enl();}
+
+ void  CANDIDATES::PrintImply(USHORT * tp,USHORT np)
+{if(!Op.ot) return; EE.Echem();
+ for(int i=0;i<np;i++)
+  {USHORT px=tp[i];  ImageTag(tp[i]);
+  if(i<np-1) EE.E(" -> ");  } 
+ EE.Enl();}
+
+void  CANDIDATES::PrintListe(USHORT * tp,USHORT np,int modetag)
+{if(!Op.ot) return; EE.E("candidats");
+ for(int i=0;i<np;i++)
+  {USHORT px=tp[i];  
+  if(modetag) ImageTag(px); else  zp[px].Image();
+  EE.Esp();  } 
+ EE.Enl();}
+
+
+
+
+BFTAG SQUARE_BFTAG::done[50]; 
+USHORT  SQUARE_BFTAG::ich, SQUARE_BFTAG::mode, SQUARE_BFTAG::length, SQUARE_BFTAG::mmfin, SQUARE_BFTAG::maxlength;
+PATH   SQUARE_BFTAG::path,SQUARE_BFTAG::pathr;
+USHORT SQUARE_BFTAG::maxichain,SQUARE_BFTAG::maxsearch,SQUARE_BFTAG:: parsediag,SQUARE_BFTAG:: parsecount;
+BFCAND SQUARE_BFTAG::tbf_end,SQUARE_BFTAG::tbf_endok; 
+
+void SQUARE_BFTAG::Parents(USHORT x) {
+	parents.SetAll_0();
+	for(int i=2;i< puz.col;i++)
+		if(t[i].On(x))
+			parents.Set(i);
+}
+
+/* the key routine expanding pieces of path out of a->b elementary components
+   ExpandAll is the fast mode using in bloc what has already been done  
+   partial mode are found in the BFTAG functions
+   */ 
+
+void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
+	(*this) = from; // be sure to start with the set of primary data
+	BFTAG t1, t2;
+	USHORT p[640], np;
+	for(int i = 2; i < puz.col; i++) {
+		t[i].String(p, np);
+		while(np) {
+			t2 = t[i];
+			for(int j = 0; j < np; j++) {
+				if(p[j] == i)
+					continue;
+				t[i] |= t[p[j]];
+			} // j
+			t1 = t[i]; //all bits
+			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
+			t1.Clear(i);
+			t1.String(p, np);
+		}
+	}
+}// end i   proc
+
+
+void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
+{(*this)=from; // be sure to start with the set of primary data
+ for( int i=2;i< puz.col;i++)
+  {if (t[i].IsEmpty())continue;   int n=1,pas=0;
+   while(n && (++pas<npas)) {
+	   n=0;
+	   for(int j=2;j< puz.col;j++)
+		   if((j-i) && t[i].On(j)) {
+			   BFTAG x(from.t[j]);
+			   //x -= t[i];
+			   //if(x.IsNotEmpty()) {
+			   if(x.substract(t[i])) {
+				   t[i] |= x;
+				   n++;
+			   }
+   }} // end j  while
+  } }// end i   proc
+
+/* that table is prepared for the derivation of weak links
+   the "from" table is the table of implications
+   */
+void SQUARE_BFTAG::AllParents(SQUARE_BFTAG & from)
+{t[0].SetAll_0();for(int i=1;i< puz.col;i++) t[i]=t[0];
+ for(int i=2;i< puz.col;i++) for(int j=2;j< puz.col;j++) 
+	 if(from.t[i].On(j)) t[j].Set(i);
+// EE.Enl("parents"); Image();
+}
+
+
+/* select tags having a chance to have the shortest path
+   this is a filter for the contradiction chains of the form
+   x -> ~a  and   ~x -> ~a
+   for each tag set to 1 in "x" 
+     compute the total of steps needed to get it with both starts
+	 keep only tags below  minimal total + n (2) 
+   */
+void SQUARE_BFTAG::Shrink(BFTAG & x,USHORT it)
+{USHORT tt[300],itt,     // tags in table
+        ntt[300],min=200,j,lim,ir; 
+ x.String(tt,itt);  // put tags in table	
+ for(int i=0;i<itt;i++) {
+    j=tt[i];
+    lim=min+1;
+    ir=ExpandToFind(it,j,lim)+ExpandToFind(it^1,j,lim);
+    ntt[i]=ir;
+    if(ir<min) min=ir;
+ }
+ lim=min+1;
+ for(int i=0;i<itt;i++) {
+    if(ntt[i]> lim)
+      x.Clear(tt[i]);
+ }
+}
+/* subroutine for Shrink
+*/
+
+int SQUARE_BFTAG::ExpandToFind(USHORT td,USHORT tf,USHORT lim){
+  BFTAG tagw(t[td]);  // tag to expand
+  int npas=0;
+  while(1){  // endless loop till tf found or no more expansion or min +2 passed
+      if(tagw.On(tf)) return npas;
+      if(npas++>lim) return 100; // 
+         // now expand one more step
+      int n=0; // to check whether something is done
+      for(int j=2;j< puz.col;j++)    if( tagw.On(j)) {
+	       BFTAG x(t[j]);
+	       if(x.substract(tagw)) {
+				   tagw |= x;
+				   n++;
+			}
+      }
+  if(!n) return 100;
+
+  }
+}
+
+/* That process is valid only if no derived weak link has been produced
+   The search finds the lot of shortest eliminations same length
+   return 0 if nothing
+   return the length if elimination(s) have been found
+
+   from is the SQUARE_BFTAG of elementary weak links
+   elims is set to 1 for all tags found in that process
+
+   only "true" state of non valid candidates are expanded
+*/
+
+int SQUARE_BFTAG::SearchEliminations(SQUARE_BFTAG & from,BFTAG & elims)
+{int npas=0,aigt=0;  elims.SetAll_0();
+ (*this)=from; // be sure to start with the set of primary data
+while(1)
+{int aig=1; // to detect an empty pass
+ npas++;
+ for( int i=2;i< puz.col;i+=2)  // only "true" state
+	 if (zpln.candtrue.Off(i>>1) &&  // candidate not valid
+		 t[i].IsNotEmpty()               // should always be
+		 )
+  {for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j)) {
+	  BFTAG x=from.t[j];
+	  //x -= t[i];	  
+      //if(x.IsNotEmpty()) {
+      if(x.substract(t[i])) {
+		  t[i]|=x;
+		  aig=0;
+	  }
+     }
+   if(t[i].On(i^1)) // an elimination is seen
+     {elims.Set(i); aigt=1;}
+  }   
+ if(aigt) return npas; // eliminations found
+ if(aig) return 0;     // empty pass
+}// end while
+}
+
+
+//<<<<<<<<<<<<<<<<<<<<<<<
+void SQUARE_BFTAG::Image() {EE.Enl( "Image zone tdb");
+ for(int i=2;i< puz.col;i++)  if(t[i].IsNotEmpty())  puz.Image(t[i]," ",i);   }
+
+
+int INFERENCES::DeriveCycle(int nd, int nf, int ns, int npas) {
+	EE.Enl("derive cycle");
+	load_done=0;  // to check if something new comes
+	hstart = h; // copy to have the situation at the start
+	zcx.Derive(nd, nf, ns);
+	if(!load_done) return 0;
+	if(!npas)
+		h.d.ExpandAll(h.dp);
+	else
+		h.d.ExpandShort(h.dp, npas);
+	return 1;
+}
+
+
+
+// entry for basic weak link a - b
+void INFERENCES::LoadBase(USHORT cd1 ,USHORT cd2) {
+	Entrep(cd1 << 1, cd2 << 1);
+}
+
+// entry for bi value  a = b thru a - b and ã - ~b   
+void INFERENCES::LoadBivalue(USHORT cd1, USHORT cd2) {
+	load_done=1;
+	Entrep((cd1 << 1) ^ 1, (cd2 << 1) ^ 1);  
+	isbival.Set(cd1);
+	isbival.Set(cd2);
+}
+
+// entry for weak link derived from a set  a -> b
+void INFERENCES::LoadDerivedTag(USHORT tg1, USHORT cd2) {
+	load_done=1;
+	Plusp(tg1, cd2 << 1);  //  a -> b
+}
+
+// entry for event  a - b
+void INFERENCES::LoadEventTag(USHORT tg1, USHORT cd2) {
+	load_done=1;
+	Plusp(tg1, (cd2 << 1) ^ 1); // a -> ~b
+}
+
+// entry for direct event  ~a - b
+void INFERENCES::LoadEventDirect(USHORT cd1, USHORT cd2) {
+	load_done=1;
+	Plusp((cd1 <<1 ) ^ 1, (cd2 << 1) ^ 1); 
+}
+
+ /* In that process, we do in the same pass the search for
+    x cycle;chain  or  y cycle;chain  or XY cycle;chain
+
+	if nothing comes from  ?chain, there is no need to search the loop
+	in case we have results from ?chain,
+	we expand all and collect 
+	  all eliminations ("true status"), 
+	  all tags in loop
+    
+	for each elimination, we first look for the chain, then for the loop if any
+    tchain takes care of the smaller ratings
+
+
+  Note we look only in that process,  elimination found thru a "true"  state of a candidate
+  nota : to get a "false" elimination we need
+  ~a - ~b = b - ..... - x = ~x - ~a (only possible weak link ~x - ~y)
+  but then  b - a = ~a - ~x = x ..... - b   always exists
+*/
+
+void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
+	// first collect tags in loop
+	//if(opx==2) h.dp.Image();
+	BFTAG elims;
+	int npaselim = h.d.SearchEliminations(h.dp, elims);
+	if(!npaselim) return; //nothing to find
+	h.d.ExpandAll(h.dp); // 	
+	BFTAG xi;
+	xb.SetAll_0();
+	xi.SetAll_0();// collect tags in loop ok and "to eliminate in true state"
+	for(int i = 2; i < puz.col; i++) {
+		if(h.d.Is(i, i) && (h.d.Is(i ^ 1, i ^ 1)))
+			xb.Set(i);  
+		if(h.d.Is(i, i ^ 1) && (!(i & 1)))
+			xi.Set(i);
+	}
+	if(xi.IsEmpty())
+		return;  
+	if(0 && Op.ot) { 
+		puz.Image(xi,"candidates potential  eliminations", 0);
+	}
+
+	// now check all eliminations for a chain or a cycle    
+	for(int i = 2; i < puz.col; i += 2) {
+		if(!xi.On(i))
+			continue;
+		if(0 && Op.ot) {
+			EE.E("\n\nanalyzing ");
+			zpln.ImageTag(i);
+			EE.Enl();
+		}
+		// look for a chain
+		if((opx - 2)) //  || (!Op.ocopybugs)) // skip Y chains in serate mode
+		{
+			BFTAG wch = h.dp.t[i];
+			int npasch = wch.SearchChain(h.dp.t, i, i ^ 1);
+			if(0 && Op.ot) {
+				EE.E(" npasch= ");
+				EE.Enl(npasch);
+			}
+			if(!npasch)
+				continue; // should never happen
+			int ratch = tchain.GetRatingBase((opx == 3) ? 70 : 66, npasch + 1, i >> 1);
+			if(ratch) { // chain is accepted load it (more comments in test mode)
+				if(Op.ot) {
+					ExplainPath(wch, i, i^1, npasch + 2, i ^ 1);
+				}
+				tchain.LoadChain(ratch, "chain", i >> 1);	
+			}
+		}
+		//--------------------------- now look for a loop 
+		BFTAG w = h.dp.t[i];
+		w &= xb; 
+		if(0 && Op.ot)
+			puz.Image(w,"loop contacts",i);
+		if(w.Count() < 2)
+			continue; // must have contact with 2 candidates ( false state )
+		//in 'X' mode cycle eliminations are done only in the same region
+		//first, collect all contacts in a table  and process all pairs
+		USHORT tt[100], itt;
+		w.String(tt,itt);
+		for(int i1 = 0; i1 < itt - 1; i1++) {
+			USHORT t1 = tt[i1] ^ 1; // t1 is turned to "true" 
+			for(int i2 = i1 + 1; i2 < itt; i2++) {
+				USHORT t2 = tt[i2];  // t2 kept to "false"
+				if(h.dp.t[t1].On(t2)) {
+					//  same cell or region
+					// except in 'XY' mode, must be the same digit
+					if(opx-3) {
+						CANDIDATE candt1 = zpln.zp[t1 >> 1], candt2 = zpln.zp[t2 >> 1];
+						if(candt1.ch-candt2.ch)
+							continue; 
+					}
+					// now we want the xycle crossing t1 and t2.
+					// by construction, this is a weak link, never a strong link
+					BFTAG wstart;
+					wstart.Set(t2);  //we start a search with t1 -> t2
+					int npascycle = wstart.SearchCycle(h.dp.t, t1,xb);
+					if(!npascycle)
+						continue; // could  ben ??
+					int rat = tchain.GetRatingBase((opx == 3) ? 70 : 65, npascycle + 1, i >> 1);
+					if(!rat)
+						continue;// chain is accepted load it (more comments in test mode)
+					if(Op.ot) {
+						ExplainPath(wstart, t1, t1, npascycle + 2, t2);
+					}
+					tchain.LoadChain(rat, "cycle", i >> 1); 
+				}
+				else if(opx == 2) // not allowed in 'X' mode and no interest in 'XY'mode
+					Aic_Ycycle(t1, t2 ^ 1, xb, i >> 1); // both turned to true 
+			}
+		}// end for i1 i2
+	}// end for i
+}
+
+/* we are looking in 'Y' mode for a loop crossing 2 points inside the loop.
+   me must find the shortest loop
+   that processs can be very long, so it must be designed carefully
+   the general idea is the following
+   look in priority for a candidate (t1 or t2) with only 2 possible starts in the loop.
+   If this exists, take that point as start, if not, 
+   take the smallest number of starts and try all of them
+
+   in the search, the strategy is to take the shortest path.
+   Doing that, we can kill all possibilities to go back.
+   If there is no way back, we try the start from the second candidate in the cell
+   
+   That process can miss some possibilities, what is accepted.
+
+*/
+void INFERENCES::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
+	// forget if not same digit or t2 is ~t1
+	if(cand == (t2 >> 1))
+		return;
+
+	CANDIDATE candt1 = zpln.zp[t1 >> 1];
+	CANDIDATE candt2 = zpln.zp[t2 >> 1];
+	if(candt1.ch - candt2.ch)
+		return;
+
+	//USHORT ct1 = (h.dp.t[t1] & loop).Count();
+	BFTAG ttt = h.dp.t[t1];
+	ttt &= loop;
+	USHORT ct1 = ttt.Count();
+	if(ct1 < 1)
+		return; // should never be
+	if(ct1 < 2) {
+		Aic_YcycleD(t1, t2 ^ 1, loop, cand);
+		return;
+	}
+
+	//USHORT ct2 = (h.dp.t[t2] & loop).Count();
+	ttt = h.dp.t[t2];
+	ttt &= loop;
+	USHORT ct2 = ttt.Count();
+	if(ct2 < 1)
+		return; // should never be
+
+	//if(ct1 < 1 || ct2 < 1)
+	//	return; // should never be
+
+	//if(ct1 < 2) {
+	//	Aic_YcycleD(t1, t2 ^ 1, loop, cand);
+	//	return;
+	//}  
+
+	if(ct2 < 2) {
+		Aic_YcycleD(t2, t1 ^ 1, loop, cand);
+		return;
+	}  
+	USHORT wt1 = t1, wt2 = t2;
+	if(ct2 < ct1) {
+		wt1 = t2;
+		wt2 = t1;
+	}
+	Aic_YcycleD(wt1, wt2 ^ 1, loop, cand);
+}
+
+/* now the all possibilities with start t1 and crossing t2
+   we must start with a weak link so we exclude as start the strong link
+*/
+void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // up to 4 starts
+	USHORT tt[20], itt, lg = 200;
+	PATH resf, resw;
+	USHORT tagc = cand << 1, tagcn = tagc ^ 1;
+
+	//(h.dp.t[t1] & loop).String(tt, itt); // starts in table
+	BFTAG ttt = h.dp.t[t1];
+	ttt &= loop;
+	ttt.String(tt, itt); // starts in table
+
+	for(int i = 0; i < itt; i++) {
+		if(h.dp.t[tt[i]].On(t1))
+			continue; // this is a strong link, skip it
+		if(tt[i] == tagcn)
+			continue; // don't start with the elimination
+		int lw = Aic_Ycycle_start(t1, tt[i], t2, loop, resw);
+		if(lw) {
+			//if(resw.On(tagcn)) continue; // cand must not be in the loop
+			//if(resw.On(tagc)) continue; // to be validated
+			if(lw < lg) {
+				lg=lw;
+				resf = resw;
+			}
+		}
+	}
+	// lg final count, resf final result finish the task
+	if(lg > 100) {
+		Aic_YcycleD2(t1,t2,loop,cand);
+		return;
+	}// try the second way
+	int rat = tchain.GetRatingBase(65, lg, cand);
+	if(!rat)
+		return;
+	// chain is accepted load it and in test mode, find more comments
+	if(Op.ot) {
+		EE.Enl("Y cycle out of the region");
+		resf.PrintPathTags();
+	}
+	//  ExplainPath(resf,t1,t1,lg+2,t2);  }
+	tchain.LoadChain(rat, "Y cycle", cand); 
+}
+
+/* first process failed
+   try starttin from the second candidate in the cell containing t1
+*/
+
+void  INFERENCES::Aic_YcycleD2(USHORT t1x,USHORT t2x,BFTAG & loop,USHORT cand)// up to 4 starts
+{if(0) {EE.E("Aic_Ycycle d2"); 
+         EE.E(" t1x=");zpln.ImageTag(t1x);
+         EE.E(" t2x"); zpln.ImageTag(t2x); 
+         EE.E(" cand="); zpln.Image(cand);EE.Enl();
+		 puz.Image(h.dp.t[t1x^1],"liens",0);EE.Enl();
+        }
+USHORT t2=t2x^1,t1=0; // new target is  "on"
+ USHORT tt[20],itt,lg=200;   PATH resf,resw;
+ h.dp.t[t1x^1].String(tt,itt); // starts in table
+ if(itt<1) return;// should never be
+ t1=tt[0];
+ if(0) {EE.E("Aic_Ycycle d2 go"); 
+         EE.E(" t1=");zpln.ImageTag(t1);EE.Enl();
+        }
+ USHORT tagc=cand<<1,tagcn=tagc^1;
+
+ //(h.dp.t[t1] & loop).String(tt,itt); // starts in table
+ BFTAG ttt = h.dp.t[t1];
+ ttt &= loop;
+ ttt.String(tt,itt); // starts in table
+
+ for(int i=0;i<itt;i++) 
+  {if(h.dp.t[tt[i]].On(t1)) continue; // this is a strong link, skip it
+   if(tt[i]==tagcn) continue; // don't start with the elimination
+   int lw=Aic_Ycycle_start(t1,tt[i],t2,loop,resw);
+   if(lw)
+    {//if(resw.On(tagcn)) continue; // cand must not be in the loop
+     //if(resw.On(tagc)) continue; // to be validated
+     if(lw<lg){lg=lw;resf=resw;}
+    }
+  }
+ // lg final count, resf final result finish the task
+ if(lg>100) return; // should never happen
+ int rat=tchain.GetRatingBase(65,lg,cand);
+ if(!rat) return;
+     // chain is accepted load it and in test mode, find more comments
+ if(Op.ot){EE.Enl("Y cycle out of the region");
+           resf.PrintPathTags();   }
+	     //  ExplainPath(resf,t1,t1,lg+2,t2);  }
+ tchain.LoadChain(rat,"Y cycle",cand); 
+}
+
+/* process one start  t1->t1a looking for t1
+   and get back the count
+   go first to t2
+   then track back the path to clean the "done" filtering the process
+   and continue to t1. send back the count and the BFTAG
+*/
+int INFERENCES::Aic_Ycycle_start(USHORT t1,USHORT t1a,USHORT t2,BFTAG & loop,PATH & path) {
+	if(0) {
+		EE.E("Aic_Ycycle_start"); 
+		EE.E(" start=");
+		zpln.ImageTag(t1);
+		EE.E(" thru=");
+		zpln.ImageTag(t2); 
+		EE.E(" first=");
+		zpln.ImageTag(t1a);
+		EE.Enl();
+		// loop.Image("loop",0);
+		EE.Enl();
+	}
+	BFTAG wstart;
+	wstart.Set(t1a);  //we start a search with t1 -> t1a
+	int npascycle = wstart.SearchCycleChain(h.dp.t, t1, t2, loop);
+	if(!npascycle)
+		return 0;
+	path.ipth = npascycle + 2;  // itt set to last tag in the path
+	if(wstart.TrackBack(h.dp.t, t1, t2, path.pth, path.ipth, t1a))
+		return 0; // bug collecting the path 
+
+	if(0) {
+		EE.Enl("Aic_Ycycle_start end of first track back"); 
+		path.PrintPathTags();
+		EE.Enl();
+	}
+
+	// we go back with a reduced loop, restarting from t2
+
+	BFTAG wstart2;
+	wstart2.Set(t2);  //we start next  search from t2 
+	BFTAG loop2(loop); // we cancel the forward path in the loop
+	for(int i = 1; i < path.ipth; i++)
+		loop2.Clear(path.pth[i]); // BFTAG equivalent to tt
+
+	int npas2 = wstart2.SearchCycleChain(h.dp.t, t2, t1, loop2); // and now we continue to the end
+
+	if(0) {
+		EE.E("Aic_Ycycle_start after  second npas2=");
+		EE.Enl(npas2);
+		puz.Image(loop2,"loop2",0);
+		EE.Enl();
+	}
+
+	// if npas2=0 it can be due to the fact that the first path lock the way back
+	// we then try a start from the other candidate in the cell containing t1
+
+	if(!npas2)
+		return 0;
+	PATH path2;
+	path2.ipth = npas2 + 1;  // itt set to last tag in the path
+	if(wstart2.TrackBack(h.dp.t, t2, t1, path2.pth, path2.ipth, t1))
+		return 0; // bug collecting the path 
+
+	if(0) {
+		EE.Enl("Aic_Ycycle_start end of second track back"); 
+		path2.PrintPathTags();
+		EE.Enl();
+	}
+
+	// expand path1 with path2
+	for(int i = 1; i < path2.ipth; i++)
+		path.Add(path2.pth[i]);
+	return (path.ipth - 1);  
+}
+
+/* we have found something in a forward step
+  in test mode, we have to publish an equivalent path
+  */
+void INFERENCES::ExplainPath(BFTAG & forward, int start, int end, int npas, USHORT relay) {
+	if(npas > 40) {
+		EE.E("path too long in Explainpath npas=");
+		EE.Enl(npas);
+		return;
+	}
+
+	USHORT tt[50], itt = npas; 
+	// EE.E("explain start=");zpln.ImageTag(start);EE.E(" end=");zpln.ImageTag(end);
+	// EE.E(" npas=");EE.Enl(npas);
+	// forward.Image("forward",start);
+	forward.TrackBack(h.dp.t, start, end, tt, itt, relay);
+	// puz.PointK(); // put a milestone and print the chain
+	zpln.PrintImply(tt, itt);
+}
+/* done when higher rating  already found
+   just eliminate candidates (true) without looking for loops
+   replacing X Y and XY search
+   */
+int INFERENCES::Fast_Aic_Chain() {
+	int ir=0;
+	puz.TaggingInit();
+	zpln.CellLinks();
+	zpln.RegionLinks(1); 	         
+	h.d.ExpandAll(h.dp); // 	
+	for(int i = 2; i < puz.col; i += 2)
+		if(h.d.Is(i, i ^ 1)) {
+			zpln.Clear(i >> 1); 	// just clear it if not test mode
+			ir++;
+			if(0 && Op.ot) {
+				EE.E("clear ");
+				zpln.ImageTag(i);
+				EE.Enl();
+			}
+			BFTAG wch = h.dp.t[i];
+			int npasch = wch.SearchChain(h.dp.t, i, i ^ 1);
+			ExplainPath(wch, i, i ^ 1, npasch + 2, i ^ 1);
+		}
+	return ir;
+}
+
+
+
+
+
+void SETS_BUFFER::GetSpace(USHORT *(& ps),int n) {
+	ps = &zs[izs];
+	izs += n;
+	if(izs >= setsbuffer_lim) {
+		ps=0;
+		parentpuz->Elimite("SETS_BUFFER");
+	}
+}
+
+void SET::Image() const {  // liste of candidates in the set
+	if(!Op.ot)
+		return;
+	EE.E(type);
+	EE.E(" set: ");
+	int lim = ncd;
+	if(type)
+		lim--;
+	for(int i = 0; i < lim; i++) {
+		zpln.Image(tcd[i]);
+		EE.Esp();
+	}
+	if(type)
+		EE.E(tcd[lim]);
+}
+
+int SET::Prepare (USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe) {
+	 zcxb.GetSpace(tcd, nmi);
+	 if(tcd == 0)
+		 return 0;// limite atteinte
+	 for(int i = 0; i < nmi; i++)
+		 tcd[i] = mi[i]; 
+	 ncd = nmi;
+	 ix = ixe;
+	 type = ty;
+	 return 1;
+ }
+
+
+
+
+void SETS::Init() {
+	izc = 1;
+	zcxb.Init();
+	nmmax = 0;
+	nmmin = 10;
+	direct = 0;
+}
+
+void SETS::Image() {
+	EE.E("\nimage fichier choix izc=");
+	EE.Enl(izc);
+	for(int i = 1; i < izc; i++) {
+		zc[i].Image();
+		EE.Enl();
+	}
+}
+
+
+int SETS::ChargeSet (USHORT * mi,USHORT nmi,SET_TYPE ty)
+{if(nmi<2||puz.stop_rating) return 0;
+ if(ty &&  nmi>(chx_max+1) ) return 0;
+ if(!zc[0].Prepare(mi,nmi,ty,izc)) return 0;
+if(izc<sets_lim) {zc[izc++]=zc[0];  
+                 if(nmi>nmmax)nmmax=nmi;  
+				 if(nmi<nmmin)nmmin=nmi; return 1;}
+parentpuz->Elimite("ZCX");return 0;}
+
+int SETS::CopySet (int i)
+{if(izc<sets_lim) {zc[izc++]=zc[i];  return 1;}
+parentpuz->Elimite("ZCX");return 0;}
+
+ // multi chains version
+ int SETS::Interdit_Base80() 
+ {t= zcf.h.d.t;
+ int ir=0;
+  for (int ie=1;ie<izc;ie++)     // all active sets 
+   {if(zc[ie].type-SET_base) continue;
+    int n=zc[ie].ncd; USHORT *tcd=zc[ie].tcd ; 
+	BFTAG tbt; tbt.SetAll_1();
+     for(int  i=0;i<n;i++)  tbt &= t[tcd[i]<<1];
+ 
+    if(tbt.IsNotEmpty()) // candidate(s) to clear found
+	  {if(Op.ot&& 1){EE.E(" eliminations found in multi chain mode pour ");
+	                 zc[ie].Image();EE.Enl();} 
+
+	   for(int  j=3;j< puz.col;j+=2)if(tbt.On(j)) // all tags assigned
+	      {int tot_length=0; USHORT jj=j^1;// skip from assigned to eliminated
+	       if(Op.ot && 0){EE.E(" Set killing "); zpln.ImageTag(jj); EE.Enl(); }
+		   if(puz.ermax>85+n-3) // gofast if already far above
+		    {zpln.Clear(jj>>1); ir++;
+		   if(Op.ot){EE.E(" Set fast killing "); zpln.ImageTag(jj); EE.Enl();}
+		    continue;}
+		   for(int i2=0;i2<n;i2++)  
+			   {   BFTAG wch=zcf.h.dp.t[jj]; 
+		         USHORT end=(tcd[i2]<<1)^1;
+				 if(wch.On(end))// this is a direct
+				    {tot_length+=2; continue;}
+		         int npasch=wch.SearchChain(zcf.h.dp.t,jj,end);
+                 if(!npasch) EE.Enl(" 0 partial length "); // debugging message
+				 tot_length+=npasch+2;
+	     	   }
+           int ratch=tchain.GetRatingBase(80,tot_length,jj>>1);
+           if(ratch) // chain is accepted load it (more comments in test mode)
+               {// in test mode  give the details for the chains
+				// in that case, do it again and print
+				if(Op.ot)for(int i2=0;i2<n;i2++) 
+				  {  BFTAG wch=zcf.h.dp.t[jj]; 
+				     USHORT end=(tcd[i2]<<1)^1;
+					  if(wch.On(end))// this is a direct
+				         {USHORT tt[2],itt=2; tt[0]=jj; tt[1]=end; 
+					       zpln.PrintImply(tt,itt);continue;}
+		             int npasch=wch.SearchChain(zcf.h.dp.t,jj,end);
+                      USHORT tt[50],itt=npasch+2; 
+                      wch.TrackBack(zcf.h.dp.t,jj,end,tt,itt,end);
+                      zpln.PrintImply(tt,itt);
+		          }
+               tchain.LoadChain(ratch,"chain",jj>>1);	
+               }
+ 	      } // end  for j
+       } // end if
+  }// end ie
+ return ir;}
+ 
+void SETS::Derive(int min,int max,int maxs)  
+{if(max>nmmax) max=nmmax;   if(min<nmmin) min=nmmin;if(maxs>nmmax) maxs=nmmax;
+ int maxt=(max>maxs)?max:maxs;
+
+ if(Op.ot && 0)
+  {EE.E("debut Derive izc= ");EE.E(izc); EE.E("  direct= ");EE.E(direct);
+   EE.E("  min= ");EE.E(min);EE.E("  max= ");EE.E(max);
+  EE.E("  maxs= "); EE.Enl(maxs); }  
+
+ if(direct) {t= zcf.h.dp.t; allparents.AllParents(zcf.h.dp);}
+  else {t= zcf.h.d.t; allparents.AllParents(zcf.h.d);}// usually direct=0
+  for (int ie=1;ie<izc;ie++)
+   {int nnm=zc[ie].ncd;   
+    switch (zc[ie].type)
+	{case SET_base: if(nnm<=max) DeriveBase(zc[ie]); break;
+	 case SET_set : if(nnm<=maxs)DeriveSet(zc[ie]); break;	
+	 }   
+   }
+}
+void SETS::DeriveBase(SET & chx) // each candidate can be the target
+{if(0){EE.E("on traite"); chx.Image(); EE.Enl();     }
+
+ USHORT * tcd=chx.tcd, nni=chx.ncd ; 
+ BFTAG tcf2,tcf2f,tcft,bfset;   tcf2.SetAll_1(); tcft=tcf2;
+ // bfset is the set itself in bf form for the exclusion of the set itself
+ for(int i=0;i<nni;i++) bfset.Set(tcd[i]<<1);
+
+ for(int i=0;i<nni;i++) {
+	 //tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
+	 tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
+	 tce[i] -= bfset;
+ }
+ for(int i=0;i<nni;i++) {
+	 tcf2f = tcf2;
+	 if(i < nni)
+		 for(int k = i + 1; k < nni; k++) {
+			 tcf2f &= tce[k];
+		 }
+       if(tcf2f.IsNotEmpty())
+         {for(USHORT j=2;j< puz.col;j++)  if(tcf2f.On(j)) 
+           { if( zcf.IsStart(j,tcd[i]<<1) )continue; // skip if defined		    
+		  	 zcf.LoadDerivedTag(j,tcd[i]);
+	       }// end j
+         } //end if
+       tcf2 &= tce[i];
+	   if(tcf2.IsEmpty()) return;
+	 }// end i
+}
+
+/* deriving a set creating an event
+   the set must be in a dead state for a candidate in left to right mode
+   then, the event is established and the event process is called
+*/
+void SETS::DeriveSet(SET & chx) // only the "event" can be the target
+{USHORT * tcd=chx.tcd, nni=chx.ncd-1 ; 
+ BFTAG tcft,bfset;   tcft.SetAll_1();
+ // bfset is the set itself in bf form for the exclusion of the set itself
+ for(int i=0;i<nni;i++)    bfset.Set(tcd[i]<<1);
+ for(int i=0;i<nni;i++) {
+	 //tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
+	 tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
+	 tce[i] -= bfset;
+ }
+ for(int i=0;i<nni;i++)    tcft&=tce[i];
+ if(tcft.IsNotEmpty()) // event established for any 'true' in tcft
+	 {for(USHORT j=2;j< puz.col;j++)  if(tcft.On(j))
+           {if(   tevent.EventSeenFor(j,tcd[nni])) // just for diag
+			{EE.E("diag choix");chx.Image();}
+		  }// end j
+	}// end if
+
+}
+
+/* called to prepare the nested step for candidate cand
+   return code is 0 if no new strong link 
+                  1 if at least one strond link found
+   create the new sets and the new strong links.
+*/
+
+int SETS::CheckGoNested1(const BFTAG &bftag, USHORT cand) {
+	int ir=0;
+ for(int ie=1;ie<izc_one;ie++)// check all sets
+  {SET chx=zc[ie];
+   USHORT nni=chx.ncd,n=0,toff[10]; 
+   if (zc[ie].type-SET_base) continue;
+    // forget all sets where one candidate is now true
+	// Gen a strong link if reduced to 2 candidates
+	// should never be 0 candidate true
+	// gen the reduced set if more than 2
+   for(int i=0;i<nni;i++)
+      {USHORT ti=chx.tcd[i]<<1; // candidate in tag form
+       if(bftag.On(ti)) {n=1; break; }// set assigned
+	   if(bftag.Off(ti^1)) toff[n++]=chx.tcd[i];;
+      }
+     if(n<2) continue;
+	 if(n==2) // create a new strong link
+	     {zcf.LoadBivalue(toff[0],toff[1]); ir=1; }
+	 else // create a new set 
+	     {ChargeSet(toff,n,SET_base);}
+			// CopySet(ie);} ???(copy the previous one)
+	}   
+return ir;}
+
+//former (r96) _03b_puzzle_chains.cpp end
+
+//former (r96) _20a_event.cpp start
+/*
+#include "_20a_event.h"
+#include "ratingengine.h"
+*/
+USHORT event_vi = 1024;
+
+EVENTLOT::EVENTLOT(BF81 &x, USHORT ch) {
+	itcd = 0;
+	for(int i = 0; i < 81; i++)
+		if(x.On(i))
+			AddCand(i, ch);
+}
+
+void EVENTLOT::AddCand(USHORT cell, USHORT ch) {
+	tcd[itcd++] = zpln.indexc[ch*81 + cell];
+}
+
+int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type) {
+	for(int i = 0; i < itcd; i++) {
+		USHORT cand2 = tcd[i], tag2 = (cand2 << 1) ^ 1;
+		if(zcf.Isp(tag, tag2))
+			continue;// only if not yet defined
+		if(0 && (tag ==(tag2 ^ 1))) {
+			EE.E("gen contraire");
+			Image();
+			return 1;
+		}
+
+		if(tag == tag2)
+			continue;// redundancy
+		if(type == wl_ev_direct)
+			zcf.LoadEventDirect(tag >> 1, cand2); 
+		else zcf.LoadEventTag(tag, cand2);
+	}
+	return 0;
+}
+
+void EVENTLOT::Image() const {
+	EE.E(" evenlot itcd=");
+	EE.E(itcd);
+	for(int i = 0; i < itcd; i++) {
+		EE.Esp();
+		zpln.Image(tcd[i]);
+	}
+	EE.Enl();
+}
+
+void EVENT::Load(USHORT tage, EVENT_TYPE evt, EVENTLOT & evb, EVENTLOT & evx) {
+	tag = tage;
+	type = evt;
+	evl = evb;
+	ntcand = evx.itcd;
+	if(ntcand > 4)
+		ntcand = 4;
+	for(int i = 0; i < ntcand; i++)
+		tcand[i] = evx.tcd[i];
+}
+
+/* we have found the 2 sets (EVENLOT) linked to the event
+   create the entry in the table TEVENT
+   if first set is more than one create entry in TSET
+   else generate directly conflicts for candidates in conflict
+        if they don't belong to the pattern 
+   evt event type
+   eva lot of candidates creating the event
+   evb lot of candidates not valid if the pattern is established
+   evx candidates of the pattern
+   */
+
+void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT & evx) {
+	if(eva.itcd < 1 || evb.itcd < 1)
+		return;
+	// if only one in the set, go to gen and return
+	if(eva.itcd == 1) {
+		USHORT cw = eva.tcd[0]; 
+		if(0 && Op.ot) {
+			EE.E("gen direct event type=");
+			EE.E(evt);
+			EE.Esp(); 
+			eva.Image();
+			evb.Image();
+			EE.Enl();
+		}
+		evb.GenForTag((cw << 1) ^ 1, wl_ev_direct);
+		return;
+	}
+	if(eva.itcd > chx_max)
+		return; // forget if too big	 
+	if(it >= event_size) {
+		parentpuz->Elimite("TEVENT limite atteinte");
+		return;
+	}
+	USHORT evv = event_vi + (it);
+	t[it++].Load(evv, evt, evb, evx); 
+	eva.tcd[eva.itcd] = evv;
+	zcx.ChargeSet(eva.tcd, eva.itcd + 1, SET_set); // set loaded
+}
+
+ /* the event has been created by  "tagfrom" for the event "tagevent"
+    find the corresponding element in the talbe and generate the weak links
+	*/
+int TEVENT::EventSeenFor(USHORT tagfrom, USHORT tagevent) {
+	USHORT candfrom = tagfrom >> 1, ind = tagevent - event_vi;  
+	if(ind < 1 || ind >= it)
+		return 0; // should never be
+	if(t[ind].IsPattern(candfrom))
+		return 0;// ?? do nothing if part of the pattern not 100% sure
+	if(t[ind].evl.GenForTag(tagfrom, wl_event)) { // diag a supprimer
+		t[ind].Image();
+		return 1;
+	} 
+	return 0; 
+}
+
+void EVENT::Image() const {
+	if(!Op.ot)
+		return;
+	EE.E(" event image tag=");
+	EE.E(tag);
+	EE.E(" type=");
+	EE.E(type); 
+	for(int i = 0; i < ntcand; i++) {
+		EE.Esp();
+		zpln.Image(tcand[i]);
+	} 
+	evl.Image();
+}
+
+/* process to locate all potential XW
+   load the corresponding tags and sets
+   
+*/
+void TEVENT::LoadXW() {
+	for(int i1 = 0; i1 < 8; i1++) {
+		for(int j1 = 0; j1 < 8; j1++) {  // first cell
+			USHORT cell1 = I81::Pos(i1, j1);
+			if(T81t[cell1].v.ncand < 2)
+				continue;
+			for(int i2 = i1 + 1; i2 < 9; i2++) {
+				USHORT cell2 = I81::Pos(i2, j1);
+				if(T81t[cell2].v.ncand < 2)
+					continue;
+				BF16 ch2 = T81t[cell1].v.cand & T81t[cell1].v.cand;
+				if(!ch2.f)
+					continue; // must have at least a common digit
+				for(int j2 = j1 + 1; j2 < 9; j2++) {
+					USHORT cell3 = I81::Pos(i1, j2);
+					if(T81t[cell3].v.ncand < 2)
+						continue;
+					USHORT cell4 = I81::Pos(i2, j2);
+					if(T81t[cell4].v.ncand < 2)
+						continue;
+					BF16 cht = ch2 & T81t[cell3].v.cand & T81t[cell4].v.cand;
+					if(!cht.f)
+						continue; // must have at least a common digit
+					// we now explore all possible row and column XWings in that group
+					for(int ich = 0; ich < 9; ich++) {
+						if(cht.On(ich)) { // all possible digits
+							// build the row  and the column sets
+							EVENTLOT evr, evc, evx;
+							LoadXWD(ich, i1, i2, j1, j2, evr, evx);
+							if(!evr.itcd)
+								continue; // pure XWing
+							LoadXWD(ich, j1 + 9, j2 + 9, i1, i2, evc, evx); // now can not be a pure XWing
+							EventBuild(evxwcol, evr, evc, evx);
+							EventBuild(evxwrow, evc, evr, evx);
+						}
+					} //ich
+				} // j2
+			} // i2
+		} // j1
+	}// i1
+}
+
+/* we have identified an XW pattern
+   generate if any the set or the direct event weak links  */
+void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT & eva, EVENTLOT & evx) {
+	REGION_CELL el1d = aztob.tchbit.el[el1].eld[ch], el2d = aztob.tchbit.el[el2].eld[ch];
+	for(int i = 0; i < 9; i++)
+		if(el1d.b.On(i))
+			if((i - p1) && (i - p2))
+				eva.AddCand(divf.el81[el1][i], ch); 
+			else
+				evx.AddCand(divf.el81[el1][i], ch);
+	for(int i = 0; i < 9; i++)
+		if(el2d.b.On(i))
+			if((i - p1) && (i - p2))
+				eva.AddCand(divf.el81[el2][i], ch);
+			else
+				evx.AddCand(divf.el81[el2][i], ch);
+}
+
+void TEVENT::LoadPairs() { // all rows, columns, and boxes  
+	for(int iel = 0; iel < 27; iel++) {
+		// pick up 2 unknown cells in that region
+		for(int i1 = 0; i1 < 8; i1++) {
+			USHORT cell1 = divf.el81[iel][i1];
+			if(T81t[cell1].v.ncand < 2)
+				continue;
+			for(int i2 = i1 + 1; i2 < 9; i2++) {
+				USHORT cell2 = divf.el81[iel][i2];
+				if(T81t[cell2].v.ncand < 2)
+					continue;
+				LoadPairsD(cell1, cell2, iel);
+			}
+		} // end i1;i2
+	}// end iel
+}
+// work on a pair 
+void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
+	BF16 ch2 = T81t[cell1].v.cand & T81t[cell2].v.cand,
+		chor = T81t[cell1].v.cand | T81t[cell2].v.cand; // pour traiter le cas 1 commun
+	if(ch2.QC() < 2)
+		return; // non il faudrait aussi accepter 1 commun à revoir
+	// nothing to do if box/row and box/col (already done)
+	CELL_FIX p1 = t81f[cell1], p2=t81f[cell2];
+	if(iel > 17 && ((p1.el == p2.el) || (p1.pl == p2.pl)))
+		return;
+	for(int i1 = 0; i1 < 8; i1++) {
+		if(!ch2.On(i1)) 
+			continue;
+		for(int i2 = i1 + 1; i2 < 9; i2++) {
+			if(!ch2.On(i2))
+				continue;
+			//all pairs must be processed
+			// buid the set for nacked pair	 
+			EVENTLOT nack, hid1, hid2, evx; 
+			BF16 com(i1, i2), v1 = T81t[cell1].v.cand, v2 = T81t[cell2].v.cand;
+			for(int j = 0; j < 9; j++) {
+				if(v1.On(j))
+					if(com.On(j))
+						evx.AddCand(cell1, j);
+					else
+						nack.AddCand(cell1, j);
+				if(v2.On(j))
+					if(com.On(j))
+						evx.AddCand(cell2, j);
+					else
+						nack.AddCand(cell2, j);
+			}
+			// build the set for hidden pair in el and generate the event
+			PairHidSet(cell1, cell2, iel, com, hid1);
+			if(nack.itcd <= chx_max)
+				EventBuild(evpairnacked, nack, hid1, evx);
+			if(hid1.itcd <= chx_max)
+				EventBuild(evpairhidden, hid1, nack, evx);
+
+			// if el is row col and same box, do it as well for the box
+			if(iel > 17 || (p1.eb - p2.eb))
+				continue;
+			PairHidSet(cell1, cell2, p2.eb + 18, com, hid2);
+			if(nack.itcd <= chx_max)
+				EventBuild(evpairnacked, nack, hid2, evx);
+			if(hid2.itcd <= chx_max)
+				EventBuild(evpairhidden, hid2, nack, evx);
+		}
+	}
+}
+
+void TEVENT::PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLOT & hid) {
+	for(int i = 0; i < 9; i++) {
+		int cell = divf.el81[el][i];
+		if((cell == cell1) || (cell == cell2))
+			continue;
+		CELL_VAR p = T81t[cell].v;
+		if(p.ncand < 2)
+			continue;
+		BF16 w = p.cand&com;
+		if(!w.f)
+			continue;
+		for(int j = 0; j < 9; j++)
+			if(w.On(j))
+				hid.AddCand(cell, j);
+	}
+}
+
+/* prepare all claiming pointing sets
+   to be done in each row/box row/col if there is a digit not locked
+*/
+
+void TEVENT::LoadLock() {
+	for(int iel = 0; iel < 18; iel++) {
+		for(int ib = 18; ib < 27; ib++) {
+			for(int ich = 0; ich < 9; ich++) {
+				BF81 chel = divf.elz81[iel] & puz.c[ich];  // the elem pattern for the ch
+				if(chel.IsEmpty())
+					continue; // nothing  
+				BF81 chbcom = chel & divf.elz81[ib]; // common part with the block
+				if(chel == chbcom)
+					continue; //  already locked
+				if(chbcom.Count() < 2)
+					continue; // nothing to do I guess
+				chel -= chbcom; // set in row col
+				BF81 chb = (divf.elz81[ib] & puz.c[ich]) - chbcom; // set in box
+
+				// check what does SE if evrc,evb,evx all one candidate ?? 
+
+				EVENTLOT evrc(chel, ich), evb(chb, ich), evx(chbcom, ich);
+				EventBuild(evlockrc, evrc, evb, evx);
+				EventBuild(evlockbox, evb, evrc, evx);
+			}
+		}
+	}
+}
+
+/* code for preliminary tests
+ status of table after having loaded events
+ */
+void TEVENT::LoadFin() {
+	if(!Op.ot)
+		return;
+
+	EE.E("check after having loaded events nb events=");
+	EE.Enl(it);
+	EE.E("zcx izc=");
+	EE.Enl(zcx.izc);
+	for(int i = 1; i < it; i++) {
+		EVENT ev = t[i]; 
+		EE.E("ev type=");
+		EE.E(ev.type);
+		EE.E(" tag=");
+		EE.E(ev.tag);
+		for(int j = 0; j < ev.ntcand; j++) {
+			EE.Esp();
+			zpln.Image(ev.tcand[j]);
+		}
+		ev.evl.Image();
+	}
+	zcx.Image();
+}
+
+//former (r96) _20a_event.cpp end

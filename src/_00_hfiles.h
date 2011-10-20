@@ -9,12 +9,10 @@
 
 #include "_03c_puzzle_fix.h"
 
-#include "_03a_puzzle.h"           // general class to solve a puzzle
+#include "puzzle.h"           // general class to solve a puzzle
 
 
 #include "_20a_event.h"
-
-//#include "_30a_CANDGO.h"  
 
 #include "_30a_TCANDGO.h"  
 

@@ -149,8 +149,7 @@ char *orig1="RCB ";
 //=============================
 
 
-#include "_03c_puzzle_fix.cpp"
-#include "_03a_puzzle.cpp"
-#include "_03b_puzzle_chains.cpp"
-#include "_20a_event.cpp"
-//#include "_30a_CANDGO.cpp"  // subfunction for candgo
+//#include "_03c_puzzle_fix.cpp"
+#include "puzzle.cpp"
+//#include "_03b_puzzle_chains.cpp"
+//#include "_20a_event.cpp"
