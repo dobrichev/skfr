@@ -34,6 +34,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "skfrtype.h"
 #include "bitfields.h"
+#include "ratEnum.h"			// enum list of solving techniques
+#include "bitfields.h"			// bitfields are grouped in this file
+
 //#include "ratingengine.h"
 
 /* that file contains classes for the general management of the grid
@@ -1780,6 +1783,37 @@ public:
 		return ise2++;
 	}
 	void Print(USHORT index);
-}tstore;
+}; //tstore;
 
 //file _30a_TCANDGO.h end
+
+// global variables for Puzzle
+
+extern long tdebut; // for debugging purpose start time in PUZZLE traite base
+extern OPSUDO Op;
+extern FLOG EE;
+extern CELLS T81dep;
+extern CELLS *T81;
+extern CELLS *T81C;		//standard names for main objects of the class
+extern CELL *T81t;
+extern CELL *T81tc;		//and corresponding tables of cells  
+                    // the corresponding tables are located in class PUZZLE
+extern CELLS_FIX tp81f;
+extern CELL_FIX *t81f;			//pointer to speed up the process   
+extern DIVF divf;
+extern TWO_REGIONS_INDEX aztob; 
+extern PUZZLE puz;
+extern ULT tult;
+extern TPAIRES zpaires;
+extern SEARCH_UR ur;
+extern SEARCH_URT urt;
+extern TCHAIN tchain;
+extern ZGROUPE zgs;
+extern CANDIDATES zpln;
+extern INFERENCES zcf;
+extern SETS_BUFFER zcxb;
+extern SETS zcx;
+extern TEVENT tevent;
+extern TCANDGO tcandgo;
+extern CHAINSTORE tstore;
+

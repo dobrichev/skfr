@@ -28,19 +28,27 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 // RatingEngine
 
-#include "_00_hfiles.h"
+//#include "_00_hfiles.h"
+#include "flog.h"				// relay for printing only in tests
+#include "opsudo.h"				// storing and managing options
+#include "puzzle.h"				// general class to solve a puzzle
+
 #include "utilities.h"
+#include "ratingengine.h"
+
 // global variables for RatingEngine
 
 long tdebut; // for debugging purpose start time in PUZZLE traite base
 OPSUDO Op;
 FLOG EE;
 CELLS T81dep;
-CELLS * T81,*T81C;		//standard names for main objects of the class
-CELL * T81t,*T81tc;		//and corresponding tables of cells  
-                      // the corresponding tables are located in class PUZZLE
+CELLS *T81;
+CELLS *T81C;		//standard names for main objects of the class
+CELL *T81t;
+CELL *T81tc;		//and corresponding tables of cells  
+                    // the corresponding tables are located in class PUZZLE
 CELLS_FIX tp81f;
-CELL_FIX * t81f=tp81f.t81f;			//pointer to speed up the process   
+CELL_FIX *t81f = tp81f.t81f;			//pointer to speed up the process   
 DIVF divf;
 TWO_REGIONS_INDEX aztob; 
 PUZZLE puz;
@@ -49,13 +57,14 @@ TPAIRES zpaires;
 SEARCH_UR ur;
 SEARCH_URT urt;
 TCHAIN tchain;
-ZGROUPE zgs(& puz);
-CANDIDATES zpln(& puz);
-INFERENCES zcf (&puz);
-SETS_BUFFER zcxb (&puz);
-SETS zcx (&puz);
+ZGROUPE zgs(&puz);
+CANDIDATES zpln(&puz);
+INFERENCES zcf(&puz);
+SETS_BUFFER zcxb(&puz);
+SETS zcx(&puz);
 TEVENT tevent(&puz);
 TCANDGO tcandgo;
+CHAINSTORE tstore;
 
 void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,UINT filt){
 	Op.mined = mined;
@@ -112,8 +121,6 @@ int setTestModeC (int ot, char * logFileName){
 		actualLogFileName=0;
 	}
 	return rc;
-		
-
 }
 
 //! Process a puzzle
@@ -137,4 +144,4 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	return  rc;
 }
 
-#include "puzzle.cpp"
+//#include "puzzle.cpp"
