@@ -377,7 +377,7 @@ void SQUARE_BFTAG::Parents(USHORT x) {
    partial mode are found in the BFTAG functions
    */ 
 
-void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 5 by MD
+void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
 	(*this) = from; // be sure to start with the set of primary data
 	BFTAG t1, t2;
 	USHORT p[640], np;
@@ -392,6 +392,7 @@ void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) { //version 5 by MD
 			} // j
 			t1 = t[i]; //all bits
 			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
+			t1.Clear(i);
 			t1.String(p, np);
 		}
 	}
