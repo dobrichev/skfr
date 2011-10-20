@@ -1395,16 +1395,16 @@ public:
 	void Set(int i8);  //a new cell is added to the search
 	int Add_Chain(int i8);
 	int Loop_OK(int action = 0); 
-	int Valid_Set(CELL_FIX f, char c) {
-		int el = f.el;
-		if(c == 'c')
-			el = f.pl + 9;
-		else if(c == 'b')
-			el = f.eb + 18;
-		if(el_used.Off(el))
-			return el; 
-		return -1;
-	}
+	//int Valid_Set(CELL_FIX &f, char c) {
+	//	int el = f.el;
+	//	if(c == 'c')
+	//		el = f.pl + 9;
+	//	else if(c == 'b')
+	//		el = f.eb + 18;
+	//	if(el_used.Off(el))
+	//		return el; 
+	//	return -1;
+	//}
 	int Is_OK_Suite(USHORT i8);
 	int El_Suite(USHORT el);
 	void UL_Mess(char * lib, int pr);

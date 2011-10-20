@@ -27,8 +27,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 // rating engine interface (C or C++)
-int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig);
-void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,UINT filt);
-void setParamC (int o1, int delta, int os,int oq,int ot , int oexclude, int edcycles);
-int setTestModeC (int ot,char * logFileName);
+int ratePuzzleC(char *ze, int *er, int *ep, int *ed, int *aig);
+void setMinMaxC(int mined, int maxed, int minep, int maxep, int miner, int maxer, UINT filt);
+void setParamC (int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles);
+int setTestModeC (int ot, char *logFileName);
 int PrintOptionsOpsudo();
