@@ -101,7 +101,7 @@ public:
 	//! If <code>pron</code> print the char <code>c</code>
 	inline void E(char c)	{if(pron)(*this)<<c; }
 	//! If <code>pron</code> print the null terminated string <code>c</code>
-	inline void E(char* c)	{if(pron)(*this)<<c; }
+	inline void E(const char* c)	{if(pron)(*this)<<c; }
 	//! If <code>pron</code> print the int <code>x</code>
 	inline void E(int x)	{if(pron)(*this)<<x;}
 	//! If <code>pron</code> print a newline
@@ -119,7 +119,7 @@ public:
 	//! If <code>pron</code> print the char <code>c</code> + newline
 	inline void Enl(char c)	{if(pron)(*this)<<c<<endl; }
 	//! If <code>pron</code> print the null terminated string <code>c</code> + newline
-	inline void Enl(char* c)	{if(pron)(*this)<<c<<endl; }
+	inline void Enl(const char* c)	{if(pron)(*this)<<c<<endl; }
 	//! If <code>pron</code> print the int <code>x</code> + newline
 	inline void Enl(int x)	{if(pron)(*this)<<x<<endl;}
 	//! If <code>pron</code> print two newlines

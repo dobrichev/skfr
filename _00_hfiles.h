@@ -7,12 +7,12 @@
 #include "opsudo.h"             // storing and managing options
 
 
-#include "_03c_puzzle_fix.h"
+//#include "_03c_puzzle_fix.h"
 
 #include "puzzle.h"           // general class to solve a puzzle
 
 
-#include "_20a_event.h"
+//#include "_20a_event.h"
 
-#include "_30a_TCANDGO.h"  
+//#include "_30a_TCANDGO.h"  
 
