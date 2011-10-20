@@ -66,7 +66,7 @@ TEVENT tevent(&puz);
 TCANDGO tcandgo;
 CHAINSTORE tstore;
 
-void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,UINT filt){
+void setMinMaxC(int mined, int maxed, int minep, int maxep, int miner, int maxer, UINT filt){
 	Op.mined = mined;
 	Op.maxed = maxed;
 	Op.minep = minep;
@@ -74,10 +74,10 @@ void setMinMaxC(int mined,int maxed, int minep, int maxep, int miner, int maxer,
 	Op.miner = miner;
 	Op.maxer = maxer;
 	Op.filters.SetAll_0();
-	Op.filters.f=filt;
+	Op.filters.f = filt;
 }
 
-void setParamC (int o1, int delta, int os, int oq,int ot, int oexclude, int edcycles)
+void setParamC (int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles)
 {
 	Op.o1=o1;
 	Op.delta=delta;

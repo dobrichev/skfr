@@ -29,22 +29,34 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // skfrdll.cpp : définit les fonctions exportées pour l'application DLL.
 //
 
-#include "stdafx.h"
-#include "..\src\h\ratingengine.h"
+#include <windows.h>
+
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+					 )
+{
+    return TRUE;
+}
+
+#include "ratingengine.h"
+
 #define DLLEXPORT __declspec(dllexport)
+
 extern "C" DLLEXPORT int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig);
-extern "C" DLLEXPORT void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer);
-extern "C" DLLEXPORT void __stdcall setParam (int o1, int delta, int os, int oexclude, int edcycles);
-extern "C" DLLEXPORT int __stdcall setTestMode (int ot,char * logFileName);
-int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig)
-{
-	return ratePuzzleC(ze,er,ep,ed,aig);
+extern "C" DLLEXPORT void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer, UINT filt);
+extern "C" DLLEXPORT void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles);
+extern "C" DLLEXPORT int __stdcall setTestMode(int ot, char * logFileName);
+
+int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig) {
+	return ratePuzzleC(ze, er, ep, ed, aig);
 }
-void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer)
-{
-	setMinMaxC( mined, maxed,  minep,  maxep,  miner,  maxer);
+void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer, UINT filt) {
+	setMinMaxC(mined, maxed,  minep,  maxep,  miner,  maxer, filt);
 }
-int __stdcall setTestMode (int ot,char * logFileName)
-{
-	return setTestModeC (ot,logFileName);
+void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles) {
+	setParamC(o1, delta, os, oq, ot, oexclude, edcycles);
+}
+int __stdcall setTestMode(int ot, char *logFileName) {
+	return setTestModeC(ot, logFileName);
 }

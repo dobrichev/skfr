@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<VisualStudioProject
+	ProjectType="Intel C++ Project"
+	Version="11.0"
+	Name="skfrdll"
+	ProjectGUID="{7F26469E-4E42-4E44-9EF6-B8D7B2B35736}"
+	VCNestedProjectGUID="{C575CE99-560C-4EAF-BE74-25D6C01ECF47}"
+	VCNestedProjectFileName="skfrdll_2005.vcproj">
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32">
+			<Tool
+				Name="LinkerTool"
+				InterproceduralOptimization="true"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32">
+			<Tool
+				Name="GeneralTool"
+				InterproceduralOptimization="true"/>
+			<Tool
+				Name="CppCmplrTool"
+				GlobalOptimizations="true"
+				UseProcessorExtensions="6"/>
+		</Configuration>
+	</Configurations>
+	<Files/>
+</VisualStudioProject>
