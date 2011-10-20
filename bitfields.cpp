@@ -30,17 +30,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "bitfields.h"
 #include <memory.h>
 
-BF_CONVERT bfconv;
-
-// BF81
-// global variable for class BF81
-//int BF81::io = 0, BF81::jo = 0;
-
-// BFTAG
-// global variable for class BFTAG
-//int BFTAG::io = 0, BFTAG::jo = 0;
-//int BFTAG::isize = 20;
-
+//BF_CONVERT bfconv;
 
 //-----
 void BFTAG::SetAll_0() {

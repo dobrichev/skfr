@@ -598,7 +598,8 @@ void PUZZLE::cInit(int un) {
 void PUZZLE::cFixer(int ich, int i8) {
 	for(int i = 0; i < 9; i++)
 		c[i].Clear(i8); // pas de candidat ici
-	c[ich].Clear(t81f[i8].z);
+	//c[ich].Clear(t81f[i8].z); //MD: replaced with -=
+	c[ich] -= t81f[i8].z;
 }   // ni en zone influence
 
 void PUZZLE::cReport() {    // on charge cand de ztzch
