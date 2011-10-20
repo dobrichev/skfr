@@ -27,7 +27,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
+const int chx_max =9; //max size  for an event set could be a variable parameter?
+                   // limit could be 20 in zcx, but must be checked to go over 9
 
+const char *orig[]={"row ","column ","box "," "};
+const char *lc="ABCDEFGHI";
+const char *orig1="RCB ";
 
 //former (r96) _03c_puzzle_fix.cpp start
 // DIVF implementation

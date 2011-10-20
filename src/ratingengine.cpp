@@ -137,19 +137,4 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	return  rc;
 }
 
-//<<<<<<<<<<<<<<<<<<<<provisoire, data et methodes par include
-//==============================
-USHORT chx_max =9; //max size  for an event set could be a variable parameter?
-                   // limit could be 20 in zcx, but must be checked to go over 9
-
-char *orig[]={"row ","column ","box "," "};
-char *lc="ABCDEFGHI";
-char *orig1="RCB ";
-
-//=============================
-
-
-//#include "_03c_puzzle_fix.cpp"
 #include "puzzle.cpp"
-//#include "_03b_puzzle_chains.cpp"
-//#include "_20a_event.cpp"
