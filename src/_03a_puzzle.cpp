@@ -3919,7 +3919,7 @@ Dynamic search in nested mode for a candidate
      each new link is loaded in the dp table
 */
 int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
-	opp = 0; //(Op.ot && jdk.couprem>14);
+	opp = 0; //if(Op.ot && couprem==80)opp=1;;
 	USHORT tag = cand << 1; 
 	if(base>90){
 	   zcf.StartNestedOne();
@@ -3928,7 +3928,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 	}
 	BFTAG tt = zcf.h.d.t[tag]; 
 
-	if(0) {
+	if(opp) {
 		    EE.E("go nested for cand ");
 		    zpln.Image(cand);
 		    EE.Enl();
@@ -3968,7 +3968,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 		GoNestedWhile(tag, base);                    // while cycle
 
 
-		if(0) {
+		if(opp) {
 			EE.E("fin step=");
 			EE.E(npas);
 			puz.Image((*step),"step ", 0);
@@ -3983,7 +3983,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 		for(int i = 0; i < itb; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
-				if(0) {
+				if(opp) {
 					EE.E("\n\nfound active a -> x and a -> ~x");
 					zpln.ImageTag(tgx);
 					EE.E(" step=");
@@ -4324,7 +4324,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 		allsteps |= elims; // and in the total 
 //		hdp[tag] |= elims;
 		//USHORT ty[100], ity = 0; //test 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
-		USHORT ty[150], ity = 0;
+		USHORT ty[300], ity = 0;
 		elims.String(ty, ity);
 		for(int i = 0; i < ity; i++)
 			tb[itb++] = ty[i];
@@ -4342,7 +4342,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 		(*step) |= elims2; // flag it in the BFTAG and load in new
 		allsteps |= elims2; // and in the total 
 //		hdp[tag] |= elims2;
-		USHORT ty[150], ity = 0;
+		USHORT ty[300], ity = 0;
 		elims2.String(ty, ity);
 		for(int i = 0; i < ity; i++)
 			tb[itb++] = ty[i];

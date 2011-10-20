@@ -99,7 +99,7 @@ public:
   
 class  CHAINSTORE {
 public:
-	USHORT buf[10000], ibuf,        
+	USHORT buf[30000], ibuf,        
 		starts[2000], ends[2000],
 		ise,
 		s2[500], e2[500], ise2;
@@ -113,7 +113,7 @@ public:
 		ise2 = 1;
 	} // 0 is "empty"
 	USHORT AddChain(USHORT * tch, USHORT n) {
-		if(ibuf + n > 10000)
+		if(ibuf + n > 30000)
 			return 0;
 		starts[ise] = ibuf; 
 		for(int i = 0; i < n; i++)
