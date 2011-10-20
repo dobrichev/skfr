@@ -27,6 +27,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 
+#include "flog.h"				// relay for printing only in tests
+#include "opsudo.h"				// storing and managing options
+#include "puzzle.h"				// general class to solve a puzzle
+#include "utilities.h"
+
 const int chx_max =9; //max size  for an event set could be a variable parameter?
                    // limit could be 20 in zcx, but must be checked to go over 9
 
