@@ -133,7 +133,7 @@ public:
 		return((el == p8->el) || (pl == p8->pl) || eb == p8->eb);
 	}
 
-	int BugParite(int ch);  // utilise aztob
+	//int BugParite(int ch);  // utilise aztob
 };
 
 //! Table containing the fix data for the 81 cells
@@ -181,15 +181,15 @@ public:
 	
 	//! Are all cells defined by <code>ze</code> in House with index <code>i</code>
 	/** \return 1 if yes, 0 if no */
-	int IsObjetI (const BF81 & ze, int i);
+	int IsObjetI (const BF81 & ze, int i) const;
 
 	//! Is there a house that contains all cells defined by <code>ze</code>
 	/** \return 1 if there is one, 0 if none */
-	int IsObjet(BF81 &ze);
+	int IsObjet(BF81 &ze) const;
      
 	//! Get index of a box that contains all cells defined by  <code>ze</code>
 	/** \return box index (18-26) or 0 if none */
-	int IsBox(BF81 &ze); 
+	int IsBox(BF81 &ze) const; 
   
 	//! Is there a house that contains the two cells
 	/**
@@ -197,16 +197,16 @@ public:
 	 * \param p2 second cell index
 	 * \return 1 if yes, 0 if no
 	 */
-	int IsObjet(USHORT p1,USHORT p2); 
+	int IsObjet(USHORT p1,USHORT p2) const; 
   
 	///\brief Are the cells defined by <code>ze</code> in an other house
 	/// than <code>obje</code> house.
 	///\param objs int reference to return the house index
 	///\return 1 if an other house has been found, 0 if none
-	int IsAutreObjet(BF81 &ze,int obje, int &objs);
+	int IsAutreObjet(BF81 &ze,int obje, int &objs) const;
 	
 	//! Get valued cell count in the house <code>el</code>
-	int N_Fixes(char * pg,int el);
+	int N_Fixes(char * pg,int el) const;
     
 }; // DIVF
 

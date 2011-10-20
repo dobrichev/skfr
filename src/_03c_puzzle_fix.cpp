@@ -31,13 +31,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 //*** should not be here to be thread safe<<<<<<<<<<<<<<<<<
 
 
-int CELL_FIX::BugParite(int ch) {
-	if(aztob.tchbit.el[el].eld[ch].n > 2 ||
-		aztob.tchbit.el[pl + 9].eld[ch].n > 2 ||
-		aztob.tchbit.el[eb + 18].eld[ch].n > 2)
-		return 1;
-	return 0;
-}
+//int CELL_FIX::BugParite(int ch) {
+//	if(aztob.tchbit.el[el].eld[ch].n > 2 ||
+//		aztob.tchbit.el[pl + 9].eld[ch].n > 2 ||
+//		aztob.tchbit.el[eb + 18].eld[ch].n > 2)
+//		return 1;
+//	return 0;
+//}
 
 // DIVF implementation
 DIVF::DIVF() {  // constructor making initialisations
@@ -51,37 +51,39 @@ DIVF::DIVF() {  // constructor making initialisations
 		}
 	}
 	for(int i = 0; i < 27; i++) {	// convert array to bitfield
-		BF81 z;   
+		//BF81 z;   
+		//for(int j = 0; j < 9; j++) 
+		//	z.Set(el81[i][j]);  
+		//elz81[i] = z;
 		for(int j = 0; j < 9; j++) 
-			z.Set(el81[i][j]);  
-		elz81[i] = z;
+			elz81[i].Set(el81[i][j]);  
 	}
 }
 
-int DIVF::IsObjetI(BF81 const &ze, int i) {
+int DIVF::IsObjetI(BF81 const &ze, int i) const {
 	return (ze.EstDans(elz81[i]));
 }
 
-int DIVF::IsObjet(BF81 &ze) {
+int DIVF::IsObjet(BF81 &ze) const {
 	for(int i = 0; i < 27; i++)
 		if(IsObjetI(ze,i)) 
 			return 1;  
 	return 0;
 }
 	
-int DIVF::IsBox(BF81 &ze) {
+int DIVF::IsBox(BF81 &ze) const {
 	for(int i = 18; i < 27; i++) 
 		if(IsObjetI(ze, i))
 			return i; 
 	return 0;
 } 
 
-int DIVF::IsObjet(USHORT p1, USHORT p2) {
+int DIVF::IsObjet(USHORT p1, USHORT p2) const {
 	BF81 z(p1, p2);
 	return IsObjet(z);
 }
 
-int DIVF::IsAutreObjet(BF81 &ze, int obje, int &objs) {
+int DIVF::IsAutreObjet(BF81 &ze, int obje, int &objs) const {
 	for(int i = 0; i < 27; i++) {
 		if(i == obje)
 			continue;
@@ -93,7 +95,7 @@ int DIVF::IsAutreObjet(BF81 &ze, int obje, int &objs) {
 	return 0;
 }
  
-int DIVF::N_Fixes(char * pg,int el) {
+int DIVF::N_Fixes(char * pg,int el) const {
 	int n = 0; 
 	for(int i = 0; i < 9; i++) 
 		if(pg[el81[el][i]] - '0') 

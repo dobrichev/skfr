@@ -50,6 +50,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
    cpt gives the count of bit set to "1"
    First gives the place of the first bit
 */
+/*
 class BF_CONVERT
 {
 public:
@@ -97,6 +98,7 @@ public:
 		return -1;
 	} // -1 is bit field null
 };
+*/
 
 /* class BIT16 can be used in any case one need a 16 bits field, 
       for example to store options.
@@ -320,117 +322,148 @@ class BF81 {
 	 * which position in this int in <code>j0</code> for a global position<br>
 	 * <b>WARNING : </b> not thread safe !
 	 */
-	unsigned  int f[3];   // bitfield
+	//unsigned  int f[3];   // bitfield
+	bm128 ff;
 public:  
 
     BF81(){SetAll_0();}
+    BF81(const BF81 &r) {*this = r;}
     BF81(int i1) {
-		SetAll_0();
-		Set(i1);
+		ff = bitSet[i1];
+		//SetAll_0();
+		//Set(i1);
 	}
     BF81(int i1, int i2) {
-		SetAll_0();
-		Set(i1);
-		Set(i2);
+		ff = bitSet[i1];
+		ff |= bitSet[i2];
+		//SetAll_0();
+		//Set(i1);
+		//Set(i2);
 	}
 	//!Set all bits to 1
     inline void SetAll_1() {
-		f[0] = f[1] =-1;
-		f[2]=0x1ffff;
+		ff = maskLSB[81];
+		//f[0] = f[1] =-1;
+		//f[2]=0x1ffff;
 	}
 	//!Set all bits to 0
     inline void SetAll_0() {
-		f[0] = f[1] = f[2] = 0;
+		ff.clear();
+		//f[0] = f[1] = f[2] = 0;
 	}
 
 	inline int On(int v) const {
-		return (f[v >> 5] & (1 << (v & 31)));
+		return ff.isBitSet(v);
+		//return (f[v >> 5] & (1 << (v & 31)));
 	}
 	inline int Off(int v) const {
-		return ((f[v >> 5] & (1 << (v & 31))) == 0);
+		return ff.isBitSet(v) == 0;
+		//return ((f[v >> 5] & (1 << (v & 31))) == 0);
 	}
 	inline void Set(int v) {
-		f[v >> 5] |= (1 << (v & 31));
+		ff.setBit(v);
+		//f[v >> 5] |= (1 << (v & 31));
 	}
 	//!Clear position <code>v</code>
     inline void Clear(int v) {
-		f[v >> 5] &= (~(1 << (v & 31)));
+		ff.clearBit(v);
+		//f[v >> 5] &= (~(1 << (v & 31)));
 	}
 	//!Is there any bit On
     inline int IsNotEmpty() const {
-		return (f[0] || f[1] || f[2]);
+		return ff.isZero() == 0;
+		//return (f[0] || f[1] || f[2]);
 	}
 	//! Is there no bit On
     inline int IsEmpty() const {
-		return ((f[0] | f[1] | f[2]) == 0);
+		return ff.isZero();
+		//return ((f[0] | f[1] | f[2]) == 0);
 	}
 
 	BF81 operator | (const BF81 & b) const {
-		BF81 w;
-		w.f[0] = f[0] | b.f[0];
-		w.f[1] = f[1] | b.f[1];
-		w.f[2] = f[2] | b.f[2];
+		//BF81 w;
+		//w.f[0] = f[0] | b.f[0];
+		//w.f[1] = f[1] | b.f[1];
+		//w.f[2] = f[2] | b.f[2];
+		//return w;
+		BF81 w(*this);
+		w |= b;
 		return w;
 	}
 
     void operator |= (const BF81 & b) {
-		f[0] |= b.f[0];
-		f[1] |= b.f[1];
-		f[2] |= b.f[2];
+		ff |= b.ff;
+		//f[0] |= b.f[0];
+		//f[1] |= b.f[1];
+		//f[2] |= b.f[2];
 	}
 
 	BF81 operator & (const BF81 & b) const {
-		BF81 w;
-		w.f[0] = f[0] & b.f[0];
-		w.f[1] = f[1] & b.f[1];
-		w.f[2] = f[2] & b.f[2];
+		//BF81 w;
+		//w.f[0] = f[0] & b.f[0];
+		//w.f[1] = f[1] & b.f[1];
+		//w.f[2] = f[2] & b.f[2];
+		//return w;
+		BF81 w(*this);
+		w.ff &= b.ff;
 		return w;
 	}
 
     void operator &= (const BF81 & b) {
-		f[0] &= b.f[0];
-		f[1] &= b.f[1];
-		f[2] &= b.f[2];
+		//f[0] &= b.f[0];
+		//f[1] &= b.f[1];
+		//f[2] &= b.f[2];
+		ff &= b.ff;
 	}
 
 	BF81 operator ^ (const BF81 & b) const {
-		BF81 w;
-		w.f[0] = f[0] ^ b.f[0];
-		w.f[1] = f[1] ^ b.f[1];
-		w.f[2] = f[2] ^ b.f[2];
+		//BF81 w;
+		//w.f[0] = f[0] ^ b.f[0];
+		//w.f[1] = f[1] ^ b.f[1];
+		//w.f[2] = f[2] ^ b.f[2];
+		//return w;
+		BF81 w(*this);
+		w.ff ^= b.ff;
 		return w;
 	}
 
     void operator ^= (const BF81 & b) {
-		f[0] ^= b.f[0];
-		f[1] ^= b.f[1];
-		f[2] ^= b.f[2];
+		//f[0] ^= b.f[0];
+		//f[1] ^= b.f[1];
+		//f[2] ^= b.f[2];
+		ff ^= b.ff;
 	}
 
 	BF81 operator -(const BF81 & b) const {
-		BF81 w;
-		for(int i = 0; i < 3; i++)
-			w.f[i] = f[i] ^ (f[i]&b.f[i]);
+		//BF81 w;
+		//for(int i = 0; i < 3; i++)
+		//	w.f[i] = f[i] ^ (f[i]&b.f[i]);
+		//return w;
+		BF81 w(*this);
+		w.ff -= b.ff;
 		return w;
 	}
+	//! Clear all position that are on in <code>b</code>
     void operator -=(const BF81 & b) {
-		for(int i = 0; i < 3; i++)
-			f[i] ^= (f[i] & b.f[i]);
+		//for(int i = 0; i < 3; i++)
+		//	f[i] ^= (f[i] & b.f[i]);
+		ff -= b.ff;
 	}
 
     int operator ==(const BF81 & b) const {
-		return ((f[0] == b.f[0]) && (f[1] == b.f[1]) && (f[2] == b.f[2]));
+		return ff == b.ff;
+		//return ((f[0] == b.f[0]) && (f[1] == b.f[1]) && (f[2] == b.f[2]));
 	}
 
     int EstDans(const BF81 &fe) const {
-		return (((*this) & fe ) == (*this));
+		return ff.isSubsetOf(fe.ff);
+		//return (((*this) & fe ) == (*this));
 	}
 
-	//! Clear all position that are on in <code>z</code>
-    void Clear(const BF81 & z) {
-		for(int i = 0; i < 3; i++)
-			f[i] ^= (f[i] & z.f[i]);
-	}
+	//void Clear(const BF81 & z) { //same as -=
+	//	for(int i = 0; i < 3; i++)
+	//		f[i] ^= (f[i] & z.f[i]);
+	//}
 
 
 	//! Find the first position on
@@ -444,14 +477,15 @@ public:
 
 	//! Count the on bits
     int Count() {
-		int n = 0;
-		for(int i = 0; i < 81; i++)
-			if(On(i))
-				n++;
-		return n;
+		return popcount_128(ff.bitmap128.m128i_m128i);
+		//int n = 0;
+		//for(int i = 0; i < 81; i++)
+		//	if(On(i))
+		//		n++;
+		//return n;
 	}
 
- };
+};
 
 
 /* with BFCAND, we enter in a new kind of bit fields.
@@ -473,11 +507,12 @@ public:
 
 //bitfield 320 bits used to store candidates used in a path
 
-#define BFCAND_size 10
-#define BFCAND_BitSize 10*32
+//#define BFCAND_size 10
+//#define BFCAND_BitSize 10*32
 
 class BFCAND {
-	UINT f[BFCAND_size];     // the bit field
+	//UINT f[BFCAND_size];     // the bit field
+	bm128 ff[3];
 public:
 	BFCAND() {
 		SetAll_0();
@@ -491,21 +526,23 @@ public:
 		(*this) = old;
 	}
 	void SetAll_0() {
-		for(int i = 0; i < BFCAND_size; i++)
-			f[i] = 0;
+		ff[0].clear();
+		ff[1].clear();
+		ff[2].clear();
+		//for(int i = 0; i < BFCAND_size; i++)
+		//	f[i] = 0;
 	} 
 	inline int On(int v) const {
-		return (f[v >> 5] & (1 << (v & 31)));
+		//return (f[v >> 5] & (1 << (v & 31)));
+		return (ff[v >> 7].isBitSet(v & 127));
 	}
 	inline int Off(int v) const {
-		return ((f[v >> 5] & (1 << (v & 31))) == 0);
+		return (On(v) == 0);
 	}
 	inline void Set(int v) {
-		f[v >> 5] |= (1 << (v & 31));
+		//f[v >> 5] |= (1 << (v & 31));
+		ff[v >> 7].setBit(v & 127);
 	}
-	//inline void Clear(int v) {
-	//	f[v >> 5] &= (~(1 << (v & 31)));
-	//}
 };
 
 /* BFTAG is the key bitfield in the tagging process.
