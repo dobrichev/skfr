@@ -100,7 +100,8 @@
     <ClCompile Include="..\src\skfr.cpp" />
     <ClCompile Include="..\src\t_128.cpp" />
     <ClCompile Include="..\src\utilities.cpp" />
-  </ItemGroup>
+    <ClCompile Include="..\src\puzzle.cpp" />
+ </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\_00_hfiles.h" />
     <ClInclude Include="..\src\t_128.h" />
