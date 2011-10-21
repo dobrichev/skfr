@@ -38,7 +38,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // global variables for RatingEngine
 
-long tdebut; // for debugging purpose start time in PUZZLE traite base
 OPSUDO Op;
 FLOG EE;
 CELLS T81dep;
@@ -56,7 +55,7 @@ ULT tult;
 TPAIRES zpaires;
 SEARCH_UR ur;
 SEARCH_URT urt;
-TCHAIN tchain;
+TCHAIN tchainx;
 ZGROUPE zgs(&puz);
 CANDIDATES zpln(&puz);
 INFERENCES zcf(&puz);

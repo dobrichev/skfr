@@ -5224,12 +5224,12 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 			}
 			if(!npasch)
 				continue; // should never happen
-			int ratch = tchain.GetRatingBase((opx == 3) ? 70 : 66, npasch + 1, i >> 1);
+			int ratch = puz.tchain.GetRatingBase((opx == 3) ? 70 : 66, npasch + 1, i >> 1);
 			if(ratch) { // chain is accepted load it (more comments in test mode)
 				if(Op.ot) {
 					ExplainPath(wch, i, i^1, npasch + 2, i ^ 1);
 				}
-				tchain.LoadChain(ratch, "chain", i >> 1);	
+				puz.tchain.LoadChain(ratch, "chain", i >> 1);	
 			}
 		}
 		//--------------------------- now look for a loop 
@@ -5262,13 +5262,13 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 					int npascycle = wstart.SearchCycle(h.dp.t, t1,xb);
 					if(!npascycle)
 						continue; // could  ben ??
-					int rat = tchain.GetRatingBase((opx == 3) ? 70 : 65, npascycle + 1, i >> 1);
+					int rat = puz.tchain.GetRatingBase((opx == 3) ? 70 : 65, npascycle + 1, i >> 1);
 					if(!rat)
 						continue;// chain is accepted load it (more comments in test mode)
 					if(Op.ot) {
 						ExplainPath(wstart, t1, t1, npascycle + 2, t2);
 					}
-					tchain.LoadChain(rat, "cycle", i >> 1); 
+					puz.tchain.LoadChain(rat, "cycle", i >> 1); 
 				}
 				else if(opx == 2) // not allowed in 'X' mode and no interest in 'XY'mode
 					Aic_Ycycle(t1, t2 ^ 1, xb, i >> 1); // both turned to true 
@@ -5373,7 +5373,7 @@ void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2, const BFTAG &loop,USHORT cand)
 		Aic_YcycleD2(t1,t2,loop,cand);
 		return;
 	}// try the second way
-	int rat = tchain.GetRatingBase(65, lg, cand);
+	int rat = puz.tchain.GetRatingBase(65, lg, cand);
 	if(!rat)
 		return;
 	// chain is accepted load it and in test mode, find more comments
@@ -5382,7 +5382,7 @@ void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2, const BFTAG &loop,USHORT cand)
 		resf.PrintPathTags();
 	}
 	//  ExplainPath(resf,t1,t1,lg+2,t2);  }
-	tchain.LoadChain(rat, "Y cycle", cand); 
+	puz.tchain.LoadChain(rat, "Y cycle", cand); 
 }
 
 /* first process failed
@@ -5423,13 +5423,13 @@ USHORT t2=t2x^1,t1=0; // new target is  "on"
   }
  // lg final count, resf final result finish the task
  if(lg>100) return; // should never happen
- int rat=tchain.GetRatingBase(65,lg,cand);
+ int rat=puz.tchain.GetRatingBase(65,lg,cand);
  if(!rat) return;
      // chain is accepted load it and in test mode, find more comments
  if(Op.ot){EE.Enl("Y cycle out of the region");
            resf.PrintPathTags();   }
 	     //  ExplainPath(resf,t1,t1,lg+2,t2);  }
- tchain.LoadChain(rat,"Y cycle",cand); 
+ puz.tchain.LoadChain(rat,"Y cycle",cand); 
 }
 
 /* process one start  t1->t1a looking for t1
@@ -5654,7 +5654,7 @@ parentpuz->Elimite("ZCX");return 0;}
                  if(!npasch) EE.Enl(" 0 partial length "); // debugging message
 				 tot_length+=npasch+2;
 	     	   }
-           int ratch=tchain.GetRatingBase(80,tot_length,jj>>1);
+           int ratch=puz.tchain.GetRatingBase(80,tot_length,jj>>1);
            if(ratch) // chain is accepted load it (more comments in test mode)
                {// in test mode  give the details for the chains
 				// in that case, do it again and print
@@ -5669,7 +5669,7 @@ parentpuz->Elimite("ZCX");return 0;}
                       wch.TrackBack(zcf.h.dp.t,jj,end,tt,itt,end);
                       zpln.PrintImply(tt,itt);
 		          }
-               tchain.LoadChain(ratch,"chain",jj>>1);	
+               puz.tchain.LoadChain(ratch,"chain",jj>>1);	
                }
  	      } // end  for j
        } // end if
