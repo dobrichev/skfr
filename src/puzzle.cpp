@@ -555,8 +555,8 @@ PUZZLE::PUZZLE() {
 	T81C = &tp8N_cop;
 	T81t = T81->t81;
 	T81tc = T81C->t81;
-	yt.Init(this);
-	zpaires.Init(this);
+	yt.SetParent(this);
+	zpaires.SetParent(this);
 }
 
 
@@ -2220,7 +2220,7 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 	return ir;
 }
 
- void SEARCH_LS_FISH::Init(PUZZLE * parent){
+ void SEARCH_LS_FISH::SetParent(PUZZLE * parent){
  parentpuz=parent;
  regindp=aztob.tpobit.el;
  regindch=aztob.tchbit.el;
@@ -2366,7 +2366,7 @@ int SEARCH_LS_FISH::XW(int nn)
   }    // end i niv
 return 0;}
 
-void TPAIRES::Init(PUZZLE * parent){
+void TPAIRES::SetParent(PUZZLE * parent){
 parentpuz=parent;
 }
 
@@ -4717,12 +4717,6 @@ int TCHAIN::IsOK(USHORT x) {
 	//{return ((rating <= x ) || (rating <= Op.ermax));}
 }
 
-void TCHAIN::Status() {
-	EE.E("tchain ichain=");
-	EE.E(ichain);
-	EE.E(" rating=");
-	EE.Enl(rating);
-}
 
 
 

@@ -671,7 +671,7 @@ public:
 
 	UCHAR ch; 
 
-    void Init(PUZZLE * parent);
+    void SetParent(PUZZLE * parent);
 
 	void InitTir(BF16 none,BF16 casese, int rangc,int rangv);
 
@@ -728,7 +728,7 @@ public:
 		nwp;             // index for wplus
 	int ip, np, aigpmax, aigun, brat;
 
-	void Init(PUZZLE * parent);
+	void SetParent(PUZZLE * parent);
 	void CreerTable(const CELL * tt);
 	int CommunPaires(int i, int j);
 	int CommunTrio(int i, int j);
@@ -844,11 +844,13 @@ public:
 
 class TCHAIN { // storing up to 20 chains having the same "lowest"rating
 public:      
+	PUZZLE *parentpuz;
 	USHORT rating,             // current rating 
 		maxlength;          // filter for the search of a path (tags)
 	CHAIN chainw, chains[30]; // enough to store several small loops 
 	USHORT ichain,           // index to chains 
 		base;
+	void SetParent(PUZZLE * parent){parentpuz=parent;}
 
 	void Init() {
 		rating = 200;
@@ -878,7 +880,6 @@ public:
 
 	void LoadChain(USHORT rat, char * lib, USHORT cand);
 
-	//inline int IsOK(USHORT x);
 	int IsOK(USHORT x);
 
 	int Clean() { // clear all pending candidates
@@ -888,7 +889,6 @@ public:
 		return ir;
 	}
 
-	void Status();
 };// tchain ;
 
 
@@ -1902,7 +1902,6 @@ extern ULT tult;
 extern TPAIRES zpaires;
 extern SEARCH_UR ur;
 extern SEARCH_URT urt;
-//extern TCHAIN tchain;
 extern ZGROUPE zgs;
 extern CANDIDATES zpln;
 extern INFERENCES zcf;

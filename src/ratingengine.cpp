@@ -55,7 +55,6 @@ ULT tult;
 TPAIRES zpaires;
 SEARCH_UR ur;
 SEARCH_URT urt;
-TCHAIN tchainx;
 ZGROUPE zgs(&puz);
 CANDIDATES zpln(&puz);
 INFERENCES zcf(&puz);
