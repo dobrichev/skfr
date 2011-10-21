@@ -1254,6 +1254,7 @@ public:
 
     UN_JEU un_jeu;
     SEARCH_LS_FISH yt;
+    TCHAIN tchain;
 
 
     GG gg,          //< copy of the puzzle (normalized form - empty cell '0')
@@ -1267,7 +1268,8 @@ public:
 		elza81[27],
 		csol[9];   //< Solution as positions of the 9 digits
 
- 
+    long tdebut; // for debugging purpose start time in PUZZLE traite base
+
     int coup,
 		coupMM,
 		couprem; 
@@ -1882,7 +1884,7 @@ public:
 
 // global variables for Puzzle
 
-extern long tdebut; // for debugging purpose start time in PUZZLE traite base
+
 extern OPSUDO Op;
 extern FLOG EE;
 extern CELLS T81dep;
@@ -1900,7 +1902,7 @@ extern ULT tult;
 extern TPAIRES zpaires;
 extern SEARCH_UR ur;
 extern SEARCH_URT urt;
-extern TCHAIN tchain;
+//extern TCHAIN tchain;
 extern ZGROUPE zgs;
 extern CANDIDATES zpln;
 extern INFERENCES zcf;
