@@ -2977,6 +2977,7 @@ int TPAIRES::Bug_lock(int el) {
 	EE.E(" wc2=");
 	EE.Enl(wc2.String());
 
+	if(wce2.f-wce1.f) return 0; // must be the same digit
 	if((wc1.QC() - 2) || (wc2.QC() - 2))
 		return 0;	 
 
@@ -4874,18 +4875,31 @@ void  CANDIDATES::WeakLinksD()
        }  }}
 
 //---------- gen sets of candidates in a row column box 
-void CANDIDATES::GenRegionSets()     // can only be one per row col box, only if more than 2 candidates
-{  USHORT mch[10];       
-   for( int ich=0;ich<9;ich++) for (int el=0;el<27;el++)
-   {USHORT nmch=aztob.tchbit.el[el].eld[ich].n,ipts=0;;
-	if(nmch<3) continue; // minimum set size is 3
-	BF81 zel=divf.elz81[el]&puz.c[ich];  int j;
-    for(j=1;j<ip;j++)
-     {if(zp[j].ch-ich )continue;
-      if(zel.On(zp[j].ig) ) mch[ipts++]=j; 
-     }
+/* changed the order of generation for 2 reasons
+   closer to serate mode
+   better change to have same rating for morphs
+
+   first generate box sets
+   et after only row col
+
+*/
+
+void CANDIDATES::GenRegionSets()     
+	// can only be one per row col box, only if more than 2 candidates
+{  USHORT mch[10];    
+   for (int elx=0,el=18;elx<27;elx++,el++){
+      if(el==27) el=0;  // after boxes rows and columns
+      for( int ich=0;ich<9;ich++) {
+        USHORT nmch=aztob.tchbit.el[el].eld[ich].n,ipts=0;;
+	    if(nmch<3) continue; // minimum set size is 3
+	    BF81 zel=divf.elz81[el]&puz.c[ich];  
+		for(int j=1;j<ip;j++){
+            if(zp[j].ch-ich )continue;
+            if(zel.On(zp[j].ig) ) mch[ipts++]=j; 
+        }
      zcx.ChargeSet(mch,nmch,SET_base);
     }
+   }
 }
 void  CANDIDATES::GenCellsSets()
 {for(USHORT i=0;i<81;i++)
