@@ -145,19 +145,19 @@ public:
 		f = 0x1ff;
 	}			
 	//! indicate if all bits are 0
-    inline int isEmpty() {
+    inline int isEmpty() const {
 		return (f == 0);
 	}
 	//! indicate if at least one bit is on
-    inline int isNotEmpty() {
+    inline int isNotEmpty() const {
 		return f;
 	}
 	//! is bit at ch position on
-	inline int On(int ch) {
+	inline int On(int ch) const {
 		return ((f & (1 << ch)));
 	}		
 	//! is bit at ch position off
-	inline int Off(int ch) {
+	inline int Off(int ch) const {
 		return (!(f & (1 << ch)));
 	}	
 	//! set bit at ch position
@@ -168,7 +168,7 @@ public:
 	inline void Clear(USHORT ch) {
 		f &= ~(1 << ch);
 	}
-	inline BF16 operator &(BF16 & e) {
+	inline BF16 operator &(BF16 & e) const {
 		BF16 w;
 		w.f = f & e.f;
 		return w;

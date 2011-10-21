@@ -39,80 +39,12 @@ const char *orig[]={"row ","column ","box "," "};
 const char *lc="ABCDEFGHI";
 const char *orig1="RCB ";
 
-//former (r96) _03c_puzzle_fix.cpp start
-// DIVF implementation
-DIVF::DIVF() {  // constructor making initialisations
-	for(int r = 0; r < 9; r++) {
-		for(int c = 0; c < 9; c++) {	// loop on cells
-			int p = I81::Pos(r, c); // cell index (0-80)
-			el81[r][c] = p;		// cell is in row r
-			el81[c + 9][r] = p;		// cell is in column c
-			int eb = I81::Boite(r, c), pb = I81::PosBoite(r, c); 
-			el81[eb + 18][pb] = p;	// cell is in box eb and position in box pb
-		}
-	}
-	for(int i = 0; i < 27; i++) {	// convert array to bitfield
-		//BF81 z;   
-		//for(int j = 0; j < 9; j++) 
-		//	z.Set(el81[i][j]);  
-		//elz81[i] = z;
-		for(int j = 0; j < 9; j++) 
-			elz81[i].Set(el81[i][j]);  
-	}
-}
-
-int DIVF::IsObjetI(BF81 const &ze, int i) const {
-	return (ze.EstDans(elz81[i]));
-}
-
-int DIVF::IsObjet(BF81 &ze) const {
-	for(int i = 0; i < 27; i++)
-		if(IsObjetI(ze,i)) 
-			return 1;  
-	return 0;
-}
-	
-int DIVF::IsBox(BF81 &ze) const {
-	for(int i = 18; i < 27; i++) 
-		if(IsObjetI(ze, i))
-			return i; 
-	return 0;
-} 
-
-int DIVF::IsObjet(USHORT p1, USHORT p2) const {
-	BF81 z(p1, p2);
-	return IsObjet(z);
-}
-
-int DIVF::IsAutreObjet(BF81 &ze, int obje, int &objs) const {
-	for(int i = 0; i < 27; i++) {
-		if(i == obje)
-			continue;
-		if(IsObjetI(ze, i)) {
-			objs=i;
-			return 1; 
-		}
-	}
-	return 0;
-}
- 
-int DIVF::N_Fixes(char * pg,int el) const {
-	int n = 0; 
-	for(int i = 0; i < 9; i++) 
-		if(pg[el81[el][i]] - '0') 
-			n++;
-	return n;
-}
-
-//former _03c_puzzle_fix.cpp end
-
-
 GG::GG() {	// constructor
 	pg = g[0]; 
 	pg[81] = 0;
 }
 
-int GG::NBlancs() {
+int GG::NBlancs() const {
 	int i, n = 0;
 	for(i = 0; i < 81; i++)
 		if(pg[i] == '0')
@@ -120,7 +52,7 @@ int GG::NBlancs() {
 	return n;
 }
 
-int GG::Nfix() {
+int GG::Nfix() const {
 	int i, n = 0; 
 	for(i = 0; i < 81; i++) 
 		if(pg[i] - '0')
@@ -128,7 +60,7 @@ int GG::Nfix() {
 	return n;
 }
 
-void GG::Image(char * lib) {
+void GG::Image(char * lib) const {
 	EE.E(lib); 
 	EE.Enl(); 
 	char wc[10];
@@ -172,7 +104,6 @@ int CELLS::Clear(BF81 &z, int ch) {
 			ir += t81[i].Change(ch);
 	return ir;
 }
-//<<<<<<<<<<<<<<<<<<<<
 int CELLS::Clear(BF81 &z, BF16 x) {
 	int ir = 0;
 	for(int j = 0; j < 9; j++)
@@ -304,9 +235,6 @@ int CELLS::RIN(int aig) {      // look for unique rectangle
 }
 
 
-
-
-
 void UNPAS::Clear(int i8,USHORT  ch )
 {
 	CELL_FIX *wf=&t81f[i8];			// t81f global variable giving influence zone of all cells
@@ -404,7 +332,7 @@ void UNPAS::NsolPas()
 	for(int i=0;i<9;i++) 
 		if(candactif.On(i))
 		{
-			UNPAS pn(this);  
+			UNPAS pn(*this);  
 			pn.Fixer(iactif,i);  
 			pn.NsolPas();
 			if(((*nsol)>1)) return ;    
@@ -412,16 +340,10 @@ void UNPAS::NsolPas()
 }
 
 
-
-
-
-
-
-
 /* added here routines preliminary in Bitfields
    images
    */
-void PUZZLE::ImagePoints( BF81 & zz) const {
+void PUZZLE::ImagePoints(BF81 & zz) const {
 	char s0[5], s1[5];
 	int ns = 0, mode = 0;
 	for(int i = 0; i < 81; i++) {
@@ -435,23 +357,23 @@ void PUZZLE::ImagePoints( BF81 & zz) const {
 					if(s0[1]==s1[1]) {  // ligne r1c12 on empile colonnes
 						EE.E(s0);
 						EE.E(s1[3]);
-						mode=2;
+						mode = 2;
 					}
 					else if(s0[3] == s1[3]) { // colonne r12c1
 						EE.E(s0[0]);
 						EE.E(s0[1]);
 						EE.E(s1[1]);
-						mode=3;
+						mode = 3;
 					}
 					else
 						EE.E(s0);
 					break;
 				case 2:
 					if(s0[1]==s1[1])EE.E(s1[3]);  //suite ligne
-					else mode=1;  break;
+					else mode = 1;  break;
 				case 3:
 					if(s0[3]==s1[3]) EE.E(s1[1]);//suite colonne  insertion ligne
-					else {mode=1; EE.E(&s0[2]);}
+					else {mode = 1; EE.E(&s0[2]);}
 					break;
 			}  // end switch
 			strcpy_s(s0, 5, s1);
@@ -468,7 +390,7 @@ void PUZZLE::ImagePoints( BF81 & zz) const {
 }
 
 //------
-void PUZZLE::ImageCand(BFCAND & zz,char * lib) const {
+void PUZZLE::ImageCand(BFCAND &zz, char *lib) const {
 	if(!Op.ot)
 		return;
 	EE.E(lib);   
@@ -478,7 +400,6 @@ void PUZZLE::ImageCand(BFCAND & zz,char * lib) const {
 			EE.Esp();
 		}
 	}
-
 	EE.Enl();
 }
 
@@ -529,13 +450,6 @@ void PUZZLE::Estop(char * lib)
 	EE.Enl();
 	EE.Enl(lib); 
 	EE.Enl(); }
-
-
-/* routins imported from opsudo
-
-*/
-
-
 
 int PUZZLE::is_ed_ep()   // at the start of a new cycle
 	{
@@ -634,9 +548,6 @@ void PUZZLE::Step(SolvingTechnique dif) {   // analyse what to do at that level
 	if(difficulty>maxed || difficulty>maxep ){maxer=0; ir=1;return;}
 	*/
 }
-
-
-
 
 PUZZLE::PUZZLE() {
 	solution = gsolution.pg;  
@@ -1152,7 +1063,6 @@ int PUZZLE::Rating_end(int next) {
 	return tchain.Clean();
 }
 
-//former _12a_PUZZLE_Chaines2.cpp follows
 void PUZZLE::TaggingInit() {
 	zgs.ReInit();   // 81 bits patterns in use 
 	zcf.Init();     // elementary weak links
@@ -1237,11 +1147,8 @@ int PUZZLE::Rating_base_85() {
 	while(zcf.DeriveCycle(3, 9, 0))
 		;// and full expansion
 	ChainPlus(bf0);
-	
-
 	return Rating_end(200);
 }
-
 
 
 /* as in dynamic forcing chains,
@@ -1301,7 +1208,6 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 	for(int i = 2; i < puz.col; i += 2) {
 		BFTAG zw1 = t[i];
 		zw1 &= (t[i].Inverse()).TrueState();
-		//BFTAG zw2 = (t[i] & t[i^1]).FalseState();
 		BFTAG zw2 = t[i];
 		zw2 &= t[i ^ 1];
 		zw2 = zw2.FalseState();
@@ -1363,10 +1269,6 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 	}// end for ie
 }
 
-
-
-//former _12a_PUZZLE_AlignedTriplet.cpp follows
-
 //! Search for aligned pair or aligned triplet
 /**
 	That proces is very close to SE's one.
@@ -1374,14 +1276,13 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 	collect all cells seen by one of them (potential base cells)
 	First choose 2 cells (in the same band)of the potential base cells.
 */
-
 int PUZZLE::AlignedTripletN() {
 	int debuga = 0;
-	static int combi32[3][2] = {{0,1},{0,2},{1,2}};
+	static const int combi32[3][2] = {{0,1},{0,2},{1,2}};
 	BF81 z23,	// set of cells that have 2 or 3 candidates (could be excluding cells)
 		zbase;	// set of cells that are visible by one potential excluding cells
 	for(int i = 0 ;i < 81; i++) {
-		CELL_VAR p=T81t[i].v;
+		CELL_VAR p = T81t[i].v;
 		if(p.ncand < 2 || p.ncand > 3)
 			continue;
 		z23.Set(i); 
@@ -2471,7 +2372,7 @@ parentpuz=parent;
 
 
 
-void TPAIRES::CreerTable(CELL * tt) {
+void TPAIRES::CreerTable(const CELL * tt) {
 	ip = 0;
 	ntplus = aigpmax = 0;
 	zplus.SetAll_0();
@@ -2673,7 +2574,7 @@ int UL_SEARCH::Loop_OK(int action) {
 		return 0;
 	if(!action) // split processing depending on size of the loop
 		if(line_count>7) {
-			tult.Store(this);
+			tult.Store(*this);
 			return 0;
 		}
 		else
@@ -2711,7 +2612,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	}
 	// store it if action 0 
 	if(action < 2) {
-		tult.Store(this);
+		tult.Store(*this);
 		return 0;
 	}
 
@@ -2778,18 +2679,21 @@ int TPAIRES::Bug3a(int rat) {
 	for(int i = 0; i < 27; i++) {
 		if(zplus.EstDans(divf.elz81[i])) {
 			ntpa = nwp = 0;// collect data in that row/col/box
-			candp_or.f = candnp_or.f = candp_xor.f = candnp_xor.f = nwp = 0;
+			candp_or.f = candnp_or.f = nwp = 0;
+			//candp_xor.f = 0;
+			//candnp_xor.f = 0;
 			for(int j = 0; j < 9; j++) {
 				int i8 = divf.el81[i][j];
 				CELL p = T81t[i8];
 				if(zplus.On(i8)) { // wplus has the same order as tplus
 					candnp_or |= p.v.cand;
-					candnp_xor ^= p.v.cand;
-					wplus[nwp++] = p.v.cand;
+					//candnp_xor ^= p.v.cand;
+					//wplus[nwp] = p.v.cand;
+					nwp++;
 				}
 				else if(p.v.ncand == 2) {
 					candp_or |= p.v.cand;
-					candp_xor ^= p.v.cand;
+					//candp_xor ^= p.v.cand;
 					tpa[ntpa++] = i8;
 				}
 			}
@@ -2881,7 +2785,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	return ir;
 }
 //===========================================
-void TPAIRES::BugMess(char * lib) {
+void TPAIRES::BugMess(const char * lib) const {
 	EE.E("Bug type ");
 	EE.Enl(lib);
 	if(Op.ot)
@@ -3643,12 +3547,13 @@ int SEARCH_UR::RID3() {
 
 
 
-void CHAINSTORE::Print(USHORT index) {
+void CHAINSTORE::Print(USHORT index) const {
 	if(index>=ise2)
 		return;
 	int id = s2[index], ie = e2[index];
 	for(int i = id; i <= ie; i++) {
-		USHORT * tx = &buf[starts[i]], n = ends[i]-starts[i];
+		const USHORT * tx = &buf[starts[i]],
+			n = ends[i] - starts[i];
 		if(n > 0)
 			zpln.PrintImply(tx, n);
 	}
@@ -4820,8 +4725,8 @@ void TCHAIN::Status() {
 
 
 
-ZGROUPE::ZGROUPE (PUZZLE * parent)          
-{   parentpuz=parent;
+ZGROUPE::ZGROUPE (PUZZLE * parent) {
+	parentpuz = parent;
 	int i,j;
 	BF81 z0,z1; 
 	z0.SetAll_0(); 
@@ -4851,7 +4756,7 @@ ZGROUPE::ZGROUPE (PUZZLE * parent)
 }
 
 //------ pour les additions
-USHORT ZGROUPE::Charge(BF81  &ze)
+USHORT ZGROUPE::Charge(const BF81 &ze)
 {
 	if(ze.IsEmpty())
 	{
@@ -4869,14 +4774,12 @@ USHORT ZGROUPE::Charge(BF81  &ze)
 	parentpuz->Elimite( "ZGS");return 0;
 }
 
-
-
-BF81 * CANDIDATE::GetZ() {
-	return &zgs.z[ig];
-}     
+//BF81 * CANDIDATE::GetZ() const {
+//	return &zgs.z[ig];
+//}     
 
 void CANDIDATE::Clear(){T81t[ig].Change(ch); }
-void CANDIDATE::Image(int no) {EE.Esp();if(no)EE.E("~");
+void CANDIDATE::Image(int no) const {EE.Esp();if(no)EE.E("~");
                      EE.E(ch+1);EE.E(t81f[ig].pt); }
 
 /* creates the table of candidates
@@ -4993,7 +4896,7 @@ void  CANDIDATES::GenCellsSets()
      zcx.ChargeSet(tm,nm,SET_base);  
     }  }
 
-void CANDIDATES::Liste()
+void CANDIDATES::Liste() const
 {EE.Enl("Liste des candidats ");
  for(int j=1;j<ip;j++)  {zp[j].Image();   EE.Enl();}  }
 
@@ -5004,21 +4907,27 @@ void CANDIDATES::ListeIndexc()
  if(j)  {zp[j].Image();   EE.Enl();}  }
 }
 
- void  CANDIDATES::PrintPath(USHORT * tp,USHORT np)
+void  CANDIDATES::PrintPath(USHORT * tp,USHORT np) const
 {if(!Op.ot) return; EE.Echem();
- for(int i=0;i<np;i++)
-  {ImageTag(tp[i]);
-  if(i<np-1) if(i&1)EE.Esl(); else EE.Ewl(); } 
- EE.Enl();}
+for(int i=0;i<np;i++)
+{ImageTag(tp[i]);
+if(i<np-1) if(i&1)EE.Esl(); else EE.Ewl(); } 
+EE.Enl();}
 
- void  CANDIDATES::PrintImply(USHORT * tp,USHORT np)
-{if(!Op.ot) return; EE.Echem();
- for(int i=0;i<np;i++)
-  {USHORT px=tp[i];  ImageTag(tp[i]);
-  if(i<np-1) EE.E(" -> ");  } 
- EE.Enl();}
+void  CANDIDATES::PrintImply(const USHORT * tp,USHORT np) const {
+	if(!Op.ot)
+		return;
+	EE.Echem();
+	for(int i = 0; i < np; i++) {
+		//const USHORT px = tp[i];
+		ImageTag(tp[i]);
+		if(i < np - 1)
+			EE.E(" -> ");
+	} 
+	EE.Enl();
+}
 
-void  CANDIDATES::PrintListe(USHORT * tp,USHORT np,int modetag)
+void  CANDIDATES::PrintListe(USHORT * tp,USHORT np,int modetag) const
 {if(!Op.ot) return; EE.E("candidats");
  for(int i=0;i<np;i++)
   {USHORT px=tp[i];  
@@ -5156,31 +5065,36 @@ int SQUARE_BFTAG::ExpandToFind(USHORT td,USHORT tf,USHORT lim){
    only "true" state of non valid candidates are expanded
 */
 
-int SQUARE_BFTAG::SearchEliminations(SQUARE_BFTAG & from,BFTAG & elims)
-{int npas=0,aigt=0;  elims.SetAll_0();
- (*this)=from; // be sure to start with the set of primary data
-while(1)
-{int aig=1; // to detect an empty pass
- npas++;
- for( int i=2;i< puz.col;i+=2)  // only "true" state
-	 if (zpln.candtrue.Off(i>>1) &&  // candidate not valid
-		 t[i].IsNotEmpty()               // should always be
-		 )
-  {for(int j=2;j< puz.col;j++)   if((j-i) && t[i].On(j)) {
-	  BFTAG x=from.t[j];
-	  //x -= t[i];	  
-      //if(x.IsNotEmpty()) {
-      if(x.substract(t[i])) {
-		  t[i]|=x;
-		  aig=0;
-	  }
-     }
-   if(t[i].On(i^1)) // an elimination is seen
-     {elims.Set(i); aigt=1;}
-  }   
- if(aigt) return npas; // eliminations found
- if(aig) return 0;     // empty pass
-}// end while
+int SQUARE_BFTAG::SearchEliminations(SQUARE_BFTAG & from, BFTAG & elims) {
+	int npas=0, aigt=0;
+	elims.SetAll_0();
+	(*this) = from; // be sure to start with the set of primary data
+	while(1) {
+		int aig=1; // to detect an empty pass
+		npas++;
+		for(int i = 2; i < puz.col; i += 2)  // only "true" state
+			if(zpln.candtrue.Off(i >> 1) &&  // candidate not valid
+				t[i].IsNotEmpty()               // should always be
+				)
+			{
+				for(int j = 2; j < puz.col; j++)
+					if((j - i) && t[i].On(j)) {
+						BFTAG x=from.t[j];
+						//x -= t[i];	  
+						//if(x.IsNotEmpty()) {
+						if(x.substract(t[i])) {
+							t[i]|=x;
+							aig=0;
+						}
+					}
+					if(t[i].On(i ^ 1)) { // an elimination is seen
+						elims.Set(i);
+						aigt=1;
+					}
+			}   
+			if(aigt) return npas; // eliminations found
+			if(aig) return 0;     // empty pass
+	}// end while
 }
 
 
@@ -5364,7 +5278,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
    That process can miss some possibilities, what is accepted.
 
 */
-void INFERENCES::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
+void INFERENCES::Aic_Ycycle(USHORT t1, USHORT t2, const BFTAG &loop, USHORT cand) {
 	// forget if not same digit or t2 is ~t1
 	if(cand == (t2 >> 1))
 		return;
@@ -5415,7 +5329,7 @@ void INFERENCES::Aic_Ycycle(USHORT t1, USHORT t2, BFTAG & loop, USHORT cand) {
 /* now the all possibilities with start t1 and crossing t2
    we must start with a weak link so we exclude as start the strong link
 */
-void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // up to 4 starts
+void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2, const BFTAG &loop,USHORT cand) { // up to 4 starts
 	USHORT tt[20], itt, lg = 200;
 	PATH resf, resw;
 	USHORT tagc = cand << 1, tagcn = tagc ^ 1;
@@ -5461,7 +5375,7 @@ void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2,BFTAG & loop,USHORT cand) { // 
    try starttin from the second candidate in the cell containing t1
 */
 
-void  INFERENCES::Aic_YcycleD2(USHORT t1x,USHORT t2x,BFTAG & loop,USHORT cand)// up to 4 starts
+void  INFERENCES::Aic_YcycleD2(USHORT t1x, USHORT t2x, const BFTAG & loop, USHORT cand)// up to 4 starts
 {if(0) {EE.E("Aic_Ycycle d2"); 
          EE.E(" t1x=");zpln.ImageTag(t1x);
          EE.E(" t2x"); zpln.ImageTag(t2x); 
@@ -5510,7 +5424,7 @@ USHORT t2=t2x^1,t1=0; // new target is  "on"
    then track back the path to clean the "done" filtering the process
    and continue to t1. send back the count and the BFTAG
 */
-int INFERENCES::Aic_Ycycle_start(USHORT t1,USHORT t1a,USHORT t2,BFTAG & loop,PATH & path) {
+int INFERENCES::Aic_Ycycle_start(USHORT t1, USHORT t1a, USHORT t2, const BFTAG & loop, PATH & path) {
 	if(0) {
 		EE.E("Aic_Ycycle_start"); 
 		EE.E(" start=");
@@ -5901,7 +5815,7 @@ void EVENTLOT::Image() const {
 	EE.Enl();
 }
 
-void EVENT::Load(USHORT tage, EVENT_TYPE evt, EVENTLOT & evb, EVENTLOT & evx) {
+void EVENT::Load(USHORT tage, EVENT_TYPE evt, const EVENTLOT & evb, const EVENTLOT & evx) {
 	tag = tage;
 	type = evt;
 	evl = evb;
