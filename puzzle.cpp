@@ -39,8 +39,8 @@ const char *orig[]={"row ","column ","box "," "};
 const char *lc="ABCDEFGHI";
 const char *orig1="RCB ";
 
-//#include "puzle_safe.cpp"
 #include "puzzle_ww.cpp"
+#include "puzzle_globals.cpp"
 
 GG::GG() {	// constructor
 	pg = g[0]; 
@@ -197,25 +197,7 @@ void CELLS::CandidatsT() {
 	EE.Enl("\n\n");
 }
 
-void TWO_REGIONS_INDEX::Genere() {
-	int i, j;
-	for(i = 0; i < 81; i++) {   // on charge tpobit
-		CELL_FIX w = t81f[i];
-		CELL_VAR x = T81t[i].v;
-		tpobit.el[w.el].eld[w.pl].Genpo(x);
-		tpobit.el[w.pl + 9].eld[w.el].Genpo(x);
-		tpobit.el[w.eb + 18].eld[w.pb].Genpo(x);
-	}
-	// on génère tch a partir de tpo
-	for(i = 0; i < 27; i++) {  // les 27 groupes
-		for(j = 0; j < 9; j++)
-			tchbit.el[i].eld[j].Raz();
-		for(j = 0; j < 9; j++)
-			for(int k = 0; k < 9; k++)
-				if(tpobit.el[i].eld[j].b.On(k))
-					tchbit.el[i].eld[k].Set(j);
-	}
-}
+
 
 
 
@@ -237,110 +219,6 @@ int CELLS::RIN(int aig) {      // look for unique rectangle
 	return ir;
 }
 
-
-void UNPAS::Clear(int i8,USHORT  ch )
-{
-	CELL_FIX *wf=&t81f[i8];			// t81f global variable giving influence zone of all cells
-	for(int i=0;i<20;i++)
-    {
-		USHORT j=wf->pi[i];		// cell index in influence zone
-		if(libres.On(j))
-			tu[j].Clear(ch);
-	}
-}
-
-int UNPAS::Avance()
-{
-	USHORT ib=1; 
-	while(ib&&nlibres)
-	{
-		ib=0;
-		// look for all naked single and verify if there is a cell with no candidate
-		for (USHORT i=0;i<81;i++)
-        {
-			if(tu[i].ncand==0) // there is a cell with no candidates !
-				return 1;		
-			if( libres.On(i)&&(tu[i].ncand==1)) // naked single
-			{
-				// only one candidate in a cell
-				ib=1;
-				Fixer(i,tu[i].GetCand());
-			}
-		} 
-		if(ib) continue;  // priority to naked single over single in house (row/col/box)
-
-		for (USHORT ie=0; ie<27;ie++)  // loop on 27 houses (row, col, box)
-		{ 
-			USHORT * pel=divf.el81[ie]; // pointer to an array of cell index for this house
-			BF16 or,		// accumulate digit that have >=1 position
-				deux;		// accumulate digit that have >=2 positions
-			for(USHORT p=0;p<9;p++)	// loop on cell of the house
-			{ 
-				USHORT i81=pel[p];	// cell index
-				if(!libres.On(i81))
-					or |= tu[i81].cand;    //force double
-				BF16 w=tu[i81].cand & or; // & between 2 bitfields
-				deux |=w;
-				or|=tu[i81].cand;
-			}
-			if(or.f-0x1ff) // verify if there is a digit with no possible position
-				return 1;  
-			or -=deux;		// or=0x1ff before or digit that have only one position after
-			if(!or.f)continue; // no single in house
-			// TO OPTIMIZE : use BF16::First (if First is itself optimized)
-			for(USHORT  ich=0;ich<9;ich++) // loop on digit
-				
-				if(or.On(ich))
-					for(USHORT p=0;p<9;p++)  // loop to find the cell that have the single
-						if(tu[pel[p]].cand.On(ich))
-						{
-							ib=1;
-							Fixer(pel[p],ich);
-							break;
-						}
-		
-		} // end of loop on 27 houses
-	}  //end of while
-	return 0;
-}
-
-void UNPAS::NsolPas()
-{
-	if(Avance())
-		return;		// blocking
-	if(!nlibres)	// all cells are valued : we have a solution
-	{
-		(*nsol)++;		// count solutions
-		if((*nsol)==1)  // keep first solution image
-			ggf->Copie(gg); 
-		return;  
-	}
-	// look for a cell with a minimal number of candidates
-	USHORT max=10,iw; 
-	for(int i=0;i<81;i++)  // loop on empty cells
-	{ 
-		if(!libres.On(i))
-			continue;     
-		iw=tu[i].ncand;		// number of candidates
-		if(iw<2)continue;	// should not happen
-		if(iw<max)
-		{
-			max=iw;
-			iactif=i;		// memorize the cell index
-			if(max<3) break;// we have found a cell with 2 candidates
-		}
-	}    
-	
-	candactif=tu[iactif].cand; // the candidates of the cell
-	for(int i=0;i<9;i++) 
-		if(candactif.On(i))
-		{
-			UNPAS pn(*this);  
-			pn.Fixer(iactif,i);  
-			pn.NsolPas();
-			if(((*nsol)>1)) return ;    
-		}
-}
 
 
 /* added here routines preliminary in Bitfields
@@ -561,6 +439,7 @@ PUZZLE::PUZZLE() {
 	yt.SetParent(this);
 	zpaires.SetParent(this);
 	tchain.SetParent(this,&EE);
+	un_jeu.SetParent(this,&EE);
 }
 
 
@@ -629,10 +508,10 @@ int PUZZLE::Recale() {
 		if(T81t[i].v.ncand == 0)
 			return 0;
 	}
-	aztob.Genere();   
+	puz.alt_index.Genere();   
 	for(int i = 0; i < 27; i++)
 		for(int j = 0; j < 9; j++)
-			if(aztob.tchbit.el[i].eld[j].n == 0)
+			if(puz.alt_index.tchbit.el[i].eld[j].n == 0)
 				return 0;
 	return 1;
 }
@@ -647,8 +526,8 @@ int PUZZLE::Directs() { //en tete appliquer regle de base
 	}
 	for(i = 0; i < 27; i++) {
 		for(int j = 0; j < 9; j++) {  // chiffre une place
-			if(aztob.tchbit.el[i].eld[j].n == 1) {
-				int k = aztob.tchbit.el[i].eld[j].b.First(),
+			if(puz.alt_index.tchbit.el[i].eld[j].n == 1) {
+				int k = puz.alt_index.tchbit.el[i].eld[j].b.First(),
 					i8 = divf.el81[i][k];
 				if(!T81t[i8].v.typ)	{
 					FixerAdd(i8,(char)('1' + j), i/9);
@@ -684,13 +563,13 @@ int PUZZLE::FaitDirects(int rating) {
 					ok = 1;
 				break;
 			case 12:
-				if(aztob.tchbit.el[p.eb + 18].eld[c1 - '1'].n == 1)
+				if(puz.alt_index.tchbit.el[p.eb + 18].eld[c1 - '1'].n == 1)
 					ok = 10;
 				break;
 			case 15:
-				if(aztob.tchbit.el[p.el].eld[c1 - '1'].n == 1)
+				if(puz.alt_index.tchbit.el[p.el].eld[c1 - '1'].n == 1)
 					ok = 1;
-				if(aztob.tchbit.el[p.pl + 9].eld[c1 -'1'].n == 1)
+				if(puz.alt_index.tchbit.el[p.pl + 9].eld[c1 -'1'].n == 1)
 					ok = 1;
 				break;
 			case 23:
@@ -1587,7 +1466,7 @@ int PUZZLE::Traite(char * ze) {
 	   //(no duplicate givens in a house)
 	   // one solution and only one
 	if ((!Check())     ||
-		( un_jeu.Unicite(gg,& gsolution)-1)) {
+		( un_jeu.Uniqueness(gg,& gsolution)-1)) {
         edmax=1;
 		return 0;
 	}
@@ -2244,152 +2123,6 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 	return ir;
 }
 
- void SEARCH_LS_FISH::SetParent(PUZZLE * parent){
- parentpuz=parent;
- regindp=aztob.tpobit.el;
- regindch=aztob.tchbit.el;
- regindchcol=&regindch[9];
-}
-
-//<<<<<<<<<<<<<<<<<<<<<   On cherche tiroir dans element  // boucle recurrente sur i
-int SEARCH_LS_FISH::Tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et on regarde si fusion n-1  ok
-	int i,id=(non.f && (irang-1))? 0:iold+1;  // debut 0 avec pseudos et rang 1
-	for (i=id;i<(11-rangc+irang);i++)  // il doit rester des cases
-	{ 
-		if(eld[i].n<2 ||eld[i].n>rangv) continue;
-		if( non.On(i))continue; //pour pseudo
-		BF16 wx=eld[i].b|fd; 
-		int nx=wx.QC();
-		if (nx >rangv) continue;
-		if(irang==(rangc-2))
-		{wf=wx;wi.Set(i);
-		if(nx ==rangv)return 1; else return 0; }
-		// une erreur a tester    on poursuit si <
-		// il peut manquer des tiroirs!!!!! curieux que jamais détecté!!!!
-		if(Tiroir(wx,i,irang+1)){wi.Set(i); return 1; }
-	}
-	return 0;
-}
-
-int SEARCH_LS_FISH::Tiroirs(int nn,int hid,int sing) {     //recherche normale des tiroirs
-	rangv=nn;single=sing;hid_dir=hid; int ir=0;
-	int ied=0,ief=54; 
-	if(!hid_dir )ief=27;if(hid_dir==1 )ied=27;if(single){ied=27;ief=54;}
-	
-	for( e=ied;e<ief;e++)   // direct, hidden or both upon request
-	{rangc=rangv; non.f=cases.f=0; if(e<27) e27=e; else e27=e-27;
-	if(parentpuz -> NonFixesEl(e%27) < (rangv +1)) continue;
-
-	for(int i=0;i<9-rangv+1;i++)
-	{eld=regindp[e].eld;
-	int nn= eld[i].n;
-	if(nn<2 || nn>rangv) continue;
-	BF16 w;w=eld[i].b;
-	wi.f=0; wi.Set(i);
-	if(!Tiroir(w,i,0)) continue;
-	if (UnTiroir())ir= 1;	
-	}  
-	}
-	if(ir)return 1; 
-	return 0;
-}
-
-int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked set to accept it
-	int ir=0;
-	if(single) { // will be covered slowly can be any element row, col, box
-		for(int i=0;i<9;i++)  if(wf.Off(i))
-		{USHORT i8=divf.el81[e27][i]; 
-		CELL p=T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
-		BF16 wc=p.v.cand-wi;
-		for(int j=0;j<9;j++) if (wc.On(j) )// a possible hidden digit
-		{BF16 wcd=regindch[e27].eld[j].b-wf; // positions still valid
-		if(wcd.QC()==1)
-		{EE.Enl("ecs assignment");
-		parentpuz -> FaitGoA(i8,j+'1',4);// stop at first assignment
-		ir=1; break;}
-		}// end for j if
-
-		}// end hidden ls
-		if(!ir) return 0;// no single found
-	}// end if single
-
-	else if(e<27) {
-		    if (!parentpuz ->ChangeSauf(e,wi,wf)&&(!ir) )return 0;  }
-	else   { if (!parentpuz ->Keep(e27,wf,wi) &&(!ir))return 0;  }
-
-	if(!Op.ot) return 1; 
-	// describe the LS even if no more eliminations after an assignment
-
-	char *gt[]={"LS2 ","LS3 ","LS4 ","LS5 " };
-
-	int in=rangv-2,  it2=(e%27)/9,ii2=e%9;
-	char c2= (it2-1)?(char)(ii2+'1'):lc[ii2];
-	EE.E("->");EE.E(gt[in]); 
-	if(e<27)
-	{EE.E(" cells ");	EE.E( wi.String());EE.E(" digits ");  }
-	else
-	{EE.E(" digits ");EE.E( wi.String());EE.E(" cells "); }
-	EE.E( wf.String());EE.E(" ");EE.E(orig[it2]);EE.E(" ");EE.Enl(c2);
-	return 1;
-}
-
- 
-
-
-//<<<<<<<<<<<<<<<<<<<<<   On cherche XW dans lignes ou cols  boucle recurrente sur i
-int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
-{   // on progresse sur indice et on regarde si fusion n-1  ok
-  for (int i=iold+1;i<9;i++)  // il doit rester des éléments
-  { int nn=eld[ch].n;
-	 if(nn<2 ||nn>rangv) continue;
-    BF16 wfu=regxw[i].eld[ch].b|fd; 
-	int nx=wfu.QC();
-	if (nx >rangv) continue;
-    if(irang==(rangv-2)){ if(nx - rangv)continue;
-                         wf=wfu; wi.Set(i);return 1; }
-      else if(XW(wfu,i,irang+1)) {wi.Set(i); return 1; }
-  }
-return 0;}
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< en mode XWING liste objets et chiffres
-int SEARCH_LS_FISH::GroupeObjetsChange(int dobj,int ch)
-{BF16 x(ch); int ir=0;
- for(int i=0;i<9;i++)   if(wf.On(i)) ir+= parentpuz ->ChangeSauf(dobj+i,wi,x);
-return ir;}
-//<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
-int SEARCH_LS_FISH::XW(int nn)
-{char *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
-              "Whale (XW6)","Leviathan (XW7)" };
- BF16 w; rangc=nn;
- for(int i=0;i<9;i++)
-  {ch=(UCHAR)i;
-   for(int iel=0;iel<10-rangv;iel++)
-   { regxw=regindch;
-	 eld=regxw[iel].eld;     
-   	 int nn=eld[i].n;
-    if(nn>1 &&nn<=rangv)
-    { w=eld[i].b; wi.f=0; wi.Set(iel);
-      if( XW(w,iel,0) )
-       { if(GroupeObjetsChange(9,i) )  // action colonnes
-	     {EE.E(gxw[rangv-2]);	 EE.E(" digit ");     EE.E(i+1); 
-	      EE.E( " columns ");   EE.E(wf.String(0));
-		  EE.E(" rows ");  EE.Enl(wi.String());     
-		  return 1; 	 }}
-       }
-	 regxw=regindchcol;
-	 eld=regxw[iel].eld;
-     nn=eld[i].n;
-     if(nn<2 || nn>rangv) continue;
-     w=eld[i].b;  	wi.f=0; wi.Set(iel);
-     if( XW(w,iel,0) )
-      { if(GroupeObjetsChange(0,i) ) // action lignes
-	   {EE.E(gxw[rangv-2]);	 EE.E(" digit ");
-	    EE.E(i+1); EE.E(" rows ");	EE.E(wf.String());
-		EE.E( " columns ");	  EE.Enl(wi.String(0));     
-		return 1; }  	 }
-    } // end iel
-  }    // end i niv
-return 0;}
-
 void TPAIRES::SetParent(PUZZLE * parent){
 parentpuz=parent;
 }
@@ -2551,7 +2284,7 @@ int UL_SEARCH::El_Suite(USHORT ele) {
 	if(el_used.On(ele))
 		return 0;
 	//EE.E("suite el=");EE.Enl(ele+1);
-	BF16 wc = aztob.tchbit.el[ele].eld[c1].b & aztob.tchbit.el[ele].eld[c2].b;
+	BF16 wc = puz.alt_index.tchbit.el[ele].eld[c1].b & puz.alt_index.tchbit.el[ele].eld[c2].b;
 	for(int i = 0; i < 9; i++) {
 		if(wc.On(i)) { // cells with both digits
 			int i8r = divf.el81[ele][i];
@@ -2984,10 +2717,16 @@ int TPAIRES::Bug_lock(int el) {
 		return 0; 
 	CELL p1 = T81t[tplus[0]], p2 = T81t[tplus[1]];
 	int el1 = p1.f->el, el2 = p2.f->el; // use the row in priority
-	if(el < 9) {
+	if(el < 9)  {
 		el1 = p1.f->pl + 9;
 		el2 = p2.f->pl + 9;
 	}  // and col if row is "el"
+	if(el1==el2) {
+		if(el>=9) return 0;
+		el1 = p1.f->pl + 9;  // can not accept el1=el2 chaeck the other direction
+		el2 = p2.f->pl + 9;
+	}
+
 	BF16 wc1 = (p1.v.cand & el_par_ch[el1]), wce1 = p1.v.cand - wc1,
 		wc2 = (p2.v.cand & el_par_ch[el2]), wce2 = p2.v.cand - wc2;
 	EE.E(p1.f->pt);
@@ -3139,7 +2878,7 @@ REGION_INDEX * SEARCH_UR::tchel;
 SEARCH_UR::SEARCH_UR() {	 // constructor
 	ta = T81t;
 	tr = T81tc;
-	tchel = aztob.tchbit.el;
+	tchel = puz.alt_index.tchbit.el;
 }
 
 int SEARCH_UR::GetElPlus() {
@@ -4768,7 +4507,7 @@ else
 }
 void  CANDIDATES::RegionLinks(USHORT ich,int biv)
 {for (el=0;el<27;el++)
-   { iptsch=0;  if(aztob.tchbit.el[el].eld[ich].n <2 )continue;
+   { iptsch=0;  if(puz.alt_index.tchbit.el[el].eld[ich].n <2 )continue;
      for(int i=0;i<9;i++)
        {USHORT w=indexc[divf.el81[el][i]+81*ich]; 
 		if(w) ptsch[iptsch++]=w;}
@@ -4804,7 +4543,7 @@ void CANDIDATES::GenRegionSets()
    for (int elx=0,el=18;elx<27;elx++,el++){
       if(el==27) el=0;  // after boxes rows and columns
       for( int ich=0;ich<9;ich++) {
-        USHORT nmch=aztob.tchbit.el[el].eld[ich].n,ipts=0;;
+        USHORT nmch=puz.alt_index.tchbit.el[el].eld[ich].n,ipts=0;;
 	    if(nmch<3) continue; // minimum set size is 3
 	    BF81 zel=divf.elz81[el]&puz.c[ich];  
 		for(int j=1;j<ip;j++){
@@ -5873,7 +5612,7 @@ void TEVENT::LoadXW() {
 /* we have identified an XW pattern
    generate if any the set or the direct event weak links  */
 void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT & eva, EVENTLOT & evx) {
-	REGION_CELL el1d = aztob.tchbit.el[el1].eld[ch], el2d = aztob.tchbit.el[el2].eld[ch];
+	REGION_CELL el1d = puz.alt_index.tchbit.el[el1].eld[ch], el2d = puz.alt_index.tchbit.el[el2].eld[ch];
 	for(int i = 0; i < 9; i++)
 		if(el1d.b.On(i))
 			if((i - p1) && (i - p2))

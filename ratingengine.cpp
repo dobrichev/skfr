@@ -49,7 +49,7 @@ CELL *T81tc;		//and corresponding tables of cells
 CELLS_FIX tp81f;
 CELL_FIX *t81f = tp81f.t81f;			//pointer to speed up the process   
 DIVF divf;
-TWO_REGIONS_INDEX aztob; 
+//TWO_REGIONS_INDEX aztob; 
 PUZZLE puz;
 ULT tult;
 TPAIRES zpaires;
