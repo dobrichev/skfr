@@ -916,9 +916,11 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		Image(elimt,"elim potential", 0);
 	if(elimt.IsEmpty())
 		return 0;
-	// if we are in quick mode, set all elims with rating base+ .3/.5
 
-	if(quick) {
+	// if we are in quick mode, set all elims with rating base+ .3/.5
+	// process as quick mode if achieved rating is high enough
+
+	if(quick || (base+10+(base-95)/5)<ermax) {
 		Image(elimt,"quick elim potential", 0);
 		int j = 3;
 		for(int i = 3; i < col; i += 2) { // first in tchain mode
@@ -4033,8 +4035,12 @@ Dynamic search in nested mode for a candidate
 
 */
 void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
-	// filter if target if part of the set
 	USHORT ctarg = target >> 1;
+
+	     // forget if target already eliminated
+	if(tchain.cycle_elims.On(ctarg)) return;
+
+	     // filter if target if part of the set
 	for(int i = 0; i < ntags; i++)
 		if(ttags[i] >> 1 == ctarg)
 			return;	
