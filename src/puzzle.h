@@ -81,25 +81,19 @@ public:
 	static inline USHORT Pos(int i, int j) {
 		return ((i << 3) + i + j);
 	}
-	//static inline USHORT Mod3(int i) {
-	//	if(i < 3)
-	//		return i;
-	//	if(i < 6)
-	//		return i - 3;
-	//	return i - 6;
-	//}
-	static inline USHORT Mod3(int i) {return i % 3;};
-	static inline USHORT Div3(int i) {return i / 3;}
-	//static inline USHORT Div3(int i) {if(i<3) return 0;  if(i<6) return 1;  return 2;}
-	//static inline USHORT Div9(int i)      {return i/9;     }
+
+
 	static inline USHORT Boite(int i,int j)
-	{int jj=Div3(j); if(i<3) return jj; if(i<6) return (3+jj); else return (6+jj);}
-	static inline USHORT PosBoite(int i,int j) { return 3*Mod3(i)+Mod3(j);}
+	{int jj=j/3; if(i<3) return jj; if(i<6) return (3+jj); else return (6+jj);}
+	static inline USHORT PosBoite(int i,int j) { return 3*(i%3)+j%3;}
 	// similar function in group mode (54), 
 	// but no use of the 81 cells function authorised 
 
 	static inline USHORT Box54(USHORT x) {USHORT a=3*(x/9),b=x%3; return (a+b);}
 }; //mi81
+
+
+class PUZZLE;
 
 //!Small class containing the permanent data for a cell
 class CELL_FIX {
@@ -503,14 +497,14 @@ public:
  * This solver will stop as soon as 2 solutions have been found.<br><br>
  * Usage of this class is :<ul>
  * <li> create an instance </li>
- * <li> init with the puzzle calling UNPAS::Init </li>
- * <li> for each given call UNPAS::Fixer</li>
- * <li> look for solution(s) calling UNPAS::NsolPas </li>
- * <li> verify the number of solution static member UNPAS::nsol (0,1 or 2)
+ * <li> init with the puzzle calling BRUTE_FORCE_STEP::Init </li>
+ * <li> for each given call BRUTE_FORCE_STEP::Fixer</li>
+ * <li> look for solution(s) calling BRUTE_FORCE_STEP::NsolPas </li>
+ * <li> verify the number of solution static member BRUTE_FORCE_STEP::nsol (0,1 or 2)
  * and get the (first found) solution in global variable <code>un_jeu.ggf</code></li>
  * </ul>
  */
-class UNPAS 
+class BRUTE_FORCE_STEP 
 {
 public:   
 	CELL_VAR tu[81];			//< candidate and status of cells
@@ -525,89 +519,19 @@ public:
 		maxlibres;
 	BF16 candactif;
 
-	UNPAS() {gr=gg.pg;}
-	UNPAS(UNPAS &old) {
+
+	BRUTE_FORCE_STEP() {gr=gg.pg;}
+	BRUTE_FORCE_STEP(BRUTE_FORCE_STEP &old) {
 		*this = old;
 		gr = gg.pg;
 	}
 
-	//! Intialize with the puzzle
-	/**
-	 * Copy the puzzle in memeber of the class<br>
-	 * Consider all cells as free.
-	 * Reset number of solution
-	 */
-	void Init(const GG &ge, USHORT *nsole, GG *ggfe)
-    {	nsol=nsole;
-	    ggf=ggfe;
-		libres.SetAll_1();
-		nlibres=81;
-		(*nsol)=0;
-		tu[0].Init();	// consider all candidates as possible in all cell
-		for(int i=1;i<81;i++)tu[i]=tu[0];
-		gg.Copie(ge);    
-	}
-	//! Give a value to a cell and supress candidates in influence zone
-	/**
-	 * Doesn't change the status of the cell <code>typ</code>
-	 * \param i cell index (0-80)
-	 * \param ch digit (0-8)
-	 */
-	void Fixer(int i, USHORT ch)
-    {
-		if(libres.Off(i))
-			return;  
-		libres.Clear(i); 
-		nlibres--;
-        tu[i].Fixer(ch); // give the value to the cell
-		Clear(i, ch);
-		gr[i] = ch + '1';
-	}
-
-	//! Supress all candidates corresponding to digit in influence zone of the cell
-	/**
-	 * uses <code>t81f</code> global variable
-	 * \param i8 cell index (0-80)
-	 * \param ch digit (0-8)
-	 */
+	void Init(const GG &ge, USHORT *nsole, GG *ggfe);  
+	void Fixer(int i, USHORT ch);
 	void Clear(int i8, USHORT ch);
-
-	//! Look for Singles (and do them) and blocking situation
-	/**
-	 * Loop on {look for "single" and do them} until there is no more single. Singles include :<ul>
-	 * <li> naked single (priority)</li>
-	 * <li> single in house (row/col/box </li>
-	 * </ul>
-	 * At each loop verify that there is no blocking situation <ul>
-	 * <li> a cell with no possibilities </li>
-	 * <li> a house where a digit has no possible position</li></ul>
-	 * \return 1 if a blocking has been found(one empty cell has no candidate
-	 * or a digit has no position in a house), else 0. This return status is 
-	 * independent of the number of single found.
-	 */
-	int Avance();  
-	
-	//! Brute force recursive method to find solution and to know if number of solutions is >1
-	/**
-	 * This method try first to find all single path. Then look for a cell 
-	 * with a minimum number of candidates. Assign it and call itself recursively.
-	 * Stop if blocking, if more than 1 solution, or if tries are exhausted
-	 * Update static member <code>UNPAS::nsol</code>
-	 * Update global variable <code>un_jeu.ggf</code> with the first found solution if any
-	 */
+	int Avance();  	
 	void NsolPas(); //id et lct pas suivant
-
-	//! Get a bitfield representing the givens
-	/**
-	 * <b>NOTA :</b>This method is not used in the SEclone !
-	 */
-	BF81 GetZ() const {
-		BF81 zw;
-		for(int i = 0; i < 81; i++) 
-			if(gr[i] - '0')
-				zw.Set(i);
-        return zw;
-	}
+	BF81 GetZ() const ;
 };
 
 
@@ -619,28 +543,22 @@ public:
  * This class has been reduced here to a minimal form for uniquenss verification
  */
 
-class UN_JEU {
+class BRUTE_FORCE {
 public: 
-	UNPAS dep;		//< to invoke brute force solver
+	PUZZLE * parentpuz;
+	FLOG * EE;
+	BRUTE_FORCE_STEP dep;		//< to invoke brute force solver
 	GG gg;			//< puzzle initial string
 
 	//! has this puzzle one and only one solution
+	void SetParent(PUZZLE * parent,FLOG * fl)
+	{parentpuz=parent;EE=fl;}
 
-	int Unicite(GG &ge, GG *puz_solution) {
-		USHORT nsol = 0;
-		gg.Copie(ge);
-		dep.Init(gg, &nsol, puz_solution);
-        for(int i = 0; i < 81; i++) {
-			char c = gg.pg[i];
-			if(c > '0' && c <= '9')
-				dep.Fixer(i, c - '1');
-		}
-        dep.NsolPas();
-		return (nsol == 1);
-	}
+	int Uniqueness(GG &ge, GG *puz_solution) ;
+
 };
 
-class PUZZLE;
+
 
 //That class is dedicated to the processing of algorithms building 
 //  a progressive collection of cells
@@ -785,24 +703,7 @@ public:
 
 	void PrintPathTags();
 
-	//inline USHORT GetLast() {
-	//	if(ipth)
-	//		return pth[ipth - 1];
-	//	else
-	//		return 0;
-	//}
-	//inline USHORT GetFirst() {
-	//	if(ipth)
-	//		return pth[0];
-	//	else
-	//		return 0;
-	//}
-	//inline USHORT Get(int x) const {
-	//	return pth[x];
-	//}
-	//inline void Back() {
-	//	ipth--;
-	//}
+
 };  
 
 /* the following classes have been designed specifically for SE clone.
@@ -853,7 +754,7 @@ public:
 	FLOG * EE;
 	BFCAND cycle_elims;
 	USHORT rating,             // current rating 
-		   elims_done,        // if a clearing is already done
+		   elims_done,        // set to 1 if a clearing is already done
 		   achieved_rating,
 		maxlength;          // filter for the search of a path (tags)
 	CHAIN chainw, chains[30]; // enough to store several small loops 
@@ -1247,9 +1148,10 @@ class PUZZLE
 {
 public:
 
-    UN_JEU un_jeu;
+    BRUTE_FORCE un_jeu;
     SEARCH_LS_FISH yt;
     TCHAIN tchain;
+    TWO_REGIONS_INDEX alt_index; 
 
 
     GG gg,          //< copy of the puzzle (normalized form - empty cell '0')
@@ -1891,7 +1793,7 @@ extern CELL *T81tc;		//and corresponding tables of cells
 extern CELLS_FIX tp81f;
 extern CELL_FIX *t81f;			//pointer to speed up the process   
 extern DIVF divf;
-extern TWO_REGIONS_INDEX aztob; 
+//extern TWO_REGIONS_INDEX aztob; 
 extern PUZZLE puz;
 extern ULT tult;
 extern TPAIRES zpaires;
