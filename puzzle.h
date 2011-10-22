@@ -838,38 +838,36 @@ public:
 	USHORT cand,         //candidate to clean
 		urem;        // milestone of the explanation
 
-	inline void Load(USHORT cande);
-	int Clean(); // clear candidates
 };   
+/* TCHAIN is a support for chain potential eliminations
+   each "load call" with a rating < or =  to  already achieved one
+      -> immediate elimination
+   if not, all "lowest rating" are stored until the end of the process.
 
+   provides also information on the length that would generate to high rating
+
+*/
 class TCHAIN { // storing up to 20 chains having the same "lowest"rating
 public:      
 	PUZZLE *parentpuz;
+	FLOG * EE;
+	BFCAND cycle_elims;
 	USHORT rating,             // current rating 
+		   elims_done,        // if a clearing is already done
+		   achieved_rating,
 		maxlength;          // filter for the search of a path (tags)
 	CHAIN chainw, chains[30]; // enough to store several small loops 
 	USHORT ichain,           // index to chains 
 		base;
-	void SetParent(PUZZLE * parent){parentpuz=parent;}
+	void SetParent(PUZZLE * parent,FLOG * fl);
 
-	void Init() {
-		rating = 200;
-		ichain = 0;
-		maxlength = 10;
-	}
+	void NewCycle() ;
 
 	// the following functions relates to performance control in the search of eliminations
 	// should be revised in the new process
 	// the first function set the default value for the base
 
 	void SetMaxLength(int bw);
-	inline int GetYmax() {
-		return maxlength;
-	}
-	USHORT ParsingMini(USHORT basee);
-	int GetYlower(int lg) ;
-	// added for the new design
-	int GetLimit(int lg, int modexy) ;
 
 	// entry in tchain is either with an explicit base of with the default value
 
@@ -882,12 +880,9 @@ public:
 
 	int IsOK(USHORT x);
 
-	int Clean() { // clear all pending candidates
-		int ir = 0;
-		for(int i = 0; i < ichain; i++)
-			ir += chains[i].Clean();
-		return ir;
-	}
+	int Clean(); // clear all pending candidates
+	int ClearChain(int ichain); // clear candidates
+	int ClearImmediate(USHORT cand);
 
 };// tchain ;
 
