@@ -1213,6 +1213,7 @@ int PUZZLE::Rating_base_90() {
    */
 
 void PUZZLE::ChainPlus(BFCAND & dones) {
+	int godirect=((tchain.base +8)<=ermax);
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
 	for(int i = 2; i < puz.col; i += 2) {
 		BFTAG zw1 = t[i];
@@ -1227,6 +1228,8 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 				EE.Enl();
 				//puz.Image(zw1," elims",i);
 			}
+        if(godirect) tchain.ClearImmediate(i>>1);
+		else
  		GoNestedCase1(i>>1,tchain.base); 
 
 		}
@@ -1238,17 +1241,25 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 				EE.E("\n\nfound active x->~a and ~x->~a");
 				puz.Image(zw2,"elims", i);
 			}
-		    USHORT ttt[]={i,i^1};
-            zcf.h.dp.Shrink(zw2,i);
-			puz.Image(zw2,"elims solde", i);
-            for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )	
-				Rating_Nested(tchain.base,ttt,2,j);
+			if(godirect){
+				for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )
+					 tchain.ClearImmediate(j>>1);
+			}
+			else{
+		      USHORT ttt[]={i,i^1};
+              zcf.h.dp.Shrink(zw2,i);
+			  puz.Image(zw2,"elims solde", i);
+              for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )	
+				  Rating_Nested(tchain.base,ttt,2,j);
+			}
 			
 		}// end if zw2
 	} // end for i
 
-	if(tchain.base < 85)
+	if(tchain.base < 85 || tchain.elims_done)
 		return;
+
+	godirect=((tchain.base +10)<=ermax);
 
 	// now check multichains in a similar way but not for nishio
 	for(int ie = 1; ie < zcx.izc; ie++) {
@@ -1271,8 +1282,12 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		}
 		if(tbt.IsEmpty())
 			continue;
-  //      zcf.h.d.Shrink(tbt);
+
+
         for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
+			if(godirect)  
+				tchain.ClearImmediate(j>>1);
+			else
 				Rating_Nested(tchain.base,ttt,n,j);
 
 	}// end for ie
