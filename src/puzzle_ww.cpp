@@ -116,7 +116,7 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
   if(rat<rating) {ichain=0;  rating=rat;}
   if(ichain>=30) return;
   if(Op.ot)
-           {EE->Enl();puz.PointK(); EE->Esp(); EE->Enl(lib);
+           {EE->Enl();parentpuz->PointK(); EE->Esp(); EE->Enl(lib);
 			EE->E(" load tchain rating=");EE->E(rat);
 		    EE->E(" elimination of ");zpln.Image(cand);
 			EE->Enl();}
@@ -126,14 +126,8 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
 
 
 int TCHAIN::IsOK(USHORT x) {
+	if(elims_done) return 1;
 	int ir=((rating <= x) );
-	if(ir && Op.ot) {
-		EE->E(" sortie isok chaine x=");
-		EE->E(x); 
-		EE->E(" rating=");
-		EE->E(rating);  
-		EE->E(" ermax==");
-		EE->Enl(puz.ermax); }
 	return ir;
 	//{return ((rating <= x ) || (rating <= Op.ermax));}
 }
