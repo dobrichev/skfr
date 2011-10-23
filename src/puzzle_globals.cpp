@@ -146,11 +146,11 @@ int TCHAIN::GetRatingBase(USHORT bb,USHORT lengthe,USHORT cand)
 */
 void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
 { if(rat>rating) return ;
-  if(rat<=achieved_rating) { //then do it  
+  if(rat<rating) {ichain=0;  rating=rat;}
+  if(rat<=achieved_rating) { //then do it 
 	  ClearImmediate(cand);
 	  return;
   }
-  if(rat<rating) {ichain=0;  rating=rat;}
   if(ichain>=30) return;
   if(Op.ot)
            {EE->Enl();parentpuz->PointK(); EE->Esp(); EE->Enl(lib);
@@ -164,6 +164,7 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
 
 int TCHAIN::IsOK(USHORT x) {
 	if(elims_done) return 1;
+	if(!ichain) return 0;
 	int ir=((rating <= x) );
 	return ir;
 }
