@@ -37,27 +37,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "ratEnum.h"			// enum list of solving techniques
 #include "bitfields.h"			// bitfields are grouped in this file
 
-//#include "ratingengine.h"
 
-/* that file contains classes for the general management of the grid
-
-GG   short class to use the grid in 81 or 9*9 mode
-
-I81  to be switched in divf some general function to improve code efficiency
-
-CELL_FIX describing the fix date of a cell
-TCELL_FIX the table of the fix data for the 81 cells and associated functions
-DIVF fix data for the regions including the region to cell indexes and BF81 pattern
-
-UNP  describing the variable part for a cell 
-P81  describing a cell including variable part and a pointer to fix part
-CELLS the table of 81 P81 and associated function
-
-    and a group fo classes giving alternative entries in the grid
-	region -> digit -> cell   region -> cell -> digits
-OBBI
-
-*/
 
 
 //! Short class to define and handle a 9x9 or 81 char field 
@@ -69,10 +49,6 @@ OBBI
 
 
 // dummy class to have optimized functions for most common index correspondances
-// pos(i,j) -> 9*i+j
-// Mod3(i) -> i%3
-// Div3(i) -> i+3
-// Div9(i) -> i/9
 // Boite(i,j) -> box index 0;9 for row i, column j
 // PosBoite(i,j) -> box relative position 0;9 same row;column
 
