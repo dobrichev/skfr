@@ -4325,7 +4325,8 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 					 if(y==x) aig=1; // must be 'x' onece
 					 else  aig=0;
 				 }
-				 if(aig) {n=nj;
+				 if(aig) {n=nj;    // replace the set by the new one
+				          chx=chxj;
                          if(n==3) break;  // stop at first 3 cand reached
 				 }
 			  }
