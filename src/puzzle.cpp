@@ -910,7 +910,6 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 		zpln.GenRegionSets();  
 	}
 
-	BFCAND bf0; // init to no candidate found 
 
 	switch(base) {
 		case 65:
@@ -921,11 +920,11 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 			zcf.hdp_base=zcf.hdp_dynamic=zcf.h.dp; // save basic weak links
 	        zcf.ExpandShort(3);
             zcf.DeriveCycle(3, 9, 0,3);
-	        ChainPlus(bf0);
+	        ChainPlus();
             if(tchain.IsOK(77)) break;   // most often very short
          	while(zcf.DeriveCycle(3, 9, 0))
       	    	;// and full expansion
-	        ChainPlus(bf0);
+	        ChainPlus();
 
 			break;
 	}
@@ -1019,24 +1018,23 @@ int PUZZLE::Rating_base_85() {
 	if(Op.ot)
 		EE.Enl("start rating base 8.5 dynamic forcing chain");
 	tchain.SetMaxLength(85);
-	BFCAND bf0; // init to no candidate found 
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 //	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
     zcf.ExpandShort(3);
 	zcf.DeriveCycle(3, 3, 0,2); // one cycle short sets
 	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
-	ChainPlus(bf0);
+	ChainPlus();
 	if(tchain.IsOK(88))      //filter  short paths
         return Rating_end(200);
 	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
 	zcf.DeriveCycle(3, 3, 0,4); // one more cycle 
-	ChainPlus(bf0);
+	ChainPlus();
 	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
 
 	while(zcf.DeriveCycle(3, 9, 0))
 		;// and full expansion
-	ChainPlus(bf0);
+	ChainPlus();
 	return Rating_end(200);
 }
 
@@ -1061,20 +1059,19 @@ int PUZZLE::Rating_base_90() {
 	zcf.hdp_dynamic=zcf.h.dp; // store it for next steps
 
 	zcf.h.d.ExpandShort(zcf.h.dp, 2);
-	BFCAND bf0; // init to no candidate found 
 	zcf.DeriveCycle(3, 4, 7, 2); // one cycle;
-	ChainPlus(bf0);
+	ChainPlus();
 	if(tchain.IsOK(92))      //filter  short paths
         return Rating_end(200);
 	zcf.DeriveCycle(3, 7, 7, 5); // one cycle;  
-	ChainPlus(bf0);
+	ChainPlus();
 	if(tchain.IsOK(94))      //filter  short paths
         return Rating_end(200);
 	if(Op.ot)
 		EE.Enl("rating  dynamic forcing chains plus empty after 2 cycles");
 	while(zcf.DeriveCycle(3, 9, 7))
 		;
-	ChainPlus(bf0);
+	ChainPlus();
 	return Rating_end(200);
 }
 
@@ -1093,31 +1090,43 @@ int PUZZLE::Rating_base_90() {
    the process has been reshaped to fit with search at higher levels
    */
 
-void PUZZLE::ChainPlus(BFCAND & dones) {
+void PUZZLE::ChainPlus() {
 	int godirect=((tchain.base +8)<=ermax);
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
 	for(int i = 2; i < puz.col; i += 2) {
-		BFTAG zw1 = t[i];
-		zw1 &= (t[i].Inverse()).TrueState();
+		int icand=i>>1;
+		if(dynamic_form1.Off(icand)){
+		   BFTAG zw1 = t[i];
+		   zw1 &= (t[i].Inverse()).TrueState();
+		    if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
+		        dynamic_form1.Set(i);
+				if(1 && Op.ot) {
+				   EE.E("\n\nfound active a->x and a->~x  a=" );
+				   zpln.ImageTag(i);
+				   EE.Enl();
+	    		   //puz.Image(zw1," elims",i);
+			    }
+           if(godirect) 
+			   tchain.ClearImmediate(icand);
+		   else
+			   GoNestedCase1(icand,tchain.base); 
+			}
+
+		}
+
+		
+
 		BFTAG zw2 = t[i];
 		zw2 &= t[i ^ 1];
 		zw2 = zw2.FalseState();
-		if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
-			if(1 && Op.ot) {
-				EE.E("\n\nfound active a->x and a->~x  a=" );
-				zpln.ImageTag(i);
-				EE.Enl();
-				//puz.Image(zw1," elims",i);
-			}
-        if(godirect) tchain.ClearImmediate(i>>1);
-		else
- 		GoNestedCase1(i>>1,tchain.base); 
+		zw2-=dynamic_form2[icand]; // less already processed in dynamic search
 
-		}
+
 		// if we start from a bi value, SE does not say
 		// ~x but goes immediatly to the bi-value  saving one step.
 		// 
 		if(zw2.IsNotEmpty()) { // this is x-> ~a and ~x -> ~a
+			dynamic_form2[icand]|=zw2;
 			if(1 && Op.ot) {
 				EE.E("\n\nfound active x->~a and ~x->~a");
 				puz.Image(zw2,"elims", i);
@@ -1152,6 +1161,7 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 			   ttt[20];
 		BFTAG tbt, bfset;
 		tbt.SetAll_1();
+		tbt-=dynamic_sets[ie]; // already seen in dynamic mode
 		for(int i = 0; i < n; i++){
 			ttt[i]=(tcd[i] << 1);
 			bfset.Set(ttt[i] ^ 1);
@@ -1164,6 +1174,7 @@ void PUZZLE::ChainPlus(BFCAND & dones) {
 		if(tbt.IsEmpty())
 			continue;
 
+		dynamic_sets[ie] |= tbt;
 
         for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
 			if(godirect)  
@@ -1598,8 +1609,17 @@ int PUZZLE::Traite(char * ze) {
 		if(AlignedTripletN()) {
 			SetEr();
 			continue;
-		}  //7.5
-		if(Rating_base_75()) {
+		}  //7.5  
+
+		  // at that point, we set to nill dynamic processing done
+		  // this is done once for all the cycle
+		dynamic_form1.SetAll_0();
+		for(int i=0;i<320;i++){
+			dynamic_form2[i].SetAll_0();
+			dynamic_sets[i].SetAll_0();
+		}
+
+		if(Rating_base_75()) {  
 			SetEr();
 			continue;
 		}  //7.5

@@ -1172,8 +1172,7 @@ public:
 	     c_ret;
 
 
-   /* set of data formerly in CANDGO
-   */
+        // data to control the dynamic and nested mode   
 
 	USHORT nested_aig,
 		   ret_code,npas,
@@ -1186,13 +1185,18 @@ public:
 	BFTAG  *cum ,* step; 
 	USHORT *ta,*tb,ita,itb;
 	SQUARE_BFTAG dpn,dn; // in nested mode, dynamic set of primary links
-	// look first for direct 
-
-
-
+	
+	      // added here control for only one search
+	      // bit set to 1 when dynamic search done
+	      // form1 form 2 indes is candidate
+	      // sets index is ""set index"" in ""sets table""
+	             
+	BFTAG  dynamic_form1,        // form a=> x and  a=>~x		      
+		   dynamic_form2[320],   // form x=> ~a and  ~x => ~a
+	       dynamic_sets[320];   // maxi is 384 sets less given 
 
 	PUZZLE();
-
+	 
 
     /* set of routines previously in opsudo */
 
@@ -1283,7 +1287,7 @@ public:
 	int Rating_base_95_Quick();  // quick nesting   
 	void Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target);
 
-	void ChainPlus(BFCAND &dones); // formerly in INFERENCES
+	void ChainPlus(); // formerly in INFERENCES
 
 	
 	void ImagePoints(BF81 & zz) const;  
