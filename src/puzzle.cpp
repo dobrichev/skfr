@@ -1023,11 +1023,13 @@ int PUZZLE::Rating_base_85() {
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 //	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
     zcf.ExpandShort(3);
+	zcf.DeriveCycle(3, 3, 0,2); // one cycle short sets
 	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
 	ChainPlus(bf0);
 	if(tchain.IsOK(88))      //filter  short paths
         return Rating_end(200);
-	zcf.DeriveCycle(3, 9, 0, 5); // one cycle short sets
+	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
+	zcf.DeriveCycle(3, 3, 0,4); // one more cycle 
 	ChainPlus(bf0);
 	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
@@ -3415,7 +3417,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 			if(opp)
 				puz.Image(x,"applied std" ,ta[it]);	   
 			allsteps |= x; // and in the total 
-//			hdp[tag] |= x;
 			USHORT ty[30], ity=0;
 			x.String(ty, ity);
 			for(int i = 0; i < ity; i++)
@@ -3470,7 +3471,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 						 if(allsteps.Off(j)) {
 						      (*step).Set(j);   
 						      allsteps.Set(j);
-	//					      hdp[tag].Set(j); // and in the total 
 						      tb[itb++] = j;
 						      tsets[j] = ie;
 					          nested_aig = 1;
@@ -3486,7 +3486,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 				if(allsteps.Off(j)) { // kep only the first one
 						(*step).Set(j);   
 						allsteps.Set(j);
-	//					hdp[tag].Set(j);// and in the total 
 						tb[itb++] = j;
 						tsets[j] = ie;
 						nested_aig = 1;
@@ -3517,7 +3516,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 					continue;
 				(*step).Set(j);  
 				allsteps.Set(j);
-	//			hdp[tag].Set(j); // and in the total 
 				tb[itb++] = j;
 				tsets[j] = ie;
 				nested_aig = 1;
@@ -3545,15 +3543,11 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	NestedForcingShort(elims); 
 
 	BFTAG x = elims.Inverse();
-	//x -= hdp[tag];
-	//if(x.IsNotEmpty()) { // force false so use elims.inverse()
-//	if(x.substract(hdp[tag])) { // force false so use elims.inverse()
 	if(x.substract(allsteps)) { // force false so use elims.inverse()
 		(*step) |= x; // flag it in the BFTAG and load in new
 		if(opp)
 			puz.Image(x,"forcing chain elims" ,0);	
 		allsteps |= x; // and in the total 
-//		hdp[tag] |= x;
 		USHORT ty[200], ity = 0;
 		x.String(ty, ity);
 		if(ity > 200)
@@ -3573,7 +3567,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	if(x.IsNotEmpty()) {
 		(*step) |= x; // flag it in the BFTAG and load in new
 		allsteps |= x; // and in the total 
-//		hdp[tag] |= x;
 		USHORT ty[200], ity = 0;
 		x.String(ty, ity);
 		for(int i = 0; i < ity; i++)
@@ -3585,17 +3578,14 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 
 void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check tagelim empty 
 	dpn.Init(); 
-//	const BFTAG &tt (zcf.h.d.t[tag]);
 	BFTAG * tdp = zcf.hdp_base_nested.t;
 	USHORT tagc = tag;
 	if(tagc & 1) tagc ^= 1;
 	for(int j = 2; j < puz.col; j++) {
 		if(j == tagc)
 			continue; // don't process the start point
-//		if(tt.On(j))
 		if(allsteps.On(j))
 			continue; // that tag is defined
-//		if(tt.On(j ^ 1))
 		if(allsteps.On(j ^ 1))
 			continue; // that tag is defined as well (to check)
 		dpn.t[j] = tdp[j];
@@ -3808,12 +3798,12 @@ void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT tar
 
 	nested_print_option= 0;
 	for (int i = 0; i < ntags; i++) {
-		
 		USHORT lx = GoNestedCase2_3(base, ttags[i], target);
 		if(!lx)
 			return; //should never be
 		length += lx;
-	    int ratch = tchain.GetRating(length, target >> 1);
+		  // in next call use ls to avoid length <2
+	    int ratch = tchain.GetRating(lx, target >> 1);
 		if(!ratch) break; // stop as soon as possible
 	}
 
@@ -3923,14 +3913,11 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
 		BFTAG x = to[ta[it]];
-		//x -= allsteps;	  // still free and in the overall path
-		//if(x.IsNotEmpty()) {
 		if(x.substract(allsteps)) {
 			if(opp)
 				puz.Image(x,"applied std", ta[it]);
 			(*step) |= x; // flag it in the BFTAG and load in new
 			allsteps |= x; // and in the total 
-//			hdp[tag] |= x;
 			nested_aig=1;
 		} 
 		if(nested_aig){
@@ -3987,7 +3974,6 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 						 if(allsteps.Off(j)) {
 						      (*step).Set(j);   
 						      allsteps.Set(j);
-	//					      hdp[tag].Set(j); // and in the total 
 						      tb[itb++] = j;
 						      tsets[j] = ie;
 					          nested_aig = 1;
@@ -4003,7 +3989,6 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 				if(allsteps.Off(j)) {
 						(*step).Set(j);   
 						allsteps.Set(j);
-	//					hdp[tag].Set(j); // and in the total 
 						tb[itb++] = j;
 						tsets[j] = ie;
 						nested_aig = 1;
@@ -4039,7 +4024,6 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 					continue;
 				(*step).Set(j);  
 				allsteps.Set(j);
-//				hdp[tag].Set(j);// and in the total 
 				tb[itb++] = j;
 				tsets[j] = ie;
 				nested_aig = 1;
@@ -4302,8 +4286,8 @@ USHORT itret1=0,nestedlength=0;  itret=0;
    for(int i=0;i<=npas;i++) if(steps[i].On(x))
       {aig=0; 
 	   if(i)   // not initial assumption
-	   if(!index) // this is a direct step
-	       {USHORT z=0;
+	   if(!index){ // this is a direct step
+	       USHORT z=0;
 	         for(int i2=0;i2<i;i2++)
 			 for(int j=0;j<itx[i2];j++) // look for the earliest  possible parents
 	       // take in priority one already there  
@@ -4314,20 +4298,49 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 					if(!z)z=y;   if(bf.On(y)) {z=y;break;}			     } 
 	         }
             if(z && bf.Off(z)) {tret[itret++]=z;bf.Set(z);}
-           }
-	   else  if(index>0) // it comes from a set, we know which one
-	        {SET chx=zcx.zc[tsets[x]];
+       }
+	   else  if(index>0){
+		   
+		   // it comes from a set, we know which one
+		   //   but  may be a shorter path using anoter set
+		   // we take the shortest size giving that candidate 
+		   //   using found candidates (false)  (to code)
+		    
+	        SET chx=zcx.zc[tsets[x]];
 	        if(0 && nested_print_option)
 			   {EE.E("set");chx.Image(); EE.Enl();}
-			int n=chx.ncd; if(chx.type==SET_set) n--; // for a set, forget the event
+		   int n=chx.ncd; 
+		   if(chx.type==SET_set)
+			   n--; // for a set, forget the event
+		   else  if(n>3){ // if n>3 try to find a shorter set
+              for(int j=tsets[x]+1;j<zcx.izc;j++){
+                 SET chxj=zcx.zc[j];
+				 if(chxj.type==SET_set) break; // only sets
+				 int nj=chxj.ncd; 
+				 if(nj>=n) continue; // keep the first lowest only
+				 int aig=0;
+                 for(int k=0;k<nj;k++) {
+                     USHORT y=chx.tcd[j]<<1;
+				     if(cumsteps[i].On(y^1)) continue;
+					 if(y==x) aig=1; // must be 'x' onece
+					 else  aig=0;
+				 }
+				 if(aig) {n=nj;
+                         if(n==3) break;  // stop at first 3 cand reached
+				 }
+			  }
+
+		   }
+
+
 		   for(int j=0;j<n;j++) 
 		   {USHORT y=chx.tcd[j]<<1; if(y==x) continue;
 		    y^=1; if(bf.Off(y)){tret[itret++]=y;bf.Set(y);}
 		   }
-	      }
+	   }
 
-	    else  // index <0 this is a nested elimination
-	     {	CANDGOFORWARD w=tcandgo.tt[-index];
+	   else{  // index <0 this is a nested elimination
+	     	CANDGOFORWARD w=tcandgo.tt[-index];
 		  nestedlength += w.count;
 		  BFTAG bfn = w.source;
 		  bfn -= bf; // add missing in source
@@ -4338,7 +4351,7 @@ USHORT itret1=0,nestedlength=0;  itret=0;
 		  if( 0 && nested_print_option) tstore.Print(w.index);
 		  for(int j=2;j< puz.col;j++) if(bfn.On(j))
            {tret[itret++]=j;bf.Set(j);}
-	     }
+	   }
         i=100;// force end of process after it has been found
 	   }  // end i
   if(aig || itret>150) return 0; // not found, should never be
@@ -4530,29 +4543,32 @@ void  CANDIDATES::WeakLinksD()
 //---------- gen sets of candidates in a row column box 
 /* changed the order of generation for 2 reasons
    closer to serate mode
-   better change to have same rating for morphs
+   better chance to have same rating for morphs
 
    first generate box sets
-   et after only row col
+   and do it in increasing order of the set size
 
 */
 
 void CANDIDATES::GenRegionSets()     
 	// can only be one per row col box, only if more than 2 candidates
 {  USHORT mch[10];    
-   for (int elx=0,el=18;elx<27;elx++,el++){
-      if(el==27) el=0;  // after boxes rows and columns
+    //  box row column increasing sise of sets
+   for( int ncand=3;ncand<10;ncand++)
+    for (int elx=0,el=18;elx<27;elx++,el++){
+      if(el==27) el=0;
       for( int ich=0;ich<9;ich++) {
         USHORT nmch=puz.alt_index.tchbit.el[el].eld[ich].n,ipts=0;;
-	    if(nmch<3) continue; // minimum set size is 3
+	    if(nmch-ncand) continue;  
 	    BF81 zel=divf.elz81[el]&puz.c[ich];  
 		for(int j=1;j<ip;j++){
             if(zp[j].ch-ich )continue;
             if(zel.On(zp[j].ig) ) mch[ipts++]=j; 
         }
-     zcx.ChargeSet(mch,nmch,SET_base);
+       zcx.ChargeSet(mch,nmch,SET_base);
     }
    }
+
 }
 void  CANDIDATES::GenCellsSets()
 {for(USHORT i=0;i<81;i++)
