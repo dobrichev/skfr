@@ -37,7 +37,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "ratEnum.h"			// enum list of solving techniques
 #include "bitfields.h"			// bitfields are grouped in this file
 
-
+extern unsigned long long fsss(const char* in, const unsigned long long maxSolutions, char* out); //fast simple sudoku solver.
 
 
 //! Short class to define and handle a 9x9 or 81 char field 
@@ -468,71 +468,71 @@ public:
     void Genere();  // update
 };
 
-//! This class provide a brute force solver
-/**
- * This solver will stop as soon as 2 solutions have been found.<br><br>
- * Usage of this class is :<ul>
- * <li> create an instance </li>
- * <li> init with the puzzle calling BRUTE_FORCE_STEP::Init </li>
- * <li> for each given call BRUTE_FORCE_STEP::Fixer</li>
- * <li> look for solution(s) calling BRUTE_FORCE_STEP::NsolPas </li>
- * <li> verify the number of solution static member BRUTE_FORCE_STEP::nsol (0,1 or 2)
- * and get the (first found) solution in global variable <code>un_jeu.ggf</code></li>
- * </ul>
- */
-class BRUTE_FORCE_STEP 
-{
-public:   
-	CELL_VAR tu[81];			//< candidate and status of cells
-	GG *ggf,  // pointer to the final location
-		gg;				//< puzzle as a string
-	char *gr;			//< pointer on puzzle string that will evolve to the solution
-	BF81 libres;		//< 81 bitfield indicating the empty cell
-	USHORT nlibres,		//< number of empty cells
-		nactif,
-		iactif,
-		*nsol,        // pointer to nsol in the calling sequence   
-		maxlibres;
-	BF16 candactif;
+////! This class provide a brute force solver
+///**
+// * This solver will stop as soon as 2 solutions have been found.<br><br>
+// * Usage of this class is :<ul>
+// * <li> create an instance </li>
+// * <li> init with the puzzle calling BRUTE_FORCE_STEP::Init </li>
+// * <li> for each given call BRUTE_FORCE_STEP::Fixer</li>
+// * <li> look for solution(s) calling BRUTE_FORCE_STEP::NsolPas </li>
+// * <li> verify the number of solution static member BRUTE_FORCE_STEP::nsol (0,1 or 2)
+// * and get the (first found) solution in global variable <code>un_jeu.ggf</code></li>
+// * </ul>
+// */
+//class BRUTE_FORCE_STEP 
+//{
+//public:   
+//	CELL_VAR tu[81];			//< candidate and status of cells
+//	GG *ggf,  // pointer to the final location
+//		gg;				//< puzzle as a string
+//	char *gr;			//< pointer on puzzle string that will evolve to the solution
+//	BF81 libres;		//< 81 bitfield indicating the empty cell
+//	USHORT nlibres,		//< number of empty cells
+//		nactif,
+//		iactif,
+//		*nsol,        // pointer to nsol in the calling sequence   
+//		maxlibres;
+//	BF16 candactif;
+//
+//
+//	BRUTE_FORCE_STEP() {gr=gg.pg;}
+//	BRUTE_FORCE_STEP(BRUTE_FORCE_STEP &old) {
+//		*this = old;
+//		gr = gg.pg;
+//	}
+//
+//	void Init(const GG &ge, USHORT *nsole, GG *ggfe);  
+//	void Fixer(int i, USHORT ch);
+//	void Clear(int i8, USHORT ch);
+//	int Avance();  	
+//	void NsolPas(); //id et lct pas suivant
+//	BF81 GetZ() const ;
+//};
 
 
-	BRUTE_FORCE_STEP() {gr=gg.pg;}
-	BRUTE_FORCE_STEP(BRUTE_FORCE_STEP &old) {
-		*this = old;
-		gr = gg.pg;
-	}
-
-	void Init(const GG &ge, USHORT *nsole, GG *ggfe);  
-	void Fixer(int i, USHORT ch);
-	void Clear(int i8, USHORT ch);
-	int Avance();  	
-	void NsolPas(); //id et lct pas suivant
-	BF81 GetZ() const ;
-};
-
-
-//!A class to check uniqueness
-/**
- * That was a class from "Gerard Penet" to handle recursive tasks as <ul>
- * <li> puzzles generators</li>
- * <li> brute force solving ...</li></ul>
- * This class has been reduced here to a minimal form for uniquenss verification
- */
-
-class BRUTE_FORCE {
-public: 
-	PUZZLE * parentpuz;
-	FLOG * EE;
-	BRUTE_FORCE_STEP dep;		//< to invoke brute force solver
-	GG gg;			//< puzzle initial string
-
-	//! has this puzzle one and only one solution
-	void SetParent(PUZZLE * parent,FLOG * fl)
-	{parentpuz=parent;EE=fl;}
-
-	int Uniqueness(GG &ge, GG *puz_solution) ;
-
-};
+////!A class to check uniqueness
+///**
+// * That was a class from "Gerard Penet" to handle recursive tasks as <ul>
+// * <li> puzzles generators</li>
+// * <li> brute force solving ...</li></ul>
+// * This class has been reduced here to a minimal form for uniquenss verification
+// */
+//
+//class BRUTE_FORCE {
+//public: 
+//	PUZZLE * parentpuz;
+//	FLOG * EE;
+//	BRUTE_FORCE_STEP dep;		//< to invoke brute force solver
+//	GG gg;			//< puzzle initial string
+//
+//	//! has this puzzle one and only one solution
+//	void SetParent(PUZZLE * parent,FLOG * fl)
+//	{parentpuz=parent;EE=fl;}
+//
+//	int Uniqueness(GG &ge, GG *puz_solution) ;
+//
+//};
 
 
 
@@ -1124,7 +1124,7 @@ class PUZZLE
 {
 public:
 
-    BRUTE_FORCE un_jeu;
+    //BRUTE_FORCE un_jeu;
     SEARCH_LS_FISH yt;
     TCHAIN tchain;
     TWO_REGIONS_INDEX alt_index; 
@@ -1245,7 +1245,7 @@ public:
 	 * No check on the number of solutions
 	 * \return 0 not correct, 1 correct
 	 */
-    int Check();
+    //int Check();
     int Recale();              
 	int Traite(char * ze);
 	int Traite_a();

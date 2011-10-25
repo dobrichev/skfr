@@ -439,7 +439,7 @@ PUZZLE::PUZZLE() {
 	yt.SetParent(this);
 	zpaires.SetParent(this);
 	tchain.SetParent(this,&EE);
-	un_jeu.SetParent(this,&EE);
+	//un_jeu.SetParent(this,&EE);
 }
 
 
@@ -647,29 +647,29 @@ int PUZZLE::NonFixesEl(int el) {
 }
 
 //--------       verify that the puzzle is correct
-int PUZZLE::Check() { 
-	BF16 c[27];	// a 9 bitfield for each house
-	int i;
-	for(i = 0; i < 27; i++)
-		c[i].f = 0;
-	for(i = 0; i < 81; i++) {
-		int w = gg.pg[i]; 
-		CELL_FIX w8 = t81f[i]; // TO OPTIMIZE use a pointer to avoid copy of CELL _FIX
-		if((w < '1') || (w > '9'))
-			continue;	// empty cell
-		w -= '1';
-		if(c[w8.el].On(w))
-			return 0;	// row
-		c[w8.el].Set(w);
-		if(c[w8.pl+9].On(w))
-			return 0;	// column
-		c[w8.pl+9].Set(w);
-		if(c[w8.eb+18].On(w))
-			return 0; // box
-		c[w8.eb+18].Set(w);
-	}
-	return 1;
-}
+//int PUZZLE::Check() { 
+//	BF16 c[27];	// a 9 bitfield for each house
+//	int i;
+//	for(i = 0; i < 27; i++)
+//		c[i].f = 0;
+//	for(i = 0; i < 81; i++) {
+//		int w = gg.pg[i]; 
+//		CELL_FIX w8 = t81f[i]; // TO OPTIMIZE use a pointer to avoid copy of CELL _FIX
+//		if((w < '1') || (w > '9'))
+//			continue;	// empty cell
+//		w -= '1';
+//		if(c[w8.el].On(w))
+//			return 0;	// row
+//		c[w8.el].Set(w);
+//		if(c[w8.pl+9].On(w))
+//			return 0;	// column
+//		c[w8.pl+9].Set(w);
+//		if(c[w8.eb+18].On(w))
+//			return 0; // box
+//		c[w8.eb+18].Set(w);
+//	}
+//	return 1;
+//}
 
 int PUZZLE::CheckChange(int i, int ch) {
 	if(stop_rating) return 1;
@@ -1476,13 +1476,30 @@ int PUZZLE::Traite(char * ze) {
 		if(ze[i]-'.') gg.pg[i]=ze[i]; else  gg.pg[i]='0';
 
 	// check if the puzzle is correct 
-	   //(no duplicate givens in a house)
-	   // one solution and only one
-	if ((!Check())     ||
-		( un_jeu.Uniqueness(gg,& gsolution)-1)) {
+	//(no duplicate givens in a house)
+	// one solution and only one
+
+	//if ((!Check())     ||
+	//	( un_jeu.Uniqueness(gg,& gsolution)-1)) {
+	//		edmax=1;
+	//		return 0;
+	//}
+
+	//MD: new brute force solver for validation
+	//========
+	char puz_zero_based[81];
+	char solutions[2][81];
+	for(int i = 0; i < 81; i++) {
+		puz_zero_based[i] = (ze[i] >= '1' && ze[i] <= '9') ? ze[i] - '0' : 0;
+	}
+	if(1 != fsss(puz_zero_based, 2, solutions[0])) { //zero or more than one solutions
         edmax=1;
 		return 0;
 	}
+	for(int i = 0; i < 81; i++) {
+		solution[i] = solutions[0][i] + '0';
+	}
+	//========
 
 		/* the solution is stored in an appropriate form 
 	 * 9 81 bitfield indicating for each digit the positions
