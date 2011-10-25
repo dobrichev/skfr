@@ -26,6 +26,8 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABI
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
+//#include <stdio.h> //debug
+//#include <STDLIB.H> //debug
 
 #include "bitfields.h"
 #include <memory.h>
@@ -143,17 +145,42 @@ void BFTAG::String(USHORT * r, USHORT &n) const {
 	//	}
 	//}
 
+	//for(int i = 0; i < 5; i++) {
+	//	int m = ff[i].nonzeroOctets(); // 16-bit mask of octets having non-zero bits
+	//	for(int oct = 0; m && oct < 16; m >>= 1, oct++) {
+	//		if(m & 1) { //octet has a bit set
+	//			int b = ff[i].bitmap128.m128i_u8[oct];
+	//			for (int bit = 0; b && bit < 8; b >>= 1, bit++) {
+	//				if(b & 1) {
+	//					r[n++] = (USHORT)(i * 128 + oct * 8 + bit);
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	static const unsigned char toPos[] = { //TODO: move to the global lookups
+		0,1,2,0,3,0,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8};
 	for(int i = 0; i < 5; i++) {
-		int m = ff[i].nonzeroOctets(); // 16-bit mask of octets having non-zero bits
-		for(int oct = 0; m && oct < 16; m >>= 1, oct++) {
-			if(m & 1) { //octet has a bit set
-				int b = ff[i].bitmap128.m128i_u8[oct];
-				for (int bit = 0; b && bit < 8; b >>= 1, bit++) {
-					if(b & 1) {
-						r[n++] = (USHORT)(i * 128 + oct * 8 + bit);
-					}
-				}
+		unsigned int m = ff[i].nonzeroOctets(); // 16-bit mask of octets having non-zero bits
+		int add8 = 0; //0 for lower 8 bits, 8 for higher 8 bits
+		while(m) { //exit if no more octets with bits set
+			if((m & 0xFF) == 0) { //lower 8 bits of the mask (== lower 64 bits of the field) are zero, switch to higher bits
+				m >>= 8;
+				add8 = 8;
 			}
+			unsigned int octetIndexLSB = m & -m; //the rightmost octet having nonzero bit
+			unsigned int octetIndex = toPos[octetIndexLSB] + add8 - 1; //zero based index of this octet within the field
+			unsigned int octetValue = ff[i].bitmap128.m128i_u8[octetIndex];
+			do {
+				unsigned int octetLSB = octetValue & -octetValue; //the rightmost bit set within the value
+				unsigned int bitIndex = (i * 128) + (octetIndex * 8) + (toPos[octetLSB] - 1); //convert to zero based index within the fields
+				r[n++] = (USHORT)bitIndex; //store
+				octetValue ^= octetLSB; //clear the processed bit from the temporay copy
+			} while(octetValue); //loop until all bits within this octed are processed
+			m ^= octetIndexLSB; //clear the octet processed
 		}
 	}
 }
