@@ -625,7 +625,7 @@ public:
 	///\brief Set all bits
 	void SetAll_1();
 	///\brief is bit in position <code>v</code> On
-	inline int On(int v) const {
+	inline bool On(int v) const {
 		//return (f[v >> 5] & (1 << (v & 31)));
 		return (ff[v >> 7].isBitSet(v & 127));
 	}

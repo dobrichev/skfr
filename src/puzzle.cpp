@@ -3450,6 +3450,7 @@ void PUZZLE::GoNestedTag(USHORT tag,USHORT base) {
 */
 void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	USHORT aignl = 1;
+	//const BFTAG &cum_here = *cum;
 	BFTAG * tdpn = dpn.t,  // new set of direct links
 //		* hdp = zcf.h.dp.t, // basic set of direct links including dynamic effects
 	    * hdpb =zcf.hdp_base_nested.t; // to receive new strong links
@@ -3547,12 +3548,17 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 			}
 			break;
 		case SET_set: // in a set all components must be on
+			//for(int i = 0; i < (nni - 1); i++) {
+			//	if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
+			//		n++;
+			//		if(n)
+			//			break;
+			//}
 			for(int i = 0; i < (nni - 1); i++) {
-				if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
-					n++;
-					if(n)
-						break;
-				}
+				if(cum->On(1 + 2 * chx.tcd[i]))
+					continue;
+				n = 1;
+				break;
 			}
 			if(n)
 				break; // must all be there
@@ -4317,121 +4323,171 @@ void PUZZLE::Gen_dpn(USHORT tag)
  }
 
 //--------------------------------------------------
-
-
-int PUZZLE::GoBackNested(USHORT tag)
-{if(0){EE.E("goback");zpln.ImageTag(tag);EE.Enl();}
-USHORT itret1=0,nestedlength=0;  itret=0;
- BFTAG bf; 
- tret[itret++]=tag;bf.Set(tag);
-  while(itret1<itret && itret<150) // solve each entry back
- { USHORT x=tret[itret1],aig=1; // first locate where x has been loaded
-   int index=tsets[x];
-   if(0 && nested_print_option) 
-         {EE.E("go back look for "); zpln.ImageTag(x);
-              EE.E(" index= ");EE.E( index);
-              EE.E(" itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
-   for(int i=0;i<=npas;i++) if(steps[i].On(x))
-      {aig=0; 
-	   if(i)   // not initial assumption
-	   if(!index){ // this is a direct step
-	       USHORT z=0;
-	         for(int i2=0;i2<i;i2++)
-			 for(int j=0;j<itx[i2];j++) // look for the earliest  possible parents
-	       // take in priority one already there  
-	         {USHORT y=tx[i2][j]; 
-			  if(to[y].On(x)) 
-			       {if(0 && nested_print_option) 
-			            {puz.Image(to[y],"to image ",y);}
-					if(!z)z=y;   if(bf.On(y)) {z=y;break;}			     } 
-	         }
-            if(z && bf.Off(z)) {tret[itret++]=z;bf.Set(z);}
-       }
-	   else  if(index>0){
-		   
-		   // it comes from a set, we know which one
-		   //   but  may be a shorter path using anoter set
-		   // we take the shortest size giving that candidate 
-		   //   using found candidates (false)  (to code)
-		    
-	        SET chx=zcx.zc[tsets[x]];
-	        if(0 && nested_print_option)
-			   {EE.E("set");chx.Image(); EE.Enl();}
-		   int n=chx.ncd; 
-		   if(chx.type==SET_set)
-			   n--; // for a set, forget the event
-		   else  if(n>3){ // if n>3 try to find a shorter set
-              for(int j=tsets[x]+1;j<zcx.izc;j++){
-                 SET chxj=zcx.zc[j];
-				 if(chxj.type==SET_set) break; // only sets
-				 int nj=chxj.ncd; 
-				 if(nj>=n) continue; // keep the first lowest only
-				 int aig=0;
-                 for(int k=0;k<nj;k++) {
-                     USHORT y=chx.tcd[j]<<1;
-				     if(cumsteps[i].On(y^1)) continue;
-					 if(y==x) aig=1; // must be 'x' onece
-					 else  aig=0;
-				 }
-				 if(aig) {n=nj;    // replace the set by the new one
-				          chx=chxj;
-                         if(n==3) break;  // stop at first 3 cand reached
-				 }
-			  }
-
-		   }
-
-
-		   for(int j=0;j<n;j++) 
-		   {USHORT y=chx.tcd[j]<<1; if(y==x) continue;
-		    y^=1; if(bf.Off(y)){tret[itret++]=y;bf.Set(y);}
-		   }
-	   }
-
-	   else{  // index <0 this is a nested elimination
-	     	CANDGOFORWARD w=tcandgo.tt[-index];
-		  nestedlength += w.count;
-		  BFTAG bfn = w.source;
-		  bfn -= bf; // add missing in source
-          if(0 && nested_print_option)
-			  {EE.E("back forcing for "); zpln.ImageTag(x),EE.Enl();
-		       puz.Image(w.source,"source",0);
-			   puz.Image(bfn,"solde source",0);}
-		  if( 0 && nested_print_option) tstore.Print(w.index);
-		  for(int j=2;j< puz.col;j++) if(bfn.On(j))
-           {tret[itret++]=j;bf.Set(j);}
-	   }
-        i=100;// force end of process after it has been found
-	   }  // end i
-  if(aig || itret>150) return 0; // not found, should never be
-  itret1++;
-  if(0 && Op.ot) {EE.E("go back end step   itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);}
- }
-
-  if(nested_print_option && Op.ot)  // printing in increasing order of generation
-    {EE.Enl(" eliminations justification ");
-	 for(int i=0;i<=npas;i++) for(int j=0;j<itret;j++) 
-		 if(steps[i].On(tret[j])) 
-		 {USHORT wt=tret[j]; 
-		  zpln.ImageTag(wt); // print the tag annd look for explanation
-		  int index=tsets[wt];
-	      if(!index) 	     EE.Enl();  // direct no comment
-		  else  if(index>0) // it comes from a set, we know which one
-	        {SET chx=zcx.zc[index];
-	         EE.E(" through set ");chx.Image(); EE.Enl(); 		    
-	        }
-
-	    else  // index <0 this is a nested elimination
-	     {CANDGOFORWARD w=tcandgo.tt[-index];
-		  EE.E(" through chain(s) "); EE.Enl();
-		   tstore.Print(w.index);
-	     }
-	      
-      EE.Enl();
-        }
-    EE.E("return itret=");EE.E( itret);EE.E(" nestedplus="); EE.Enl(nestedlength);
-    }
-return itret + nestedlength;}
+int PUZZLE::GoBackNested(USHORT tag) {
+	if(0) {
+		EE.E("goback");zpln.ImageTag(tag);EE.Enl();
+	}
+	USHORT itret1=0,nestedlength=0;
+	itret=0;
+	BFTAG bf; 
+	tret[itret++] = tag;
+	bf.Set(tag);
+	while(itret1 < itret && itret < 150) { // solve each entry back
+		USHORT x = tret[itret1], aig = 1; // first locate where x has been loaded
+		int index = tsets[x];
+		if(0 && nested_print_option) {
+			EE.E("go back look for ");
+			zpln.ImageTag(x);
+			EE.E(" index= ");EE.E( index);
+			EE.E(" itret1=");EE.E(itret1);EE.E(" itret=");EE.Enl(itret);
+		}
+		for(int i = 0; i <= npas; i++) {
+			if(steps[i].On(x)) {
+				aig=0; 
+				if(i) {  // not initial assumption
+					if(!index) { // this is a direct step
+						USHORT z=0;
+						for(int i2 = 0; i2 < i; i2++) {
+							for(int j = 0; j < itx[i2]; j++) { // look for the earliest  possible parents
+								// take in priority one already there  
+								USHORT y = tx[i2][j]; 
+								if(to[y].On(x)) {
+									if(0 && nested_print_option) {
+										puz.Image(to[y], "to image ", y);
+									}
+									if(!z)
+										z = y;
+									if(bf.On(y)) {
+										z = y;
+										break;
+									}
+								} 
+							}
+						}
+						if(z && bf.Off(z)) {
+							tret[itret++] = z;
+							bf.Set(z);
+						}
+					}
+					else if(index > 0) {
+						// it comes from a set, we know which one
+						//   but  may be a shorter path using anoter set
+						// we take the shortest size giving that candidate 
+						//   using found candidates (false)  (to code)
+						SET chx = zcx.zc[tsets[x]];
+						if(0 && nested_print_option) {
+							EE.E("set");
+							chx.Image();
+							EE.Enl();
+						}
+						int n = chx.ncd; 
+						if(chx.type == SET_set)
+							n--; // for a set, forget the event
+						else if(n > 3) { // if n>3 try to find a shorter set
+							for(int j = tsets[x] + 1; j < zcx.izc; j++) {
+								SET chxj = zcx.zc[j];
+								if(chxj.type == SET_set)
+									break; // only sets
+								int nj = chxj.ncd; 
+								if(nj >= n)
+									continue; // keep the first lowest only
+								int aig = 0;
+								for(int k = 0; k < nj; k++) {
+									USHORT y = chx.tcd[j] << 1;
+									if(cumsteps[i].On(y ^ 1))
+										continue;
+									if(y == x)
+										aig = 1; // must be 'x' onece
+									else
+										aig = 0;
+								}
+								if(aig) {
+									n = nj;    // replace the set by the new one
+									chx = chxj;
+									if(n == 3)
+										break;  // stop at first 3 cand reached
+								}
+							}
+						}
+						for(int j = 0; j < n; j++) {
+							USHORT y = chx.tcd[j] << 1;
+							if(y == x)
+								continue;
+							y ^= 1;
+							if(bf.Off(y)) {
+								tret[itret++] = y;
+								bf.Set(y);
+							}
+						}
+					}
+					else {  // index <0 this is a nested elimination
+						CANDGOFORWARD w = tcandgo.tt[-index];
+						nestedlength += w.count;
+						BFTAG bfn = w.source;
+						bfn -= bf; // add missing in source
+						if(0 && nested_print_option) {
+							EE.E("back forcing for ");
+							zpln.ImageTag(x),
+								EE.Enl();
+							puz.Image(w.source, "source", 0);
+							puz.Image(bfn, "solde source", 0);
+						}
+						if(0 && nested_print_option)
+							tstore.Print(w.index);
+						for(int j = 2; j < puz.col; j++) {
+							if(bfn.On(j)) {
+								tret[itret++] = j;
+								bf.Set(j);
+							}
+						}
+						i = 100;// force end of process after it has been found
+					}
+				}
+			}
+		}  // end i
+		if(aig || itret > 150)
+			return 0; // not found, should never be
+		itret1++;
+		if(0 && Op.ot) {
+			EE.E("go back end step   itret1=");
+			EE.E(itret1);
+			EE.E(" itret=");
+			EE.Enl(itret);
+		}
+	}
+	if(nested_print_option && Op.ot) { // printing in increasing order of generation
+		EE.Enl(" eliminations justification ");
+		for(int i = 0; i <= npas; i++) {
+			for(int j = 0; j < itret; j++) { 
+				if(steps[i].On(tret[j])) {
+					USHORT wt = tret[j]; 
+					zpln.ImageTag(wt); // print the tag annd look for explanation
+					int index = tsets[wt];
+					if(!index)
+						EE.Enl();  // direct no comment
+					else if(index > 0) { // it comes from a set, we know which one
+						SET chx = zcx.zc[index];
+						EE.E(" through set ");
+						chx.Image();
+						EE.Enl(); 		    
+					}
+					else {  // index <0 this is a nested elimination
+						CANDGOFORWARD w = tcandgo.tt[-index];
+						EE.E(" through chain(s) ");
+						EE.Enl();
+						tstore.Print(w.index);
+					}
+					EE.Enl();
+				}
+			}
+		}
+		EE.E("return itret=");
+		EE.E(itret);
+		EE.E(" nestedplus=");
+		EE.Enl(nestedlength);
+	}
+	return itret + nestedlength;
+}
 
 //former (r96) _03b_puzzle_chains.cpp start
 
