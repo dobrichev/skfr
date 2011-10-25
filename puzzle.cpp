@@ -1240,6 +1240,8 @@ int PUZZLE::AlignedTripletN() {
 				BF81 z23f = (zi1andi2 & t81f[i3].z & z23) - basei3; // TODO verify but ' - basei3' is de trop
 				if(z23f.Count() < 2)
 					continue; // we need at least 2 potential excluding cells
+				int z23fIndex[81];
+				int z23fSize = z23f.String(z23fIndex);
 
 				// TODO modify 
 
@@ -1280,10 +1282,19 @@ int PUZZLE::AlignedTripletN() {
 							// verify if the combination is forbidden by an excluding cell
 							// the potential candidate clear all possibliites for the exlcuding cell
 							// loop on potential excluding cell
-							for(int iec = 0; iec < 81; iec++) {
-								if(!z23f.On(iec))
-									continue;
-								BF16 cec = T81t[iec].v.cand;
+							//for(int iec = 0; iec < 81; iec++) { //v0 by GP
+							//	if(!z23f.On(iec))
+							//		continue;
+							//	BF16 cec = T81t[iec].v.cand;
+							//	for(int ich = 0; ich < 3; ich++)
+							//		cec.Clear(ch[ich]);
+							//	if(cec.isEmpty()) {
+							//		allow = false;
+							//		break;
+							//	}
+							//}
+							for(int ecIndex = 0; ecIndex < z23fSize; ecIndex++) { //v1 by MD
+								BF16 cec = T81t[z23fIndex[ecIndex]].v.cand;
 								for(int ich = 0; ich < 3; ich++)
 									cec.Clear(ch[ich]);
 								if(cec.isEmpty()) {

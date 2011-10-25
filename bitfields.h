@@ -484,7 +484,34 @@ public:
 		//		n++;
 		//return n;
 	}
-
+	int String(int *r) const {
+		int n = 0;
+		static const unsigned char toPos[] = { //TODO: move to the global lookups
+			0,1,2,0,3,0,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8
+		};
+		int m = ff.nonzeroOctets(); // 16-bit mask of octets having non-zero bits
+		int add8 = 0; //0 for lower 8 bits, 8 for higher 8 bits
+		while(m) { //exit if no more octets with bits set
+			if((m & 0xFF) == 0) { //lower 8 bits of the mask (== lower 64 bits of the field) are zero, switch to higher bits
+				m >>= 8;
+				add8 = 8;
+			}
+			int octetIndexLSB = m & -m; //the rightmost octet having nonzero bit
+			int octetIndex = toPos[octetIndexLSB] + add8 - 1; //zero based index of this octet within the field
+			int octetValue = ff.bitmap128.m128i_u8[octetIndex];
+			do {
+				int octetLSB = octetValue & -octetValue; //the rightmost bit set within the value
+				int bitIndex = (octetIndex * 8) + (toPos[octetLSB] - 1); //convert to zero based index within the fields
+				r[n++] = (USHORT)bitIndex; //store
+				octetValue ^= octetLSB; //clear the processed bit from the temporay copy
+			} while(octetValue); //loop until all bits within this octed are processed
+			m ^= octetIndexLSB; //clear the octet processed
+		}
+		return n;
+	}
 };
 
 
