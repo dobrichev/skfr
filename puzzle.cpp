@@ -830,6 +830,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		for(int i = 2; i < col; i += 2) {
 			if(elims1.On(i)) {
 				GoNestedCase1(i >> 1, base);
+            if(stop_rating) return 1;// push back error code
 			}
 		}
 	}
@@ -841,6 +842,8 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 			for(int j = 3; j < col; j++) {
 				if(ptg->On(j)) {
 					Rating_Nested(base, ttt, 2 ,j);
+                if(stop_rating) return 1;// push back error code
+
 				}
 			}
 		}
@@ -864,6 +867,8 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 			for(int j = 3; j < col; j++) {
 				if(ptg->On(j)) {
 					Rating_Nested(base, ttt, nni, j);
+                if(stop_rating) return 1;// push back error code
+
 				}
 			}
 		}
@@ -3718,7 +3723,8 @@ Dynamic search in nested mode for a candidate
 
 
 int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
-	opp = 0; //if(Op.ot && couprem==9)opp=1;;
+	opp = 0; 
+	//if(Op.ot && couprem==24)opp=1;
 	USHORT tag = cand << 1; 
 	if(base>90){
 	   zcf.StartNestedOne();
@@ -3757,6 +3763,9 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 	while(nested_aig && npas++ <= maxpas) {
 		nested_aig = 0; 
 		cum = &cumsteps[npas - 1];
+		    // reasonnable stop for crazy cases
+		    // could surely be set lower
+		if(cum->Count()>250) break; // nothing more to find
 		step = &steps[npas];
 		step->SetAll_0();
 		ta = tx[npas-1];
@@ -3767,18 +3776,22 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 		GoNestedWhile(tag, base);                    // while cycle
 
 
-		if(opp) {
+		if(opp) {  
 			EE.E("fin step=");
 			EE.E(npas);
-			puz.Image((*step),"step ", 0);
-			puz.Image(allsteps,"all", 0);
+			Image((*step),"step ", 0);
+			Image(allsteps,"all", 0);
+			EE.E(" tbuf.istore=");EE.E( tstore.ibuf);
+			EE.E(" tbuf.ise=");EE.E( tstore.ise);
+			EE.E(" tbuf.ise2=");EE.Enl( tstore.ise2);
+
 		}
 
 		cumsteps[npas] = cumsteps[npas - 1];
 		cumsteps[npas] |= (*step);
 		itx[npas] = itb;
 
-		// check for a contradiction in that lot (stop at first)
+		// check for a contradiction in that lot 
 		for(int i = 0; i < itb; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
@@ -3794,8 +3807,10 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 				if(maxpas > pasmax)
 					maxpas = pasmax;
 				nested_print_option=0;
+				//if(couprem==25)nested_print_option=1; 
 				int l1 = GoBackNested(tgx), 
 					l2 = GoBackNested(tgx ^ 1);
+				if(stop_rating) return 1;// push back error code 
 				if((!l1) || (!l2))
 					continue; // should not be
 				int ratch = tchain.GetRating(l1 + l2, tag >> 1);
@@ -3811,10 +3826,10 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 						GoBackNested(tgx ^ 1);
 					}
 					tchain.LoadChain(ratch, "chain plus", tag >> 1);
-				}// end case 1
+				}// end load chain
 
-			}// end for i
-		}
+			} // end one source for elimination
+		}// end for i
 		if(0 && !nested_aig) {
 			EE.E("fin aig=0 pour step=");
 			EE.Enl(npas);
@@ -3864,6 +3879,9 @@ void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT tar
 	nested_print_option= 0;
 	for (int i = 0; i < ntags; i++) {
 		USHORT lx = GoNestedCase2_3(base, ttags[i], target);
+
+		if(stop_rating) 
+			return ;// push back error code 
 		if(!lx)
 			return; //should never be
 		length += lx;
@@ -4346,7 +4364,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 	while(itret1 < itret && itret < 150) { // solve each entry back
 		USHORT x = tret[itret1], aig = 1; // first locate where x has been loaded
 		int index = tsets[x];
-		if(0 && nested_print_option) {
+		if(0  && nested_print_option) {  
 			EE.E("go back look for ");
 			zpln.ImageTag(x);
 			EE.E(" index= ");EE.E( index);
@@ -4452,31 +4470,13 @@ int PUZZLE::GoBackNested(USHORT tag) {
 					else {  // index <0 this is a nested elimination
 						CANDGOFORWARD w = tcandgo.tt[-index];
 						nestedlength += w.count;
-						BFTAG bfn = w.source;
-						bfn -= bf; // add missing in source
-						if(0 && nested_print_option) {
-							EE.E("back forcing for ");
-							zpln.ImageTag(x),
-								EE.Enl();
-							puz.Image(w.source, "source", 0);
-							puz.Image(bfn, "solde source", 0);
-						}
-						if(0 && nested_print_option)
-							tstore.Print(w.index);
-						//MD: 3x acceleration =====
-						//TODO: GP to confirm is the replacement logically equivalent,
-						//i.e. loop limit [2,puz.col] doesn't affect the result
-						//for(int j = 2; j < puz.col; j++) {
-						//	if(bfn.On(j)) {
-						//		tret[itret++] = j;
-						//		bf.Set(j);
-						//	}
-						//}
+						BFTAG bfn( w.source);
+						bfn -= bf; // find new tags needed
 						USHORT newCount;
-						bfn.String(&tret[itret], newCount);
-						itret += newCount;
-						bf |= bfn;
-						//MD: end acceleration =====
+						bfn.String(&tret[itret], newCount);// put them in the list "to explain"
+						itret += newCount; // and adjust the count
+						bf |= bfn;  // update the list of tags icluded
+						
 						i = 100;// force end of process after it has been found
 					}
 				}
