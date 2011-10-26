@@ -1105,7 +1105,7 @@ void PUZZLE::ChainPlus() {
 				   zpln.ImageTag(i);
 				   EE.Enl();
 	    		   //puz.Image(zw1," elims",i);
-			    }
+			    }           
            if(godirect) 
 			   tchain.ClearImmediate(icand);
 		   else
@@ -3692,6 +3692,13 @@ void PUZZLE::NestedMultiShort(BFTAG & elims) {
 	}// end ie
 }
 /*
+    warning
+	                  ================================
+	that process and upstream search should be extended to dynamic forcing chain
+	and dynamic nested forcing chain
+	it seems this does not exist in serate so chould be an option 
+	                   ==============================
+
 Dynamic search in nested mode for a candidate
    do both contradiction, 
    direct  a -> x and a -> ~x so 'a' is false
@@ -3706,8 +3713,11 @@ Dynamic search in nested mode for a candidate
    zcf.h.dp follows the dynamic forward process 
      each new link is loaded in the dp table
 */
+
+
+
 int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
-	opp = 0; //if(Op.ot && couprem==80)opp=1;;
+	opp = 0; //if(Op.ot && couprem==9)opp=1;;
 	USHORT tag = cand << 1; 
 	if(base>90){
 	   zcf.StartNestedOne();
@@ -4345,31 +4355,47 @@ int PUZZLE::GoBackNested(USHORT tag) {
 			if(steps[i].On(x)) {
 				aig=0; 
 				if(i) {  // not initial assumption
-					if(!index) { // this is a direct step
-						USHORT z=0;
-						for(int i2 = 0; i2 < i; i2++) {
-							for(int j = 0; j < itx[i2]; j++) { // look for the earliest  possible parents
-								// take in priority one already there  
-								USHORT y = tx[i2][j]; 
-								if(to[y].On(x)) {
-									if(0 && nested_print_option) {
-										puz.Image(to[y], "to image ", y);
-									}
-									if(!z)
-										z = y;
-									if(bf.On(y)) {
-										z = y;
-										break;
-									}
-								} 
-							}
-						}
-						if(z && bf.Off(z)) {
-							tret[itret++] = z;
-							bf.Set(z);
-						}
-					}
-					else if(index > 0) {
+	              if(!index){ // this is a direct step
+	                 int z=0,ia=i-1;
+
+		             // take a parent already there in priority
+		             // note  this should be extended to SET_sets
+
+	                 for(int i2=0;i2<i;i2++){
+		                for(int j=0;j<itx[i2];j++){
+	                       USHORT y=tx[i2][j]; 
+			               if(to[y].On(x) && bf.On(y)) {
+					         z=y;break;
+			               }	
+			            }
+			            if(z)break;
+		             }
+	                 if(!z )  { // none already there, take the earliest possible
+
+	                  for(int i2=0;i2<i;i2++)  {
+
+				         // prospect that step
+
+			            for(int j=0;j<itx[i2];j++){ 
+	                        USHORT y=tx[i2][j]; 
+			                if(to[y].On(x))  {
+					           z=y; 
+                               tret[itret++]=z;
+			                   bf.Set(z);			          
+					           break;			   
+					         } // end if
+	                    }// end step prospect
+
+				        if(z)   break;  // stop at earliest stepfound
+
+			            }// end loop on steps
+
+			          } // end if(!z)
+
+			          if(!z) aig=1;  // not found should never be
+		           } // end index=0
+
+	   			   else if(index > 0) {
 						// it comes from a set, we know which one
 						//   but  may be a shorter path using anoter set
 						// we take the shortest size giving that candidate 
@@ -4393,13 +4419,14 @@ int PUZZLE::GoBackNested(USHORT tag) {
 									continue; // keep the first lowest only
 								int aig = 0;
 								for(int k = 0; k < nj; k++) {
-									USHORT y = chx.tcd[j] << 1;
+									USHORT y = chxj.tcd[k] << 1;
 									if(cumsteps[i].On(y ^ 1))
 										continue;
 									if(y == x)
 										aig = 1; // must be 'x' onece
 									else
 										aig = 0;
+									    break;
 								}
 								if(aig) {
 									n = nj;    // replace the set by the new one
@@ -4407,8 +4434,9 @@ int PUZZLE::GoBackNested(USHORT tag) {
 									if(n == 3)
 										break;  // stop at first 3 cand reached
 								}
-							}
-						}
+							} // end j
+						}  // end if n>3
+
 						for(int j = 0; j < n; j++) {
 							USHORT y = chx.tcd[j] << 1;
 							if(y == x)
@@ -4453,9 +4481,13 @@ int PUZZLE::GoBackNested(USHORT tag) {
 				}
 			}
 		}  // end i
-		if(aig || itret > 150)
-			return 0; // not found, should never be
-		itret1++;
+       if(aig || itret>150) {
+	       stop_rating=1;
+	        if( Op.ot) EE.Enl("go back nested invalid situation");
+	       opp=0;
+	       return 0; // not found, should never be
+       }	
+   	   itret1++;
 		if(0 && Op.ot) {
 			EE.E("go back end step   itret1=");
 			EE.E(itret1);
@@ -4496,6 +4528,9 @@ int PUZZLE::GoBackNested(USHORT tag) {
 	}
 	return itret + nestedlength;
 }
+
+
+
 
 //former (r96) _03b_puzzle_chains.cpp start
 
