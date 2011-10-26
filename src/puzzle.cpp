@@ -3548,13 +3548,13 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 			}
 			break;
 		case SET_set: // in a set all components must be on
-			//for(int i = 0; i < (nni - 1); i++) {
+			//for(int i = 0; i < (nni - 1); i++) { //v 0 by GP
 			//	if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
 			//		n++;
 			//		if(n)
 			//			break;
 			//}
-			for(int i = 0; i < (nni - 1); i++) {
+			for(int i = 0; i < (nni - 1); i++) { //v 1 by MD
 				if(cum->On(1 + 2 * chx.tcd[i]))
 					continue;
 				n = 1;
@@ -4795,11 +4795,23 @@ void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
 /* that table is prepared for the derivation of weak links
    the "from" table is the table of implications
    */
-void SQUARE_BFTAG::AllParents(SQUARE_BFTAG & from)
-{t[0].SetAll_0();for(int i=1;i< puz.col;i++) t[i]=t[0];
- for(int i=2;i< puz.col;i++) for(int j=2;j< puz.col;j++) 
-	 if(from.t[i].On(j)) t[j].Set(i);
-// EE.Enl("parents"); Image();
+void SQUARE_BFTAG::AllParents(const SQUARE_BFTAG & from) {
+	t[0].SetAll_0();
+	for(int i = 1; i < puz.col; i++)
+		t[i] = t[0];
+	for(int i = 2; i < puz.col; i++) {
+		//for(int j = 2; j < puz.col; j++) { //v 0 by GP
+		//	if(from.t[i].On(j)) {
+		//		t[j].Set(i);
+		//	}
+		//}
+		USHORT ind[640], maxInd; //v 1 by MD, 7x speed
+		from.t[i].String(ind, maxInd);
+		for(int j = 0; j < maxInd; j++) {
+			t[ind[j]].Set(i);
+		}
+	}
+	// EE.Enl("parents"); Image();
 }
 
 
@@ -5407,75 +5419,101 @@ int SETS::CopySet (int i)
 parentpuz->Elimite("ZCX");return 0;}
 
  // multi chains version
- int SETS::Interdit_Base80() 
- {t= zcf.h.d.t;
- int ir=0;
-  for (int ie=1;ie<izc;ie++)     // all active sets 
-   {if(zc[ie].type-SET_base) continue;
-    int n=zc[ie].ncd; USHORT *tcd=zc[ie].tcd ; 
+int SETS::Interdit_Base80() {
+	t= zcf.h.d.t;
+	int ir=0;
+	for (int ie=1;ie<izc;ie++)     // all active sets 
+	{if(zc[ie].type-SET_base) continue;
+	int n=zc[ie].ncd; USHORT *tcd=zc[ie].tcd ; 
 	BFTAG tbt; tbt.SetAll_1();
-     for(int  i=0;i<n;i++)  tbt &= t[tcd[i]<<1];
+	for(int  i=0;i<n;i++)  tbt &= t[tcd[i]<<1];
+
+	if(tbt.IsNotEmpty()) // candidate(s) to clear found
+	{if(Op.ot&& 1){EE.E(" eliminations found in multi chain mode pour ");
+	zc[ie].Image();EE.Enl();} 
+
+	for(int  j=3;j< puz.col;j+=2)if(tbt.On(j)) // all tags assigned
+	{int tot_length=0; USHORT jj=j^1;// skip from assigned to eliminated
+	if(Op.ot && 0){EE.E(" Set killing "); zpln.ImageTag(jj); EE.Enl(); }
+	if(puz.ermax>85+n-3) // gofast if already far above
+	{zpln.Clear(jj>>1); ir++;
+	if(Op.ot){EE.E(" Set fast killing "); zpln.ImageTag(jj); EE.Enl();}
+	continue;}
+	for(int i2=0;i2<n;i2++)  
+	{   BFTAG wch=zcf.h.dp.t[jj]; 
+	USHORT end=(tcd[i2]<<1)^1;
+	if(wch.On(end))// this is a direct
+	{tot_length+=2; continue;}
+	int npasch=wch.SearchChain(zcf.h.dp.t,jj,end);
+	if(!npasch) EE.Enl(" 0 partial length "); // debugging message
+	tot_length+=npasch+2;
+	}
+	int ratch=puz.tchain.GetRatingBase(80,tot_length,jj>>1);
+	if(ratch) // chain is accepted load it (more comments in test mode)
+	{// in test mode  give the details for the chains
+		// in that case, do it again and print
+		if(Op.ot)for(int i2=0;i2<n;i2++) 
+		{  BFTAG wch=zcf.h.dp.t[jj]; 
+		USHORT end=(tcd[i2]<<1)^1;
+		if(wch.On(end))// this is a direct
+		{USHORT tt[2],itt=2; tt[0]=jj; tt[1]=end; 
+		zpln.PrintImply(tt,itt);continue;}
+		int npasch=wch.SearchChain(zcf.h.dp.t,jj,end);
+		USHORT tt[50],itt=npasch+2; 
+		wch.TrackBack(zcf.h.dp.t,jj,end,tt,itt,end);
+		zpln.PrintImply(tt,itt);
+		}
+		puz.tchain.LoadChain(ratch,"chain",jj>>1);	
+	}
+	} // end  for j
+	} // end if
+	}// end ie
+	return ir;
+}
  
-    if(tbt.IsNotEmpty()) // candidate(s) to clear found
-	  {if(Op.ot&& 1){EE.E(" eliminations found in multi chain mode pour ");
-	                 zc[ie].Image();EE.Enl();} 
+void SETS::Derive(int min,int max,int maxs) {
+	if(max > nmmax)
+		max = nmmax;
+	if(min < nmmin)
+		min = nmmin;
+	if(maxs > nmmax)
+		maxs = nmmax;
+	int maxt = (max > maxs) ? max : maxs;
 
-	   for(int  j=3;j< puz.col;j+=2)if(tbt.On(j)) // all tags assigned
-	      {int tot_length=0; USHORT jj=j^1;// skip from assigned to eliminated
-	       if(Op.ot && 0){EE.E(" Set killing "); zpln.ImageTag(jj); EE.Enl(); }
-		   if(puz.ermax>85+n-3) // gofast if already far above
-		    {zpln.Clear(jj>>1); ir++;
-		   if(Op.ot){EE.E(" Set fast killing "); zpln.ImageTag(jj); EE.Enl();}
-		    continue;}
-		   for(int i2=0;i2<n;i2++)  
-			   {   BFTAG wch=zcf.h.dp.t[jj]; 
-		         USHORT end=(tcd[i2]<<1)^1;
-				 if(wch.On(end))// this is a direct
-				    {tot_length+=2; continue;}
-		         int npasch=wch.SearchChain(zcf.h.dp.t,jj,end);
-                 if(!npasch) EE.Enl(" 0 partial length "); // debugging message
-				 tot_length+=npasch+2;
-	     	   }
-           int ratch=puz.tchain.GetRatingBase(80,tot_length,jj>>1);
-           if(ratch) // chain is accepted load it (more comments in test mode)
-               {// in test mode  give the details for the chains
-				// in that case, do it again and print
-				if(Op.ot)for(int i2=0;i2<n;i2++) 
-				  {  BFTAG wch=zcf.h.dp.t[jj]; 
-				     USHORT end=(tcd[i2]<<1)^1;
-					  if(wch.On(end))// this is a direct
-				         {USHORT tt[2],itt=2; tt[0]=jj; tt[1]=end; 
-					       zpln.PrintImply(tt,itt);continue;}
-		             int npasch=wch.SearchChain(zcf.h.dp.t,jj,end);
-                      USHORT tt[50],itt=npasch+2; 
-                      wch.TrackBack(zcf.h.dp.t,jj,end,tt,itt,end);
-                      zpln.PrintImply(tt,itt);
-		          }
-               puz.tchain.LoadChain(ratch,"chain",jj>>1);	
-               }
- 	      } // end  for j
-       } // end if
-  }// end ie
- return ir;}
- 
-void SETS::Derive(int min,int max,int maxs)  
-{if(max>nmmax) max=nmmax;   if(min<nmmin) min=nmmin;if(maxs>nmmax) maxs=nmmax;
- int maxt=(max>maxs)?max:maxs;
+	if(Op.ot && 0) {
+		EE.E("debut Derive izc= ");
+		EE.E(izc);
+		EE.E("  direct= ");
+		EE.E(direct);
+		EE.E("  min= ");
+		EE.E(min);
+		EE.E("  max= ");
+		EE.E(max);
+		EE.E("  maxs= ");
+		EE.Enl(maxs);
+	}  
 
- if(Op.ot && 0)
-  {EE.E("debut Derive izc= ");EE.E(izc); EE.E("  direct= ");EE.E(direct);
-   EE.E("  min= ");EE.E(min);EE.E("  max= ");EE.E(max);
-  EE.E("  maxs= "); EE.Enl(maxs); }  
-
- if(direct) {t= zcf.h.dp.t; allparents.AllParents(zcf.h.dp);}
-  else {t= zcf.h.d.t; allparents.AllParents(zcf.h.d);}// usually direct=0
-  for (int ie=1;ie<izc;ie++)
-   {int nnm=zc[ie].ncd;   
-    switch (zc[ie].type)
-	{case SET_base: if(nnm<=max) DeriveBase(zc[ie]); break;
-	 case SET_set : if(nnm<=maxs)DeriveSet(zc[ie]); break;	
-	 }   
-   }
+	if(direct) {
+		t = zcf.h.dp.t;
+		allparents.AllParents(zcf.h.dp);
+	}
+	else {
+		t = zcf.h.d.t;
+		allparents.AllParents(zcf.h.d);
+	}// usually direct=0
+	for(int ie = 1; ie < izc; ie++) {
+		int nnm = zc[ie].ncd;   
+		switch(zc[ie].type) {
+		case SET_base:
+			if(nnm <= max)
+				DeriveBase(zc[ie]);
+			break;
+		case SET_set:
+			if(nnm <= maxs)
+				DeriveSet(zc[ie]);
+			break;	
+		}   
+	}
 }
 void SETS::DeriveBase(SET & chx) // each candidate can be the target
 {if(0){EE.E("on traite"); chx.Image(); EE.Enl();     }

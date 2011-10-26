@@ -866,7 +866,7 @@ void Init() {
 }
 void ExpandAll(SQUARE_BFTAG & from);
 void ExpandShort(SQUARE_BFTAG & from,int npas);
-void AllParents(SQUARE_BFTAG & from);
+void AllParents(const SQUARE_BFTAG & from);
 int SearchEliminations(SQUARE_BFTAG & from,BFTAG & elims);
 inline void Set(int i, int m) {t[i].Set(m);};
 inline int Is(int i,int m){return t[i].On(m);};
