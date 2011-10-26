@@ -1105,7 +1105,7 @@ public:
 		direct=0;
 	}
 	void Derive(int min, int max, int maxs); 
-	void DeriveBase(SET & chx);
+	void DeriveBase(const SET & chx);
 	void DeriveSet(SET & chx);
 
 	int Interdit_Base80() ;	 

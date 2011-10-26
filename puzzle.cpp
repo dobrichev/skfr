@@ -5515,34 +5515,52 @@ void SETS::Derive(int min,int max,int maxs) {
 		}   
 	}
 }
-void SETS::DeriveBase(SET & chx) // each candidate can be the target
-{if(0){EE.E("on traite"); chx.Image(); EE.Enl();     }
+void SETS::DeriveBase(const SET & chx) { // each candidate can be the target
+	if(0) {
+		EE.E("on traite");
+		chx.Image();
+		EE.Enl();
+	}
+	USHORT * tcd = chx.tcd, nni = chx.ncd ; 
+	BFTAG tcf2, tcf2f, tcft, bfset;
+	tcf2.SetAll_1();
+	tcft = tcf2;
+	// bfset is the set itself in bf form for the exclusion of the set itself
+	for(int i = 0; i < nni; i++)
+		bfset.Set(tcd[i] << 1);
+	for(int i = 0; i < nni; i++) {
+		//tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
+		tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
+		tce[i] -= bfset;
+	}
+	for(int i = 0; i < nni; i++) {
+		tcf2f = tcf2;
+		if(i < nni) {
+			for(int k = i + 1; k < nni; k++) {
+				tcf2f &= tce[k];
+			}
+		}
+		//if(tcf2f.IsNotEmpty()) { //v 0 by GP
+		//	for(USHORT j = 2; j < puz.col; j++) {
+		//		if(tcf2f.On(j)) {
+		//			if(zcf.IsStart(j, tcd[i] << 1))
+		//				continue; // skip if defined		    
+		//			zcf.LoadDerivedTag(j, tcd[i]);
+		//		}
+		//	}// end j
+		//} //end if
+		USHORT ind[640], maxInd; //v 1 by MD
+		tcf2f.String(ind, maxInd);
+		for(int j = 0; j < maxInd; j++) {
+			if(zcf.IsStart(ind[j], tcd[i] << 1))
+				continue; // skip if defined		    
+			zcf.LoadDerivedTag(ind[j], tcd[i]);
+		}
 
- USHORT * tcd=chx.tcd, nni=chx.ncd ; 
- BFTAG tcf2,tcf2f,tcft,bfset;   tcf2.SetAll_1(); tcft=tcf2;
- // bfset is the set itself in bf form for the exclusion of the set itself
- for(int i=0;i<nni;i++) bfset.Set(tcd[i]<<1);
-
- for(int i=0;i<nni;i++) {
-	 //tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
-	 tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
-	 tce[i] -= bfset;
- }
- for(int i=0;i<nni;i++) {
-	 tcf2f = tcf2;
-	 if(i < nni)
-		 for(int k = i + 1; k < nni; k++) {
-			 tcf2f &= tce[k];
-		 }
-       if(tcf2f.IsNotEmpty())
-         {for(USHORT j=2;j< puz.col;j++)  if(tcf2f.On(j)) 
-           { if( zcf.IsStart(j,tcd[i]<<1) )continue; // skip if defined		    
-		  	 zcf.LoadDerivedTag(j,tcd[i]);
-	       }// end j
-         } //end if
-       tcf2 &= tce[i];
-	   if(tcf2.IsEmpty()) return;
-	 }// end i
+		tcf2 &= tce[i];
+		if(tcf2.IsEmpty())
+			return;
+	}// end i
 }
 
 /* deriving a set creating an event
