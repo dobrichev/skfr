@@ -5549,24 +5549,33 @@ void SETS::DeriveBase(SET & chx) // each candidate can be the target
    the set must be in a dead state for a candidate in left to right mode
    then, the event is established and the event process is called
 */
-void SETS::DeriveSet(SET & chx) // only the "event" can be the target
-{USHORT * tcd=chx.tcd, nni=chx.ncd-1 ; 
- BFTAG tcft,bfset;   tcft.SetAll_1();
- // bfset is the set itself in bf form for the exclusion of the set itself
- for(int i=0;i<nni;i++)    bfset.Set(tcd[i]<<1);
- for(int i=0;i<nni;i++) {
-	 //tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
-	 tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
-	 tce[i] -= bfset;
- }
- for(int i=0;i<nni;i++)    tcft&=tce[i];
- if(tcft.IsNotEmpty()) // event established for any 'true' in tcft
-	 {for(USHORT j=2;j< puz.col;j++)  if(tcft.On(j))
-           {if(   tevent.EventSeenFor(j,tcd[nni])) // just for diag
-			{EE.E("diag choix");chx.Image();}
-		  }// end j
-	}// end if
-
+void SETS::DeriveSet(SET & chx) { // only the "event" can be the target
+	USHORT *tcd = chx.tcd, nni = chx.ncd - 1 ; 
+	BFTAG tcft, bfset;
+	tcft.SetAll_1();
+	// bfset is the set itself in bf form for the exclusion of the set itself
+	for(int i = 0; i < nni; i++)
+		bfset.Set(tcd[i] << 1);
+	for(int i = 0; i < nni; i++) {
+		//tce[i]=allparents.t[(tcd[i]<<1)^1]-bfset;
+		tce[i] = allparents.t[(tcd[i] << 1) ^ 1];
+		tce[i] -= bfset;
+	}
+	for(int i = 0; i < nni; i++)
+		tcft &= tce[i];
+	//MD: check whether something has to be printed outside of the loop
+	if(!Op.ot)
+		return;
+	if(tcft.IsNotEmpty()) { // event established for any 'true' in tcft
+		for(USHORT j = 2; j < puz.col; j++) {
+			if(tcft.On(j)) {
+				if(tevent.EventSeenFor(j, tcd[nni])) { // just for diag
+					EE.E("diag choix");
+					chx.Image();
+				}
+			}
+		}// end j
+	}// end IsNotEmpty
 }
 
 /* called to prepare the nested step for candidate cand
@@ -5619,7 +5628,7 @@ void EVENTLOT::AddCand(USHORT cell, USHORT ch) {
 	tcd[itcd++] = zpln.indexc[ch*81 + cell];
 }
 
-int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type) {
+int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type) const {
 	for(int i = 0; i < itcd; i++) {
 		USHORT cand2 = tcd[i], tag2 = (cand2 << 1) ^ 1;
 		if(zcf.Isp(tag, tag2))
@@ -5634,7 +5643,8 @@ int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type) {
 			continue;// redundancy
 		if(type == wl_ev_direct)
 			zcf.LoadEventDirect(tag >> 1, cand2); 
-		else zcf.LoadEventTag(tag, cand2);
+		else
+			zcf.LoadEventTag(tag, cand2);
 	}
 	return 0;
 }
@@ -5703,7 +5713,7 @@ void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT
  /* the event has been created by  "tagfrom" for the event "tagevent"
     find the corresponding element in the talbe and generate the weak links
 	*/
-int TEVENT::EventSeenFor(USHORT tagfrom, USHORT tagevent) {
+int TEVENT::EventSeenFor(USHORT tagfrom, USHORT tagevent) const {
 	USHORT candfrom = tagfrom >> 1, ind = tagevent - event_vi;  
 	if(ind < 1 || ind >= it)
 		return 0; // should never be

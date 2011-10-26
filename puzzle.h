@@ -1567,7 +1567,7 @@ public:
 	}
 	EVENTLOT(BF81 &x, USHORT ch);  // constructor equivalent to a BF16 pattern for ch
 	void AddCand(USHORT cell, USHORT ch);
-	int GenForTag(USHORT cand, WL_TYPE type);
+	int GenForTag(USHORT cand, WL_TYPE type) const;
 	void Image() const;
 };
 
@@ -1636,7 +1636,7 @@ public:
 	}
 	void EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT & evx);
 
-	int EventSeenFor(USHORT tagfrom, USHORT tagevent);
+	int EventSeenFor(USHORT tagfrom, USHORT tagevent) const;
 	void LoadFin(); // only for debugging purpose
 }; //tevent;
 
