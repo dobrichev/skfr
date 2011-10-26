@@ -4434,12 +4434,20 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						}
 						if(0 && nested_print_option)
 							tstore.Print(w.index);
-						for(int j = 2; j < puz.col; j++) {
-							if(bfn.On(j)) {
-								tret[itret++] = j;
-								bf.Set(j);
-							}
-						}
+						//MD: 3x acceleration =====
+						//TODO: GP to confirm is the replacement logically equivalent,
+						//i.e. loop limit [2,puz.col] doesn't affect the result
+						//for(int j = 2; j < puz.col; j++) {
+						//	if(bfn.On(j)) {
+						//		tret[itret++] = j;
+						//		bf.Set(j);
+						//	}
+						//}
+						USHORT newCount;
+						bfn.String(&tret[itret], newCount);
+						itret += newCount;
+						bf |= bfn;
+						//MD: end acceleration =====
 						i = 100;// force end of process after it has been found
 					}
 				}
