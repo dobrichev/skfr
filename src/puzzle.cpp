@@ -941,6 +941,7 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 int PUZZLE::Rating_end(int next) {
 	   // if some immediate action done, answer yes imediatly)
 	   // nothing to do for filters
+	if(stop_rating) return 1;// push back error as soon as possible
 	if(tchain.elims_done) 		return 1;
 	if(!tchain.IsOK(next))
 		return 0;

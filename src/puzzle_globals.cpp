@@ -163,6 +163,8 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand)
 
 
 int TCHAIN::IsOK(USHORT x) {
+	// push back an error as soon as possible
+	if(parentpuz->stop_rating) return 1;
 	if(elims_done) return 1;
 	if(!ichain) return 0;
 	int ir=((rating <= x) );
