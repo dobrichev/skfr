@@ -1211,9 +1211,8 @@ public:
 
 	void SetEr();   // something found at the last difficulty level  
 
-	inline void Seterr(int x)  // an error condition has been found
-    {ermax=0; epmax=0;edmax=x;
-	} 
+	void Seterr(int x);  // an error condition has been found
+    
 
 
 
@@ -1317,6 +1316,8 @@ public:
 	void Gen_dpnShort(USHORT tag);
 	void NestedForcing(BFTAG & elims);
 	void NestedForcingShort(BFTAG & elims);
+
+
 	void NestedMulti(BFTAG & elims);
 	void NestedMultiShort(BFTAG & elims);
 
