@@ -317,7 +317,8 @@ void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
 }
 
 void PUZZLE::Elimite(char * lib)
-   {stop_rating=1;
+   {cerr << "stop elimite"<<endl;
+	 stop_rating=1;
     if(!Op.ot) return;
 	EE.Enl2();
 	EE.E("table:"); 
@@ -326,7 +327,8 @@ void PUZZLE::Elimite(char * lib)
 	EE.Enl2(); }
 
 void PUZZLE::Estop(char * lib)
-   {stop_rating=1;
+   {cerr << "stop estop"<<endl;
+    stop_rating=1;
     if(!Op.ot) return;
 	EE.Enl();
 	EE.Enl(lib); 
@@ -346,8 +348,8 @@ void PUZZLE::SetEr()   // something found at the last difficulty level
 	}
 void PUZZLE::Seterr(int x){  // an error condition has been found
 ermax=0; epmax=0;edmax=x;
-// add a message to cout in some debugging cases
-cout << "rating error  " << x << " cycle" << cycle << " dif" << difficulty << endl;
+// add a message to cerr in some debugging cases
+cerr << "rating error  " << x << " cycle" << cycle << " dif" << difficulty << endl;
 
 } 
 
@@ -604,6 +606,7 @@ int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single 
 	else EE.Enl(" assigned");
 	if((solution[i] - c1) && (!stop_rating)) { // validite  fixation
 		stop_rating=1;
+		cerr << "stop fication invalide"<<endl;
 		EE.E( "FIXATION INVALIDE");
 		return 0;
 	}
@@ -680,6 +683,7 @@ int PUZZLE::CheckChange(int i, int ch) {
 	if(stop_rating) return 1;
 	if(solution[i]-(ch + '1'))
 		return 0;
+	cerr << "stop check change"<<endl;
 	stop_rating = 1;
 	EE.E("ELIMINATION INVALIDE ");
 	EE.E(ch+1);
@@ -1031,8 +1035,8 @@ int PUZZLE::Rating_base_85() {
 	tchain.SetMaxLength(85);
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 //	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
-    zcf.ExpandShort(3);
-	zcf.DeriveCycle(3, 4, 0,2); // one cycle short sets
+    zcf.ExpandShort(5);
+	zcf.DeriveCycle(3, 4, 0,4); // one cycle short sets
 	zcf.DeriveCycle(3, 4, 0,4); // one cycle short sets
 	ChainPlus();
 	if(tchain.IsOK(88))      //filter  short paths
@@ -1064,6 +1068,7 @@ int PUZZLE::Rating_base_85() {
 int PUZZLE::Rating_base_90() {
 	if(Op.ot)
 		EE.Enl("start rating base 9.0 dynamic forcing chains plus");
+		
 	tchain.SetMaxLength(90);
 	zcf.h.dp=zcf.hdp_base; // restore the index in zcf  
 	tevent.LoadAll();
@@ -1102,7 +1107,11 @@ int PUZZLE::Rating_base_90() {
    */
 
 void PUZZLE::ChainPlus() {
+
+
 	int godirect=((tchain.base +8)<=ermax);
+
+
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
 	for(int i = 2; i < puz.col; i += 2) {
 		int icand=i>>1;
@@ -1149,7 +1158,7 @@ void PUZZLE::ChainPlus() {
 			else{
 		      USHORT ttt[]={i,i^1};
               zcf.h.dp.Shrink(zw2,i);
-			  puz.Image(zw2,"elims solde", i);
+			  Image(zw2,"elims solde", i);
               for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )	
 				  Rating_Nested(tchain.base,ttt,2,j);
 			}
@@ -1163,7 +1172,8 @@ void PUZZLE::ChainPlus() {
 	godirect=((tchain.base +10)<=ermax);
 
 	// now check multichains in a similar way but not for nishio
-	for(int ie = 1; ie < zcx.izc; ie++) {
+	int ie;
+	for( ie = 1; ie < zcx.izc; ie++) {
 		const SET &chx = zcx.zc[ie];
 		if(chx.type - SET_base)
 			break; // only base sets can be used
@@ -1172,7 +1182,8 @@ void PUZZLE::ChainPlus() {
 			   ttt[20];
 		BFTAG tbt, bfset;
 		tbt.SetAll_1();
-		tbt-=dynamic_sets[ie]; // already seen in dynamic mode
+		if(ie<320) // protect against size excess   ///
+		     tbt -=dynamic_sets[ie]; // already seen in dynamic mode
 		for(int i = 0; i < n; i++){
 			ttt[i]=(tcd[i] << 1);
 			bfset.Set(ttt[i] ^ 1);
@@ -1185,7 +1196,8 @@ void PUZZLE::ChainPlus() {
 		if(tbt.IsEmpty())
 			continue;
 
-		dynamic_sets[ie] |= tbt; 
+		if(ie<320) dynamic_sets[ie] |= tbt;   /// protect as well
+
 
         for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
 			if(godirect)  
@@ -1194,6 +1206,8 @@ void PUZZLE::ChainPlus() {
 				Rating_Nested(tchain.base,ttt,n,j);
 
 	}// end for ie
+
+
 }
 
 //! Search for aligned pair or aligned triplet
@@ -1573,7 +1587,6 @@ int PUZZLE::Traite(char * ze) {
 			break; // finished
 		// processing 1.0 to <6.2
 		int ir_a = Traite_a();    
-		//cout<<"cycle="<<cycle<<"retour a="<<ir_a<<" rating_ir="<<rating_ir<<endl;
 
 		if(!ir_a)
 			return rating_ir;
@@ -3864,6 +3877,8 @@ Dynamic search in nested mode for a candidate
 
 */
 void PUZZLE::Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target) {
+
+
 	USHORT ctarg = target >> 1;
 
 	     // forget if target already eliminated
@@ -4372,6 +4387,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 	if(0) {
 		EE.E("goback");zpln.ImageTag(tag);EE.Enl();
 	}
+
 	USHORT itret1=0,nestedlength=0;
 	itret=0;
 	BFTAG bf; 
@@ -4499,6 +4515,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 			}
 		}  // end i
        if(aig || itret>150) {
+		   cerr <<"stop goback pour aig=1 ou iret trop grand "<<endl; ///
 	       stop_rating=1;
 	        if( Op.ot) EE.Enl("go back nested invalid situation");
 	       opp=0;
@@ -4835,8 +4852,6 @@ void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
 	   for(int j=2;j< puz.col;j++)
 		   if((j-i) && t[i].On(j)) {
 			   BFTAG x(from.t[j]);
-			   //x -= t[i];
-			   //if(x.IsNotEmpty()) {
 			   if(x.substract(t[i])) {
 				   t[i] |= x;
 				   n++;
@@ -5633,15 +5648,15 @@ void SETS::DeriveSet(SET & chx) { // only the "event" can be the target
 	}
 	for(int i = 0; i < nni; i++)
 		tcft &= tce[i];
-	//MD: check whether something has to be printed outside of the loop
-	if(!Op.ot)
-		return;
+
 	if(tcft.IsNotEmpty()) { // event established for any 'true' in tcft
 		for(USHORT j = 2; j < puz.col; j++) {
 			if(tcft.On(j)) {
-				if(tevent.EventSeenFor(j, tcd[nni])) { // just for diag
-					EE.E("diag choix");
-					chx.Image();
+				if(tevent.EventSeenFor(j, tcd[nni])) { 
+						if(!Op.ot) {// this just for diag
+					       EE.E("diag choix");
+					       chx.Image();
+						}
 				}
 			}
 		}// end j
