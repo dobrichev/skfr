@@ -344,7 +344,12 @@ void PUZZLE::SetEr()   // something found at the last difficulty level
 		if(((!assigned)|| (!epmax))&& difficulty>epmax) epmax=difficulty;
 		if(difficulty>ermax) ermax=difficulty;      
 	}
+void PUZZLE::Seterr(int x){  // an error condition has been found
+ermax=0; epmax=0;edmax=x;
+// add a message to cout in some debugging cases
+cout << "rating error  " << x << " cycle" << cycle << " dif" << difficulty << endl;
 
+} 
 
 // filter at the start of a new cycle
 
@@ -1027,13 +1032,13 @@ int PUZZLE::Rating_base_85() {
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 //	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
     zcf.ExpandShort(3);
-	zcf.DeriveCycle(3, 3, 0,2); // one cycle short sets
-	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
+	zcf.DeriveCycle(3, 4, 0,2); // one cycle short sets
+	zcf.DeriveCycle(3, 4, 0,4); // one cycle short sets
 	ChainPlus();
 	if(tchain.IsOK(88))      //filter  short paths
         return Rating_end(200);
-	zcf.DeriveCycle(3, 3, 0,4); // one cycle short sets
-	zcf.DeriveCycle(3, 3, 0,4); // one more cycle 
+	zcf.DeriveCycle(3, 5, 0,4); // one cycle short sets
+	zcf.DeriveCycle(3, 5, 0,4); // one more cycle 
 	ChainPlus();
 	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
@@ -1101,11 +1106,11 @@ void PUZZLE::ChainPlus() {
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
 	for(int i = 2; i < puz.col; i += 2) {
 		int icand=i>>1;
-		if(dynamic_form1.Off(icand)){
+		if(dynamic_form1.Off(i)){  
 		   BFTAG zw1 = t[i];
 		   zw1 &= (t[i].Inverse()).TrueState();
 		    if(zw1.IsNotEmpty()) { // this is a a-> b  and a -> ~b
-		        dynamic_form1.Set(i);
+		        dynamic_form1.Set(i); 
 				if(1 && Op.ot) {
 				   EE.E("\n\nfound active a->x and a->~x  a=" );
 				   zpln.ImageTag(i);
@@ -1132,7 +1137,7 @@ void PUZZLE::ChainPlus() {
 		// ~x but goes immediatly to the bi-value  saving one step.
 		// 
 		if(zw2.IsNotEmpty()) { // this is x-> ~a and ~x -> ~a
-			dynamic_form2[icand]|=zw2;
+			dynamic_form2[icand]|=zw2;  
 			if(1 && Op.ot) {
 				EE.E("\n\nfound active x->~a and ~x->~a");
 				puz.Image(zw2,"elims", i);
@@ -1180,7 +1185,7 @@ void PUZZLE::ChainPlus() {
 		if(tbt.IsEmpty())
 			continue;
 
-		dynamic_sets[ie] |= tbt;
+		dynamic_sets[ie] |= tbt; 
 
         for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
 			if(godirect)  
@@ -3765,7 +3770,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 		cum = &cumsteps[npas - 1];
 		    // reasonnable stop for crazy cases
 		    // could surely be set lower
-		if(cum->Count()>250) break; // nothing more to find
+//		if(cum->Count()>250) break; // nothing more to find /// en cours verif sur test
 		step = &steps[npas];
 		step->SetAll_0();
 		ta = tx[npas-1];
@@ -4220,6 +4225,17 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 		}// this is the final length
 	}
 }
+
+/*  nested contradiction  chain
+    to come
+
+*/
+
+
+
+
+
+
 
 /*
 
