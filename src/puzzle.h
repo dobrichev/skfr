@@ -1179,8 +1179,8 @@ public:
 		   nested_print_option;
 	int opp;
 	short tsets[640];
-	USHORT tx[pasmax][300],itx[pasmax];
-	USHORT tret[300],pasret[300],itret;
+	USHORT tx[pasmax][700],itx[pasmax];
+	USHORT tret[500],pasret[500],itret;
 	BFTAG steps[pasmax],cumsteps[pasmax],allsteps, * to;  
 	BFTAG  *cum ,* step; 
 	USHORT *ta,*tb,ita,itb;
