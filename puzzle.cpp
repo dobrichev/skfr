@@ -4393,7 +4393,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 	BFTAG bf; 
 	tret[itret++] = tag;
 	bf.Set(tag);
-	while(itret1 < itret && itret < 150) { // solve each entry back
+	while(itret1 < itret && itret < 300) { // solve each entry back
 		USHORT x = tret[itret1], aig = 1; // first locate where x has been loaded
 		int index = tsets[x];
 		if(0  && nested_print_option) {  
@@ -4514,8 +4514,11 @@ int PUZZLE::GoBackNested(USHORT tag) {
 				}
 			}
 		}  // end i
-       if(aig || itret>150) {
-		   cerr <<"stop goback pour aig=1 ou iret trop grand "<<endl; ///
+       if(aig || itret>300) {
+		   if(aig)
+		   cerr <<"stop goback pour aig=1  "<<endl; ///
+		   else
+		   cerr <<"stop goback pour iret trop grand "<<endl; ///
 	       stop_rating=1;
 	        if( Op.ot) EE.Enl("go back nested invalid situation");
 	       opp=0;
