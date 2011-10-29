@@ -459,8 +459,8 @@ void PUZZLE::Copie_T_c() {
 void PUZZLE::Actifs() {
 	zactif.SetAll_0();
 	T81->Actifs(zactif);
-	for(int i = 0; i < 27; i++)
-		elza81[i] = divf.elz81[i] & zactif;
+	//for(int i = 0; i < 27; i++)
+	//	elza81[i] = divf.elz81[i] & zactif;
 }
 
 void PUZZLE::cInit(int un) {
@@ -493,19 +493,19 @@ void PUZZLE::cReport() {    // on charge cand de ztzch
 	}
 }
 
-void PUZZLE::TReport() {    // on charge c de table en mode depart impose
-	for(int i = 0; i < 9; i++)
-		c[i].SetAll_0();
-	for(int i8 = 0; i8 < 81; i8++) {
-		CELL *p8 = &tp8N.t81[i8];
-		if(p8->v.typ)
-			continue;
-		for(int i = 0; i < 9; i++)
-			if(p8->v.cand.On(i))
-				c[i].Set(i8);
-		p8->v.ncand = p8->v.cand.CountEtString(p8->scand);
-	}
-}
+//void PUZZLE::TReport() {    // on charge c de table en mode depart impose
+//	for(int i = 0; i < 9; i++)
+//		c[i].SetAll_0();
+//	for(int i8 = 0; i8 < 81; i8++) {
+//		CELL *p8 = &tp8N.t81[i8];
+//		if(p8->v.typ)
+//			continue;
+//		for(int i = 0; i < 9; i++)
+//			if(p8->v.cand.On(i))
+//				c[i].Set(i8);
+//		p8->v.ncand = p8->v.cand.CountEtString(p8->scand);
+//	}
+//}
 
 int PUZZLE::Recale() {
 	//cReport();
@@ -697,12 +697,11 @@ void PUZZLE::PointK() {
 	EE.E(couprem );
 }
 
-void PUZZLE::UsePK(USHORT i) {
-	EE.E(" UREM=");
-	EE.E(i);
-	EE.Enl();
-
-}
+//void PUZZLE::UsePK(USHORT i) {
+//	EE.E(" UREM=");
+//	EE.E(i);
+//	EE.Enl();
+//}
 
 
 //former _12a_PUZZLE_ChainesNested.cpp follows
@@ -1542,16 +1541,16 @@ int PUZZLE::Traite(char * ze) {
 	 * to check later the validity of eliminations
 	 * this is a debugging control
 	 */
-	for(int i=0;i<9;i++) 
-		csol[i].SetAll_0();
-	for(int i=0;i<81;i++) 
-		csol[solution[i]-'1'].Set(i);
+	//for(int i=0;i<9;i++) 
+	//	csol[i].SetAll_0();
+	//for(int i=0;i<81;i++) 
+	//	csol[solution[i]-'1'].Set(i);
 
 
 	//================== assign clues to start
 	cInit(1);
 	PKInit();
-	tdebut = GetTimeMillis();
+	//tdebut = GetTimeMillis();
 	//long told = tdebut;
 	T81->init();  //initial candidats au lieu de Traite_Init(); 
 	for(int i = 0; i < 81; i++) { // first assignment from clues
@@ -3773,7 +3772,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 	tx[0][0] = tag;
 	itx[0] = 1; // initial is tag to go forward
 
-	ret_code = 0;
+	//ret_code = 0;
 	nested_aig = 1;
 	int maxpas = pasmax;  // will be reduced to "one more" if something found
 
@@ -3853,7 +3852,7 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 			EE.Enl(npas);
 		}
 	}// end while
-	return ret_code;
+	return 0; //ret_code;
 }
 
 /* 
@@ -5484,9 +5483,9 @@ if(izc<sets_lim) {zc[izc++]=zc[0];
 				 if(nmi<nmmin)nmmin=nmi; return 1;}
 parentpuz->Elimite("ZCX");return 0;}
 
-int SETS::CopySet (int i)
-{if(izc<sets_lim) {zc[izc++]=zc[i];  return 1;}
-parentpuz->Elimite("ZCX");return 0;}
+//int SETS::CopySet (int i)
+//{if(izc<sets_lim) {zc[izc++]=zc[i];  return 1;}
+//parentpuz->Elimite("ZCX");return 0;}
 
  // multi chains version
 int SETS::Interdit_Base80() {
@@ -5672,29 +5671,29 @@ void SETS::DeriveSet(SET & chx) { // only the "event" can be the target
    create the new sets and the new strong links.
 */
 
-int SETS::CheckGoNested1(const BFTAG &bftag, USHORT cand) {
-	int ir=0;
- for(int ie=1;ie<izc_one;ie++)// check all sets
-  {SET chx=zc[ie];
-   USHORT nni=chx.ncd,n=0,toff[10]; 
-   if (zc[ie].type-SET_base) continue;
-    // forget all sets where one candidate is now true
-	// Gen a strong link if reduced to 2 candidates
-	// should never be 0 candidate true
-	// gen the reduced set if more than 2
-   for(int i=0;i<nni;i++)
-      {USHORT ti=chx.tcd[i]<<1; // candidate in tag form
-       if(bftag.On(ti)) {n=1; break; }// set assigned
-	   if(bftag.Off(ti^1)) toff[n++]=chx.tcd[i];;
-      }
-     if(n<2) continue;
-	 if(n==2) // create a new strong link
-	     {zcf.LoadBivalue(toff[0],toff[1]); ir=1; }
-	 else // create a new set 
-	     {ChargeSet(toff,n,SET_base);}
-			// CopySet(ie);} ???(copy the previous one)
-	}   
-return ir;}
+//int SETS::CheckGoNested1(const BFTAG &bftag, USHORT cand) {
+//	int ir=0;
+// for(int ie=1;ie<izc_one;ie++)// check all sets
+//  {SET chx=zc[ie];
+//   USHORT nni=chx.ncd,n=0,toff[10]; 
+//   if (zc[ie].type-SET_base) continue;
+//    // forget all sets where one candidate is now true
+//	// Gen a strong link if reduced to 2 candidates
+//	// should never be 0 candidate true
+//	// gen the reduced set if more than 2
+//   for(int i=0;i<nni;i++)
+//      {USHORT ti=chx.tcd[i]<<1; // candidate in tag form
+//       if(bftag.On(ti)) {n=1; break; }// set assigned
+//	   if(bftag.Off(ti^1)) toff[n++]=chx.tcd[i];;
+//      }
+//     if(n<2) continue;
+//	 if(n==2) // create a new strong link
+//	     {zcf.LoadBivalue(toff[0],toff[1]); ir=1; }
+//	 else // create a new set 
+//	     {ChargeSet(toff,n,SET_base);}
+//			// CopySet(ie);} ???(copy the previous one)
+//	}   
+//return ir;}
 
 //former (r96) _03b_puzzle_chains.cpp end
 
