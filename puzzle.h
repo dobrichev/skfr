@@ -885,9 +885,27 @@ inline void GetBackTbf() {tbf_end=tbf_endok;}
 void Parents(USHORT x);
 int ExpandToFind(USHORT td,USHORT tf,USHORT lim);
 void Shrink(BFTAG & x,USHORT it);
-int Plus (int m1,int m2)  {if (!t[m1].On(m2))
-		  { t[m1].Set(m2);  return 1; }else return 0;};
-int  Entre(int m1,int m2){ return (Plus(m1,m2^1)+ Plus(m2,m1^1));};
+
+//int Plus(int m1, int m2) {
+//	if(!t[m1].On(m2)) {
+//		t[m1].Set(m2);
+//		return 1;
+//	}
+//	else
+//		return 0;
+//}
+void Plus(int m1, int m2) {
+	t[m1].Set(m2);
+}
+
+//int Entre(int m1, int m2) {
+//	return (Plus(m1,m2^1) + Plus(m2,m1^1));
+//}
+//void Entre(int m1, int m2) {
+//	Plus(m1,m2^1);
+//	Plus(m2,m1^1);
+//}
+
 void Image();
 private:
 };
@@ -945,22 +963,22 @@ public:
 
 	INFERENCES(PUZZLE * parent){parentpuz=parent;}
 
-	inline BFTAG * Getd(int m) {
-		return & h.d.t[m];
-	}
-	inline BFTAG * Getdp(int m) {
-		return & h.dp.t[m];
-	}
-	inline int IsConflitD(int m1, int m2) {
-		if(m1 == (m2 ^ 1))
-			return 1;
-		return h.dp.IsConflit(m1, m2);
-	}
-	inline int IsConflit(int m1, int m2) {
-		if(m1 == (m2 ^ 1))
-			return 1;
-		return h.d.IsConflit(m1, m2);
-	}
+	//inline BFTAG * Getd(int m) {
+	//	return & h.d.t[m];
+	//}
+	//inline BFTAG * Getdp(int m) {
+	//	return & h.dp.t[m];
+	//}
+	//inline int IsConflitD(int m1, int m2) {
+	//	if(m1 == (m2 ^ 1))
+	//		return 1;
+	//	return h.dp.IsConflit(m1, m2);
+	//}
+	//inline int IsConflit(int m1, int m2) {
+	//	if(m1 == (m2 ^ 1))
+	//		return 1;
+	//	return h.d.IsConflit(m1, m2);
+	//}
 	inline int IsStart(int i, int j) {
 		return hstart.d.Is(i, j);
 	}
@@ -982,9 +1000,9 @@ public:
 	void ExpandAll() {
 		h.d.ExpandAll(h.dp);
 	}
-	void NewPhase() {
-		h.d.ExpandAll(h.dp);
-	}
+	//void NewPhase() {
+	//	h.d.ExpandAll(h.dp);
+	//}
 	int DeriveCycle(int nd, int nf, int ns, int npas = 0);
 	void ExpandShort(int npas) {
 		h.d.ExpandShort(h.dp, npas);
@@ -1013,11 +1031,18 @@ public:
 
 
 private:
-	int Plusp(int m1, int m2) {
-		return h.dp.Plus(m1, m2);
+	//int Plusp(int m1, int m2) {
+	//	return h.dp.Plus(m1, m2);
+	//}
+	void Plusp(int m1, int m2) {
+		h.dp.Plus(m1, m2);
 	}
-	int Entrep(int m1, int m2) {
-		return (Plusp(m1, m2 ^ 1) + Plusp(m2, m1 ^ 1));
+	//int Entrep(int m1, int m2) {
+	//	return (Plusp(m1, m2 ^ 1) + Plusp(m2, m1 ^ 1));
+	//}
+	void Entrep(int m1, int m2) {
+		Plusp(m1, m2 ^ 1);
+		Plusp(m2, m1 ^ 1);
 	}
 }; 
 
@@ -1062,11 +1087,11 @@ class SET
 
  int Prepare (USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe);
 
- void GetCand(BFCAND & ms)// init à la charge de l'appelant
-           {for(int i=0;i<ncd;i++) ms.Set(tcd[i]);}
+ //void GetCand(BFCAND & ms)// init à la charge de l'appelant
+ //          {for(int i=0;i<ncd;i++) ms.Set(tcd[i]);}
 
- inline int ChoixBase(){return (!type);}
- void PrintInterditSimple(USHORT mi,USHORT derive){}//;
+ //inline int ChoixBase(){return (!type);}
+ //void PrintInterditSimple(USHORT mi,USHORT derive){}//;
  void Image() const;
 
  } ;
@@ -1097,20 +1122,20 @@ public:
 	}
 
 	int ChargeSet(USHORT * mi, USHORT nmi, SET_TYPE ty);
-	int CopySet(int ie);
+	//int CopySet(int ie);
 
-	void DeriveDirect() {
-		direct = 1;
-		Derive(3, 4, 3);
-		direct=0;
-	}
+	//void DeriveDirect() {
+	//	direct = 1;
+	//	Derive(3, 4, 3);
+	//	direct=0;
+	//}
 	void Derive(int min, int max, int maxs); 
 	void DeriveBase(const SET & chx);
 	void DeriveSet(SET & chx);
 
 	int Interdit_Base80() ;	 
 
-	int CheckGoNested1(const BFTAG &bftag, USHORT cand);
+	//int CheckGoNested1(const BFTAG &bftag, USHORT cand);
 
 	void Image();
 
@@ -1137,17 +1162,17 @@ public:
 	BF81 
 		c[9],
 		c_cop[9];	// grille globale et par chiffre
-    BF81 zactif,
-		elza81[27],
-		csol[9];   //< Solution as positions of the 9 digits
+    BF81 zactif;
+	//BF81 	elza81[27],
+	//BF81 	csol[9];   //< Solution as positions of the 9 digits
 
-    long tdebut; // for debugging purpose start time in PUZZLE traite base
+    //long tdebut; // for debugging purpose start time in PUZZLE traite base
 
-    int coup,
-		coupMM,
-		couprem; 
-    char fix[81],
-		fixt[81],
+    //int coup;
+	//int coupMM,
+	int couprem; 
+    char fix[81];
+	char fixt[81],
 		*solution;
     USHORT col,           // highest tag (2 times ( number of candidates +1))
 		   stop_rating,   // set to 1
@@ -1174,8 +1199,9 @@ public:
 
         // data to control the dynamic and nested mode   
 
-	USHORT nested_aig,
-		   ret_code,npas,
+	USHORT nested_aig;
+	//USHORT ret_code;
+	USHORT npas,
 		   nested_print_option;
 	int opp;
 	short tsets[640];
@@ -1223,12 +1249,12 @@ public:
 	void Copie_T_c();
     void cFixer(int ich,int i8);
     void cReport();   
-    void TReport();   
+    //void TReport();   
     void Actifs();
     int CheckChange(int i, int ch);
     int ChangeSauf(int elem,BF16 pos,BF16 chiffres );
     int Keep(int elem,BF16 pos,BF16 chiffres );
-    int Keep(int ch, const BF81 &zk); // éliminer ailleurs en objets contenant
+    //int Keep(int ch, const BF81 &zk); // éliminer ailleurs en objets contenant
     int Keep(int ch, USHORT p1, USHORT p2); // éliminer ailleurs de deux points
     int NonFixesEl(int e);
     void FixerAdd(int i, char c, int elt)
@@ -1248,8 +1274,8 @@ public:
     int Recale();              
 	int Traite(char * ze);
 	int Traite_a();
-	int Traite_b();
-	int Traite_c();
+	//int Traite_b();
+	//int Traite_c();
     int Directs();             
 	int FaitDirects(int type);
  	int FaitGoA(int i8, char c1, char c2) {
@@ -1263,7 +1289,7 @@ public:
 		couprem = 0;
 	}
     void PointK();
-    void UsePK(USHORT i);
+    //void UsePK(USHORT i);
 	// tagging process added here in that version
     void TaggingInit();
 	void GenCellBivalues();
