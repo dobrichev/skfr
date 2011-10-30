@@ -3440,25 +3440,29 @@ void PUZZLE::GoNestedTag(USHORT tag,USHORT base) {
 			EE.E(" npas= ");
 			EE.Enl(npas); 
 		}	 
+		  // prepare the call to GoNestedWhileShort
 		nested_aig = 0; 
 		cum = &cumsteps[npas - 1];
 		step = &steps[npas];
-		step->SetAll_0();
 		ta = tx[npas - 1];
-		tb = tx[npas];
 		ita = itx[npas - 1];
-		itb = 0;
 
 		if(opp) {
 			puz.Image((*cum),"cum debut",0);
 		}
 		GoNestedWhileShort(tag, base);                    // while cycle
-		cumsteps[npas] = (*cum);   // or allsteps updated in while routine
-		cumsteps[npas] |= (*step);
-		if(opp) {
+
+		if(nested_aig){// something happenned
+         
+		  cumsteps[npas] = allsteps;   
+		  (*step) = allsteps;
+		  (*step)-=(*cum);  
+		  (*step).String(tx[npas],itx[npas] );
+
+		  if(opp) {
 			puz.Image((*step),"step", 0);
+		  }
 		}
-		itx[npas] = itb;
 	}// end while
 	zcf.h_nest.d.t[tag] = cumsteps[npas - 1];// note:the last one is empty
 }
@@ -3474,24 +3478,16 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	USHORT aignl = 1;
 	//const BFTAG &cum_here = *cum;
 	BFTAG * tdpn = dpn.t,  // new set of direct links
-//		* hdp = zcf.h.dp.t, // basic set of direct links including dynamic effects
 	    * hdpb =zcf.hdp_base_nested.t; // to receive new strong links
 
 
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
 		BFTAG x = to[ta[it]];
-		//x -= allsteps;	  // still free and in the overall path
-		//if(x.IsNotEmpty()) {
 		if(x.substract(allsteps)) {
-			(*step) |= x; // flag it in the BFTAG and load in new
 			if(opp)
 				puz.Image(x,"applied std" ,ta[it]);	   
 			allsteps |= x; // and in the total 
-			USHORT ty[30], ity=0;
-			x.String(ty, ity);
-			for(int i = 0; i < ity; i++)
-				tb[itb++]=ty[i];
 			nested_aig = 1;
 		}    
 	}
@@ -3540,9 +3536,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
                     for(int i = 0; i < nni; i++) { 
                          USHORT cd = chx.tcd[i], j = cd << 1;
 						 if(allsteps.Off(j)) {
-						      (*step).Set(j);   
 						      allsteps.Set(j);
-						      tb[itb++] = j;
 						      tsets[j] = ie;
 					          nested_aig = 1;
 						      aig2 = 1;
@@ -3555,9 +3549,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 					break;	// if ok second round for action	
 				USHORT j = toff[0]; // candidate in tag form
 				if(allsteps.Off(j)) { // kep only the first one
-						(*step).Set(j);   
 						allsteps.Set(j);
-						tb[itb++] = j;
 						tsets[j] = ie;
 						nested_aig = 1;
 						aig2 = 1;       
@@ -3570,13 +3562,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 			}
 			break;
 		case SET_set: // in a set all components must be on
-			//for(int i = 0; i < (nni - 1); i++) { //v 0 by GP
-			//	if(cum->Off((chx.tcd[i] << 1) ^ 1)) {
-			//		n++;
-			//		if(n)
-			//			break;
-			//}
-			for(int i = 0; i < (nni - 1); i++) { //v 1 by MD
+			for(int i = 0; i < (nni - 1); i++) {  
 				if(cum->On(1 + 2 * chx.tcd[i]))
 					continue;
 				n = 1;
@@ -3590,9 +3576,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 				int j = (evl.tcd[i] << 1) ^ 1; // false state on
 				if(allsteps.On(j))
 					continue;
-				(*step).Set(j);  
 				allsteps.Set(j);
-				tb[itb++] = j;
 				tsets[j] = ie;
 				nested_aig = 1;
 				aig2 = 1;       
@@ -3608,7 +3592,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	}// end proc
 
 
-	if((*step).IsNotEmpty())
+	if(nested_aig)
 		return;
 	// we look for indirect hints
 	// zcf.h_one.dp.Image();dpn.Image();
@@ -3620,16 +3604,9 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 
 	BFTAG x = elims.Inverse();
 	if(x.substract(allsteps)) { // force false so use elims.inverse()
-		(*step) |= x; // flag it in the BFTAG and load in new
 		if(opp)
 			puz.Image(x,"forcing chain elims" ,0);	
 		allsteps |= x; // and in the total 
-		USHORT ty[200], ity = 0;
-		x.String(ty, ity);
-		if(ity > 200)
-			ity = 200;
-		for(int i = 0; i < ity; i++)
-			tb[itb++] = ty[i];
 		nested_aig = 1;
 	}
 	if(base < 100)
@@ -3639,14 +3616,8 @@ void PUZZLE::GoNestedWhileShort(USHORT tag,USHORT base) {
 	NestedMultiShort(elims2); 
 	if(opp && Op.ot)
 		puz.Image(elims2,"multiforcing recap short ", 0);
-	x = elims2; // - hdp[tag];  // elims in false state
-	if(x.IsNotEmpty()) {
-		(*step) |= x; // flag it in the BFTAG and load in new
-		allsteps |= x; // and in the total 
-		USHORT ty[200], ity = 0;
-		x.String(ty, ity);
-		for(int i = 0; i < ity; i++)
-			tb[itb++] = ty[i];
+	if(elims2.IsNotEmpty()) {
+		allsteps |= elims2; //   in the total 
 		nested_aig=1;
 	}
 }
@@ -3777,23 +3748,32 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 
 	//--------------------- loop  forward
 	while(nested_aig && npas++ <= maxpas) {
+		  // prepare the call to GoNestedWhileShort
 		nested_aig = 0; 
 		cum = &cumsteps[npas - 1];
 		    // reasonnable stop for crazy cases
 		    // could surely be set lower
 //		if(cum->Count()>250) break; // nothing more to find /// en cours verif sur test
 		step = &steps[npas];
-		step->SetAll_0();
 		ta = tx[npas-1];
-		tb = tx[npas];
 		ita = itx[npas - 1];
-		itb = 0;
+
 
 		GoNestedWhile(tag, base);                    // while cycle
 
+		if(nested_aig){// something happenned
+         
+		  cumsteps[npas] = allsteps;   
+		  (*step) = allsteps;
+		  (*step)-=(*cum);  
+		  (*step).String(tx[npas],itx[npas] );
+		  }
+	   
+	    else 
+			break; // nothing to do
 
 		if(opp) {  
-			EE.E("fin step=");
+			EE.E("end step=");
 			EE.E(npas);
 			Image((*step),"step ", 0);
 			Image(allsteps,"all", 0);
@@ -3803,12 +3783,11 @@ int PUZZLE::GoNestedCase1(USHORT cand, USHORT base) {
 
 		}
 
-		cumsteps[npas] = cumsteps[npas - 1];
-		cumsteps[npas] |= (*step);
-		itx[npas] = itb;
+
 
 		// check for a contradiction in that lot 
-		for(int i = 0; i < itb; i++) {
+		USHORT * tb=tx[npas];
+		for(int i = 0; i < itx[npas]; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
 				if(opp) {
@@ -3974,19 +3953,26 @@ int PUZZLE::GoNestedCase2_3(USHORT base, USHORT tag, USHORT target) {
 		step = &steps[npas];
 		step->SetAll_0();
 		ta = tx[npas-1];
-		tb = tx[npas];
 		ita = itx[npas-1];
-		itb = 0;
 
 		GoNestedWhile(tag, base);                    // while cycle
+		if(nested_aig){// something happenned
+         
+		  cumsteps[npas] = allsteps;   
+		  (*step) = allsteps;
+		  (*step)-=(*cum);  
+		  (*step).String(tx[npas],itx[npas] );
+		  }
+	   
+	    else 
+			break; // nothing to do
+
+
 		if(0) {
 			EE.E("fin step=");
 			EE.E(npas);
 			puz.Image((*step),"step ", 0);
 		}
-		cumsteps[npas] = cumsteps[npas - 1];
-		cumsteps[npas] |= (*step);
-		itx[npas] = itb;
 
 		// check for a contradiction in that lot (stop at first)
 		if(allsteps.On(target)) {
@@ -4017,13 +4003,10 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 		if(x.substract(allsteps)) {
 			if(opp)
 				puz.Image(x,"applied std", ta[it]);
-			(*step) |= x; // flag it in the BFTAG and load in new
 			allsteps |= x; // and in the total 
 			nested_aig=1;
 		} 
-		if(nested_aig){
-			(*step).String(tb, itb);
-        }
+        
 	}
 
 	// check now sets
@@ -4073,9 +4056,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
                     for(int i = 0; i < nni; i++) { 
                          USHORT cd = chx.tcd[i], j = cd << 1;
 						 if(allsteps.Off(j)) {
-						      (*step).Set(j);   
 						      allsteps.Set(j);
-						      tb[itb++] = j;
 						      tsets[j] = ie;
 					          nested_aig = 1;
 						      aig2 = 1;
@@ -4088,9 +4069,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 					break;	// if ok second round for action	
 				USHORT j = toff[0]; // candidate in tag form
 				if(allsteps.Off(j)) {
-						(*step).Set(j);   
 						allsteps.Set(j);
-						tb[itb++] = j;
 						tsets[j] = ie;
 						nested_aig = 1;
 						aig2 = 1;
@@ -4100,7 +4079,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 					EE.E("set derive actif ");
 					chx.Image();
 					EE.E("  valid ");
-					zpln.ImageTag(tb[itb - 1]);
+					zpln.ImageTag(j);
 					EE.Enl();
 				}
 			}
@@ -4123,9 +4102,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 				int j = (evl.tcd[i] << 1) ^ 1; // false state on
 				if(allsteps.On(j))
 					continue;
-				(*step).Set(j);  
 				allsteps.Set(j);
-				tb[itb++] = j;
 				tsets[j] = ie;
 				nested_aig = 1;
 				aig2 = 1;       
@@ -4141,7 +4118,7 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 
 	   // stop if not nested mode or something found
 
-	if((base<95) || (*step).IsNotEmpty())
+	if((base<95) || nested_aig)
 		return;    
 
 	// we look for indirect hints
@@ -4153,14 +4130,9 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 		puz.Image(elims,"netforcing recap", 0);
 	//BFTAG x = elims;  // elims in false state
 	if(elims.IsNotEmpty()) {
-		(*step) |= elims; // flag it in the BFTAG and load in new
 		allsteps |= elims; // and in the total 
-//		hdp[tag] |= elims;
-		//USHORT ty[100], ity = 0; //test 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
-		USHORT ty[300], ity = 0;
-		elims.String(ty, ity);
-		for(int i = 0; i < ity; i++)
-			tb[itb++] = ty[i];
+         //		to study that puzzle generating a huge elims
+		// 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
 		nested_aig = 1;
 	}
 	if(base < 100)
@@ -4170,15 +4142,8 @@ void PUZZLE::GoNestedWhile(USHORT tag,USHORT base) {
 	NestedMulti(elims2); 
 	if(opp && Op.ot)
 		puz.Image(elims2,"multiforcing recap", 0);
-	//x = elims2;// elims in false state
 	if(elims2.IsNotEmpty()) {
-		(*step) |= elims2; // flag it in the BFTAG and load in new
-		allsteps |= elims2; // and in the total 
-//		hdp[tag] |= elims2;
-		USHORT ty[300], ity = 0;
-		elims2.String(ty, ity);
-		for(int i = 0; i < ity; i++)
-			tb[itb++] = ty[i];
+		allsteps |= elims2; //  in the total 
 		nested_aig=1;
 	}    
 }
@@ -4629,7 +4594,24 @@ int PUZZLE::GoBackNested(USHORT tag) {
 		EE.E(" nestedplus=");
 		EE.Enl(nestedlength);
 	}
-	return itret + nestedlength;
+	 
+	 // this is the right place for a bi value adjustment
+	 // bi value if start false
+	 //   and "step one and result only one true in common"
+	 // this is processsed by serate as a cell or region bivalue
+	 int biv=0;
+	 if(tx[0][0] ^1) {// this is a false start
+	      BFTAG bw(bf);
+	      bw &= steps[1];
+		  if(bw.Count()==1 ){ // must be one used in the first step
+			  USHORT tw[2],itw;
+			  bw.String(tw,itw);
+			  if(!(tw[0] ^1))  // must be a true
+			     biv=-1;
+		  }
+	 }
+
+	return itret + nestedlength ; //+ biv; waiting examples for validation
 }
 
 

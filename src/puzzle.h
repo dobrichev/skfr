@@ -1208,8 +1208,8 @@ public:
 	USHORT tx[pasmax][700],itx[pasmax];
 	USHORT tret[500],pasret[500],itret;
 	BFTAG steps[pasmax],cumsteps[pasmax],allsteps, * to;  
-	BFTAG  *cum ,* step; 
-	USHORT *ta,*tb,ita,itb;
+	BFTAG  *cum  ,* step; 
+	USHORT *ta,ita;//,*tb,itb;
 	SQUARE_BFTAG dpn,dn; // in nested mode, dynamic set of primary links
 	
 	      // added here control for only one search
