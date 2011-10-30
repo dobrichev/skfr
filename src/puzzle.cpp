@@ -1181,8 +1181,7 @@ void PUZZLE::ChainPlus() {
 			   ttt[20];
 		BFTAG tbt, bfset;
 		tbt.SetAll_1();
-		if(ie<320) // protect against size excess   ///
-		     tbt -=dynamic_sets[ie]; // already seen in dynamic mode
+		tbt -=dynamic_sets[ie]; // already seen in dynamic mode
 		for(int i = 0; i < n; i++){
 			ttt[i]=(tcd[i] << 1);
 			bfset.Set(ttt[i] ^ 1);
@@ -1195,7 +1194,7 @@ void PUZZLE::ChainPlus() {
 		if(tbt.IsEmpty())
 			continue;
 
-		if(ie<320) dynamic_sets[ie] |= tbt;   /// protect as well
+		dynamic_sets[ie] |= tbt;  
 
 
         for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
@@ -4218,7 +4217,7 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 				EE.Enl(npasch);
 			} 
 			// must add the source of the new strong links
-			USHORT tt[50], itt = npasch + 2; 
+			USHORT tt[100], itt = npasch + 2; 
 			if(wch.TrackBack(dpn.t, i, i ^ 1, tt, itt, i ^ 1)) { // intercept error for debugging
 				continue;
 			}
@@ -4227,7 +4226,6 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 				EE.E("forcing chain ");
 				zpln.PrintImply(tt, itt);
 			}
-			elims.Set(i ^ 1); 
 			for(int j = 1; j < itt - 1; j++) { // all strong links 
 				if((!(tt[j] & 1)) || (tt[j + 1] & 1)) continue;
 				const CANDGOSTRONG * w = tcandgo.Get(tt[j], tt[j + 1]);
@@ -4235,6 +4233,8 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 			}
 			USHORT ii = tstore.AddOne(tt, itt);
 			tsets[i ^ 1] =- tcandgo.itt;
+            elims.Set(i ^ 1); 
+
 			tcandgo.tt[tcandgo.itt++].Add(ii, bfs, npasch + 1); 
 		}// this is the final length
 	}
@@ -4287,9 +4287,9 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 		for(int i = 3; i < puz.col; i += 2) {
 			if(!zt.On(i))
 				continue;
-			elims.Set(i); 
 			BFTAG bfs;
 			USHORT istored = 0, istoref = 0, tot_count = 0;
+			int era=0; // one error somewhere debugging data
 			for(int i2=0;i2<nni;i2++) {
 				USHORT cd = chx.tcd[i2], j = cd << 1; // candidate in tag form
 				if(cum->On(j ^ 1)) {
@@ -4303,21 +4303,31 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 				BFTAG wch = dpn.t[j]; 
 				USHORT tt[50], itt = 2; tt[0] = j; tt[1] = i;
 				if(wch.Off(i)) {
-					int npasch = wch.SearchChain(dpn.t, j, i);	
+
+					int erb=0,  // error in that sequence
+						npasch = wch.SearchChain(dpn.t, j, i);	
 					if((!npasch) || (npasch > 40))
-						continue; // should never happen  
-					itt = npasch + 2; 
-					if(wch.TrackBack(dpn.t, j, i, tt, itt, i)) { // intercept error for debugging
-						EE.E ("new nested multi chain bactrack error");
+						erb=1;  // should never happen  debug later
+					else{
+					  itt = npasch + 2; 
+					  if(wch.TrackBack(dpn.t, j, i, tt, itt, i)) { // intercept error for debugging
+						  erb=2;
+					  }
+                     if(erb) { // debugging sequence for that chain
+						EE.E ("new nested multi chain error code");
+						EE.Enl(erb);
+						EE.E ("from ");zpln.ImageTag(j);
+						EE.E ("to");zpln.ImageTag(i); EE.Enl();
 						puz.Image(dpn.t[j],"dpn", 0);
 						puz.Image(dn.t[j],"dn", 0);
 						puz.Image(wch,"wch", 0);
 						EE.E(" npasch=");
 						EE.Enl(npasch);
-						EE.Enl();		 
+						EE.Enl();
+						era=1;
 						continue;
-					}
-				}
+					 }
+				   }
 				// tt now contains the imply =>  sequence i => ....=> i^1
 				if(opp) {  // print it it test mode
 					EE.Enl("new nested multi chain");
@@ -4335,9 +4345,29 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 					istored = istoref;
 				tot_count += itt;
 			}// end i
+            if(era){ // at least one error, more data for debugging
+				// we don't stop, just forget thht case
+               cerr <<"found failure multi nested"<<endl;
+			   if(Op.ot){
+                  EE.Enl("new nested multi chain failure");
+				  EE.E(" found for set");
+			      chx.Image();EE.Enl();
+				  Image(allsteps,"allsteps",0);
+				  dpn.Image();
+			   }
+			   continue;
+			}
+
+			 // here a case to be investigated deeper
+			 //.2..5......71....668.......2..7....8..8...3....1..4.9..1.2....7....9.4.......3.5. ED=0.0/0.0/0.5
+			 // no error in detailed chains
+			 // but nothing stored, so all was defined ???
+			 // good example to check the process
+
 			if(istored) { //should always be
 				USHORT ii = tstore.AddMul(istored, istoref);
 				tsets[i] =- tcandgo.itt;
+				elims.Set(i); 
 				tcandgo.tt[tcandgo.itt++].Add(ii, bfs, tot_count); 
 
                 if(opp)  // print it it test mode
@@ -4345,6 +4375,8 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 		          EE.E("  ichain="); EE.E(tstore.ise); 
 		          EE.E("  stored as "); EE.Enl(tsets[i]); 
                  }
+			}
+
 			}
 		} // end tag not anymore valid
 	}// end ie
@@ -4383,8 +4415,9 @@ void PUZZLE::Gen_dpn(USHORT tag)
 
 //--------------------------------------------------
 int PUZZLE::GoBackNested(USHORT tag) {
-	if(0) {
-		EE.E("goback");zpln.ImageTag(tag);EE.Enl();
+	if(0 && nested_print_option ) {
+		EE.E("goback");zpln.ImageTag(tag);
+		EE.E(" npas=");EE.Enl(npas);
 	}
 
 	USHORT itret1=0,nestedlength=0;
@@ -4395,7 +4428,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 	while(itret1 < itret && itret < 300) { // solve each entry back
 		USHORT x = tret[itret1], aig = 1; // first locate where x has been loaded
 		int index = tsets[x];
-		if(0  && nested_print_option) {  
+		if(0 && nested_print_option) {  
 			EE.E("go back look for ");
 			zpln.ImageTag(x);
 			EE.E(" index= ");EE.E( index);
@@ -4442,7 +4475,35 @@ int PUZZLE::GoBackNested(USHORT tag) {
 
 			          } // end if(!z)
 
-			          if(!z) aig=1;  // not found should never be
+			          if(!z) {  // not found should never be
+						  aig=1;
+						  if(Op.ot){// debugging sequence
+                             EE.E("debug for goback direct not found target ");
+							 zpln.ImageTag(tag);EE.E(" npas=");EE.Enl(npas);
+							 EE.E(" x= "); zpln.ImageTag(x);
+							 EE.E(" istep");EE.Enl(i);
+
+							 for (int iw=0;iw<=i;iw++) {
+								  EE.E(iw); Image(steps[iw]," step",0);
+							 }
+                             for (int iw=0;iw<=i;iw++) {
+								    EE.E(iw); EE.E(" step tx "); 
+								    for(int j=0;j<itx[iw];j++){ 
+								    zpln.ImageTag(tx[iw][j]);
+								    EE.Esp();
+									}
+									EE.Enl();
+							 }							 
+							 zcf.h.dp.Image();
+							 EE.Enl("\n tsets table");
+							 for(int iw=2;iw<640;iw++) 
+								 if(cumsteps[i].On(iw)){
+                                 zpln.ImageTag(iw); EE.E(" tset ");								    EE.Esp();
+								 EE.Enl(tsets[iw]);
+								 }
+
+						  }
+					  }
 		           } // end index=0
 
 	   			   else if(index > 0) {
@@ -4515,11 +4576,17 @@ int PUZZLE::GoBackNested(USHORT tag) {
 		}  // end i
        if(aig || itret>300) {
 		   if(aig)
-		   cerr <<"stop goback pour aig=1  "<<endl; ///
+		   cerr <<"stop goback pour aig=1  "<<endl;  
 		   else
-		   cerr <<"stop goback pour iret trop grand "<<endl; ///
+		   cerr <<"stop goback pour iret trop grand "<<endl;  
 	       stop_rating=1;
-	        if( Op.ot) EE.Enl("go back nested invalid situation");
+	        if( Op.ot) {
+				EE.Enl("go back nested invalid situation");
+			    EE.E(itret1);
+			    EE.E(" itret=");
+			    EE.Enl(itret);
+		    }
+
 	       opp=0;
 	       return 0; // not found, should never be
        }	
@@ -4537,7 +4604,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 			for(int j = 0; j < itret; j++) { 
 				if(steps[i].On(tret[j])) {
 					USHORT wt = tret[j]; 
-					zpln.ImageTag(wt); // print the tag annd look for explanation
+					zpln.ImageTag(wt); // print the tag and look for explanation
 					int index = tsets[wt];
 					if(!index)
 						EE.Enl();  // direct no comment

@@ -1709,7 +1709,7 @@ public:
 class TCANDGO {
 public:
 	CANDGOFORWARD tt[5000];
-	CANDGOSTRONG ts[600];
+	CANDGOSTRONG ts[1000];
 	USHORT itt, its;
 	void Init() {
 		itt = its = 1;
@@ -1743,10 +1743,11 @@ public:
   
 class  CHAINSTORE {
 public:
-	USHORT buf[30000], ibuf,        
-		starts[2000], ends[2000],
+	USHORT buf[50000],         
 		ise,
-		s2[500], e2[500], ise2;
+		s2[1000], e2[1000], ise2;
+	int starts[3000], ends[3000],
+          ibuf;
 
 	void Init() {
 		ibuf=0;
@@ -1757,25 +1758,26 @@ public:
 		ise2 = 1;
 	} // 0 is "empty"
 	USHORT AddChain(USHORT * tch, USHORT n) {
-		if(ibuf + n > 30000)
+		if(ibuf + n > 50000){
 			return 0;
+		}
 		starts[ise] = ibuf; 
 		for(int i = 0; i < n; i++)
 			buf[ibuf++] = tch[i];
 		ends[ise] = ibuf; 
-		if(ise >= 2000)
+		if(ise >= 3000)
 			return ise; // don't pass the limit
 		else
 			return ise++;
 	}
 	USHORT AddOne(USHORT * tch, USHORT n) {
-		if(ise2 >= 500)
+		if(ise2 >= 1000)
 			return 0;
 		s2[ise2] = e2[ise2] = AddChain(tch, n);
 		return ise2++;
 	}
 	USHORT AddMul(USHORT d, USHORT f) {
-		if(ise2 >= 500)
+		if(ise2 >= 1000)
 			return 0;
 		s2[ise2] = d;
 		e2[ise2] = f;
