@@ -468,71 +468,6 @@ public:
     void Genere();  // update
 };
 
-////! This class provide a brute force solver
-///**
-// * This solver will stop as soon as 2 solutions have been found.<br><br>
-// * Usage of this class is :<ul>
-// * <li> create an instance </li>
-// * <li> init with the puzzle calling BRUTE_FORCE_STEP::Init </li>
-// * <li> for each given call BRUTE_FORCE_STEP::Fixer</li>
-// * <li> look for solution(s) calling BRUTE_FORCE_STEP::NsolPas </li>
-// * <li> verify the number of solution static member BRUTE_FORCE_STEP::nsol (0,1 or 2)
-// * and get the (first found) solution in global variable <code>un_jeu.ggf</code></li>
-// * </ul>
-// */
-//class BRUTE_FORCE_STEP 
-//{
-//public:   
-//	CELL_VAR tu[81];			//< candidate and status of cells
-//	GG *ggf,  // pointer to the final location
-//		gg;				//< puzzle as a string
-//	char *gr;			//< pointer on puzzle string that will evolve to the solution
-//	BF81 libres;		//< 81 bitfield indicating the empty cell
-//	USHORT nlibres,		//< number of empty cells
-//		nactif,
-//		iactif,
-//		*nsol,        // pointer to nsol in the calling sequence   
-//		maxlibres;
-//	BF16 candactif;
-//
-//
-//	BRUTE_FORCE_STEP() {gr=gg.pg;}
-//	BRUTE_FORCE_STEP(BRUTE_FORCE_STEP &old) {
-//		*this = old;
-//		gr = gg.pg;
-//	}
-//
-//	void Init(const GG &ge, USHORT *nsole, GG *ggfe);  
-//	void Fixer(int i, USHORT ch);
-//	void Clear(int i8, USHORT ch);
-//	int Avance();  	
-//	void NsolPas(); //id et lct pas suivant
-//	BF81 GetZ() const ;
-//};
-
-
-////!A class to check uniqueness
-///**
-// * That was a class from "Gerard Penet" to handle recursive tasks as <ul>
-// * <li> puzzles generators</li>
-// * <li> brute force solving ...</li></ul>
-// * This class has been reduced here to a minimal form for uniquenss verification
-// */
-//
-//class BRUTE_FORCE {
-//public: 
-//	PUZZLE * parentpuz;
-//	FLOG * EE;
-//	BRUTE_FORCE_STEP dep;		//< to invoke brute force solver
-//	GG gg;			//< puzzle initial string
-//
-//	//! has this puzzle one and only one solution
-//	void SetParent(PUZZLE * parent,FLOG * fl)
-//	{parentpuz=parent;EE=fl;}
-//
-//	int Uniqueness(GG &ge, GG *puz_solution) ;
-//
-//};
 
 
 
@@ -1149,7 +1084,6 @@ class PUZZLE
 {
 public:
 
-    //BRUTE_FORCE un_jeu;
     SEARCH_LS_FISH yt;
     TCHAIN tchain;
     TWO_REGIONS_INDEX alt_index; 
@@ -1220,6 +1154,21 @@ public:
 	BFTAG  dynamic_form1,        // form a=> x and  a=>~x		      
 		   dynamic_form2[320],   // form x=> ~a and  ~x => ~a
 	       dynamic_sets[320];   // maxi is 384 sets less given 
+
+	// set fo data for nested dynamic level 4
+	// similar to standard but no "plus" set
+	// reworked to use one buffer to store sets
+
+	short nested_tsets[640];
+	USHORT nested_buf[640],
+		   *nested_tx[pasmax],  // pointers to nested_buf
+		   nested_itx[pasmax];
+	USHORT nested_result[500],/*nested_pasret[500],*/nested_iresult;
+	BFTAG nested_steps[pasmax],nested_cumsteps[pasmax],nested_allsteps, * nested_to;  
+	BFTAG  *nested_cum  ,* nested_step; 
+	USHORT *nested_ta,nested_ita,
+		   nested_npas,nested_aig2; 
+
 
 	PUZZLE();
 	 
@@ -1326,9 +1275,9 @@ public:
 /* redefine here for translation all routines
    formerly in CANDGO 
    */
-	int GoCand(USHORT tag);  // locate the contradiction
-	int GoOne(USHORT tag, const BFTAG &tagse); // find all targets
-	void GoSets();
+//	int GoCand(USHORT tag);  // locate the contradiction
+	//int GoOne(USHORT tag, const BFTAG &tagse); // find all targets
+//	void GoSets();
 	int GoBack(USHORT tag,int pr);  // compute the length for one chain 
 	int GoBackNested(USHORT tag);  // compute the length for one chain 
 	void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
@@ -1336,6 +1285,11 @@ public:
 	int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
 	int GoNestedCase2_3(USHORT base      // locate the contradiction  
 		,USHORT tag,USHORT target);  // case 2 or case 3
+
+	int CaseNestedLevel4( USHORT tag,USHORT target);  // dynamic 
+	void NestedChainWhile(USHORT tag);
+	int NestedChainGoBack(USHORT tag);  // compute the length for a nested dynamic chain 
+
 	void GoNestedWhile(USHORT tag,USHORT base);
 	void GoNestedWhileShort(USHORT tag,USHORT base);
 	void Gen_dpn(USHORT tag);
