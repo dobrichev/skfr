@@ -1133,10 +1133,10 @@ public:
 
         // data to control the dynamic and nested mode   
 
-	USHORT nested_aig;
+	USHORT chain4_aig;
 	//USHORT ret_code;
 	USHORT npas,
-		   nested_print_option;
+		   chain4_print_option;
 	int opp;
 	short tsets[640];
 	USHORT tx[pasmax][700],itx[pasmax];
@@ -1159,15 +1159,15 @@ public:
 	// similar to standard but no "plus" set
 	// reworked to use one buffer to store sets
 
-	short nested_tsets[640];
-	USHORT nested_buf[640],
-		   *nested_tx[pasmax],  // pointers to nested_buf
-		   nested_itx[pasmax];
-	USHORT nested_result[500],/*nested_pasret[500],*/nested_iresult;
-	BFTAG nested_steps[pasmax],nested_cumsteps[pasmax],nested_allsteps, * nested_to;  
-	BFTAG  *nested_cum  ,* nested_step; 
-	USHORT *nested_ta,nested_ita,
-		   nested_npas,nested_aig2; 
+	short chain4_tsets[640];
+	USHORT chain4_buf[640],
+		   *chain4_tx[pasmax],  // pointers to chain4_buf
+		   chain4_itx[pasmax];
+	USHORT chain4_result[500],chain4_iresult;
+	BFTAG chain4_steps[pasmax],chain4_cumsteps[pasmax],chain4_allsteps, * chain4_to;  
+	BFTAG  *chain4_cum  ,* chain4_step, chain4_bf; 
+	USHORT *chain4_ta,chain4_ita,
+		   chain4_npas,chain4_aig2; 
 
 
 	PUZZLE();
@@ -1296,10 +1296,12 @@ public:
 	void Gen_dpnShort(USHORT tag);
 	void NestedForcing(BFTAG & elims);
 	void NestedForcingShort(BFTAG & elims);
-
-
 	void NestedMulti(BFTAG & elims);
 	void NestedMultiShort(BFTAG & elims);
+	void NestedForcingLevel4(BFTAG & elims);
+	void NestedForcingShortLevel4(BFTAG & elims);
+	void NestedMultiLevel4(BFTAG & elims);
+	void NestedMultiShortLevel4(BFTAG & elims);
 
 
 
