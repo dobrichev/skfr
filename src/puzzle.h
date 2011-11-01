@@ -885,7 +885,7 @@ class INFERENCES {
 public:
 	PUZZLE * parentpuz;
 
-	PHASE h, hstart, h_one, h_nest;
+	PHASE h, hstart, h_one, h_nest,storehw;
 
 	SQUARE_BFTAG hdp_base,         // must contain only basic strong and weak links
 		         hdp_dynamic,      // same plus direct events effects
@@ -1133,7 +1133,7 @@ public:
 
         // data to control the dynamic and nested mode   
 
-	USHORT chain4_aig;
+	USHORT nested_aig;
 	//USHORT ret_code;
 	USHORT npas,
 		   chain4_print_option;
@@ -1167,7 +1167,7 @@ public:
 	BFTAG chain4_steps[pasmax],chain4_cumsteps[pasmax],chain4_allsteps, * chain4_to;  
 	BFTAG  *chain4_cum  ,* chain4_step, chain4_bf; 
 	USHORT *chain4_ta,chain4_ita,
-		   chain4_npas,chain4_aig2; 
+		   chain4_npas,nested_aig2; 
 
 
 	PUZZLE();
