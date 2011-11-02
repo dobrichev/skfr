@@ -1133,10 +1133,11 @@ public:
 
         // data to control the dynamic and nested mode   
 
-	USHORT nested_aig;
+	USHORT nested_aig,
+		   rbase;
 	//USHORT ret_code;
 	USHORT npas,
-		   chain4_print_option;
+		   nested_print_option;
 	int opp;
 	short tsets[640];
 	USHORT tx[pasmax][700],itx[pasmax];
@@ -1259,7 +1260,7 @@ public:
 	void InitNested();
 	int Rating_baseNest(USHORT base, int quick);  // nesting  95 forcing chains
 	int Rating_base_95_Quick();  // quick nesting   
-	void Rating_Nested(USHORT base, USHORT * ttags, USHORT ntags, USHORT target);
+	void Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target);
 
 	void ChainPlus(); // formerly in INFERENCES
 
@@ -1275,23 +1276,20 @@ public:
 /* redefine here for translation all routines
    formerly in CANDGO 
    */
-//	int GoCand(USHORT tag);  // locate the contradiction
-	//int GoOne(USHORT tag, const BFTAG &tagse); // find all targets
-//	void GoSets();
+
 	int GoBack(USHORT tag,int pr);  // compute the length for one chain 
 	int GoBackNested(USHORT tag);  // compute the length for one chain 
-	void GoNestedTag(USHORT tag,USHORT base);  // get expanded situation 
-	//int GoNested(USHORT cand,BFTAG * tagnot,USHORT base);  // locate the contradiction
-	int GoNestedCase1(USHORT cand,USHORT base);  // locate the contradiction with case 1
-	int GoNestedCase2_3(USHORT base      // locate the contradiction  
-		,USHORT tag,USHORT target);  // case 2 or case 3
+	void GoNestedTag(USHORT tag);  // get expanded situation 
+	int GoNestedCase1(USHORT cand);  // locate the contradiction with case 1
+	int GoNestedCase2_3(     // locate the contradiction  
+		USHORT tag,USHORT target);  // case 2 or case 3
 
 	int CaseNestedLevel4( USHORT tag,USHORT target);  // dynamic 
 	void NestedChainWhile(USHORT tag);
 	int NestedChainGoBack(USHORT tag);  // compute the length for a nested dynamic chain 
 
-	void GoNestedWhile(USHORT tag,USHORT base);
-	void GoNestedWhileShort(USHORT tag,USHORT base);
+	void GoNestedWhile(USHORT tag);
+	void GoNestedWhileShort(USHORT tag);
 	void Gen_dpn(USHORT tag);
 	void Gen_dpnShort(USHORT tag);
 	void NestedForcing(BFTAG & elims);
