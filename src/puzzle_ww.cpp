@@ -1,151 +1,157 @@
-/*
-           <<<<<<  SEARCH_LS_FISH  >>>>>>
-   class used to search locked sets and fishes
+/*               <<<<<<  CELL  CELLS   >>>>>>
+
+     main table for the cells of the  puzzle
+	 this is the entry point for any elimination
+	 keep updated situation of candidates and assigned/given
+
+	 a copy of the table is needed in some steps as UR search
+
 
 */
-
- void SEARCH_LS_FISH::SetParent(PUZZLE * parent){
- parentpuz=parent;
- regindp=parentpuz->alt_index.tpobit.el;
- regindch=parentpuz->alt_index.tchbit.el;
- regindchcol=&regindch[9];
-}
-
-//<<<<<<<<<<<<<<<<<<<<<   On cherche tiroir dans element  // boucle recurrente sur i
-int SEARCH_LS_FISH::Tiroir(BF16 fd,int iold,int irang) { // on progresse sur indice et on regarde si fusion n-1  ok
-	int i,id=(non.f && (irang-1))? 0:iold+1;  // debut 0 avec pseudos et rang 1
-	for (i=id;i<(11-rangc+irang);i++)  // il doit rester des cases
-	{ 
-		if(eld[i].n<2 ||eld[i].n>rangv) continue;
-		if( non.On(i))continue; //pour pseudo
-		BF16 wx=eld[i].b|fd; 
-		int nx=wx.QC();
-		if (nx >rangv) continue;
-		if(irang==(rangc-2))
-		{wf=wx;wi.Set(i);
-		if(nx ==rangv)return 1; else return 0; }
-		// une erreur a tester    on poursuit si <
-		// il peut manquer des tiroirs!!!!! curieux que jamais détecté!!!!
-		if(Tiroir(wx,i,irang+1)){wi.Set(i); return 1; }
-	}
-	return 0;
-}
-
-int SEARCH_LS_FISH::Tiroirs(int nn,int hid,int sing) {     //recherche normale des tiroirs
-	rangv=nn;single=sing;hid_dir=hid; int ir=0;
-	int ied=0,ief=54; 
-	if(!hid_dir )ief=27;if(hid_dir==1 )ied=27;if(single){ied=27;ief=54;}
-	
-	for( e=ied;e<ief;e++)   // direct, hidden or both upon request
-	{rangc=rangv; non.f=cases.f=0; if(e<27) e27=e; else e27=e-27;
-	if(parentpuz -> NonFixesEl(e%27) < (rangv +1)) continue;
-
-	for(int i=0;i<9-rangv+1;i++)
-	{eld=regindp[e].eld;
-	int nn= eld[i].n;
-	if(nn<2 || nn>rangv) continue;
-	BF16 w;w=eld[i].b;
-	wi.f=0; wi.Set(i);
-	if(!Tiroir(w,i,0)) continue;
-	if (UnTiroir())ir= 1;	
-	}  
-	}
-	if(ir)return 1; 
-	return 0;
-}
-
-int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked set to accept it
-	int ir=0;
-	if(single) { // will be covered slowly can be any element row, col, box
-		for(int i=0;i<9;i++)  if(wf.Off(i))
-		{USHORT i8=divf.el81[e27][i]; 
-		CELL p=T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
-		BF16 wc=p.v.cand-wi;
-		for(int j=0;j<9;j++) if (wc.On(j) )// a possible hidden digit
-		{BF16 wcd=regindch[e27].eld[j].b-wf; // positions still valid
-		if(wcd.QC()==1)
-		{EE.Enl("ecs assignment");
-		parentpuz -> FaitGoA(i8,j+'1',4);// stop at first assignment
-		ir=1; break;}
-		}// end for j if
-
-		}// end hidden ls
-		if(!ir) return 0;// no single found
-	}// end if single
-
-	else if(e<27) {
-		    if (!parentpuz ->ChangeSauf(e,wi,wf)&&(!ir) )return 0;  }
-	else   { if (!parentpuz ->Keep(e27,wf,wi) &&(!ir))return 0;  }
-
-	if(!Op.ot) return 1; 
-	// describe the LS even if no more eliminations after an assignment
-
-	char *gt[]={"LS2 ","LS3 ","LS4 ","LS5 " };
-
-	int in=rangv-2,  it2=(e%27)/9,ii2=e%9;
-	char c2= (it2-1)?(char)(ii2+'1'):lc[ii2];
-	EE.E("->");EE.E(gt[in]); 
-	if(e<27)
-	{EE.E(" cells ");	EE.E( wi.String());EE.E(" digits ");  }
-	else
-	{EE.E(" digits ");EE.E( wi.String());EE.E(" cells "); }
-	EE.E( wf.String());EE.E(" ");EE.E(orig[it2]);EE.E(" ");EE.Enl(c2);
+int CELL::Change(int ch) {
+	if(v.cand.Off(ch))
+		return 0;
+	if(puz.CheckChange(f->i8, ch))
+		return 0;
+	v.cand.Clear(ch);
+	v.ncand = v.cand.CountEtString(scand);
+	puz.c[ch].Clear(f->i8);
 	return 1;
 }
 
- 
+void CELLS::SetParent(PUZZLE * parent,FLOG * fl){
+ parentpuz=parent;
+ EE=fl;}
 
 
-//<<<<<<<<<<<<<<<<<<<<<   On cherche XW dans lignes ou cols  boucle recurrente sur i
-int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
-{   // on progresse sur indice et on regarde si fusion n-1  ok
-  for (int i=iold+1;i<9;i++)  // il doit rester des éléments
-  { int nn=eld[ch].n;
-	 if(nn<2 ||nn>rangv) continue;
-    BF16 wfu=regxw[i].eld[ch].b|fd; 
-	int nx=wfu.QC();
-	if (nx >rangv) continue;
-    if(irang==(rangv-2)){ if(nx - rangv)continue;
-                         wf=wfu; wi.Set(i);return 1; }
-      else if(XW(wfu,i,irang+1)) {wi.Set(i); return 1; }
-  }
-return 0;}
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< en mode XWING liste objets et chiffres
-int SEARCH_LS_FISH::GroupeObjetsChange(int dobj,int ch)
-{BF16 x(ch); int ir=0;
- for(int i=0;i<9;i++)   if(wf.On(i)) ir+= parentpuz ->ChangeSauf(dobj+i,wi,x);
-return ir;}
-//<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
-int SEARCH_LS_FISH::XW(int nn)
-{char *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
-              "Whale (XW6)","Leviathan (XW7)" };
- BF16 w; rangc=nn;
- for(int i=0;i<9;i++)
-  {ch=(UCHAR)i;
-   for(int iel=0;iel<10-rangv;iel++)
-   { regxw=regindch;
-	 eld=regxw[iel].eld;     
-   	 int nn=eld[i].n;
-    if(nn>1 &&nn<=rangv)
-    { w=eld[i].b; wi.f=0; wi.Set(iel);
-      if( XW(w,iel,0) )
-       { if(GroupeObjetsChange(9,i) )  // action colonnes
-	     {EE.E(gxw[rangv-2]);	 EE.E(" digit ");     EE.E(i+1); 
-	      EE.E( " columns ");   EE.E(wf.String(0));
-		  EE.E(" rows ");  EE.Enl(wi.String());     
-		  return 1; 	 }}
-       }
-	 regxw=regindchcol;
-	 eld=regxw[iel].eld;
-     nn=eld[i].n;
-     if(nn<2 || nn>rangv) continue;
-     w=eld[i].b;  	wi.f=0; wi.Set(iel);
-     if( XW(w,iel,0) )
-      { if(GroupeObjetsChange(0,i) ) // action lignes
-	   {EE.E(gxw[rangv-2]);	 EE.E(" digit ");
-	    EE.E(i+1); EE.E(" rows ");	EE.E(wf.String());
-		EE.E( " columns ");	  EE.Enl(wi.String(0));     
-		return 1; }  	 }
-    } // end iel
-  }    // end i niv
-return 0;}
+void CELLS::init() {
+	for(int i = 0; i < 81; i++) {
+		t81[i].v.Init();
+		t81[i].f = &t81f[i];
+	}
+}
+void CELLS::Fixer(int ch, int i8, UCHAR typ) {
+	t81[i8].Fixer(typ, ch);
+	puz.cFixer(ch, i8);
+}
+
+int CELLS::Clear(BF81 &z, int ch) {
+	//EE->E("clear tCELL ");EE->E(ch+1);z.ImagePoints();  EE->Enl();
+	int ir = 0;
+	for(int i = 0; i < 81; i++)
+		if(z.On(i))
+			ir += t81[i].Change(ch);
+	return ir;
+}
+int CELLS::Clear(BF81 &z, BF16 x) {
+	int ir = 0;
+	for(int j = 0; j < 9; j++)
+		if(x.On(j))
+			ir += Clear(z,j);
+	return ir;
+}
+//<<<<<<<<<<<<<<<<<<<<    specific ot UR/UL filter to find the lowest length
+int CELLS::CheckClear(BF81 &z, BF16 x) {
+	for(int i = 0; i < 81; i++)
+		if(z.On(i))
+			if((t81[i].v.cand&x).f)
+				return 1;
+	return 0;
+}// positive as soon as one effect found
+
+//<<<<<<<<<<<<<<<<<<<<<<<<<
+void CELLS::Actifs(BF81 & z) {
+	z.SetAll_0();
+	for(int i = 0; i < 81; i++)
+		if(!t81[i].v.typ)
+			z.Set(i);
+}
+//<<<<<<<<<<<<<<<<<
+BF16 CELLS::GenCand(BF81 & z) {
+	BF16 w;
+	w.f = 0;
+	for(int i = 0; i < 81; i++)
+		if(z.On(i) && (!t81[i].v.typ))
+			w = w | t81[i].v.cand;
+	return w;
+}
+//<<<<<<<<<<<<<<<<<     y compris assigned pour RIs
+BF16 CELLS::GenCandTyp01(BF81 & z) {
+	BF16 w;
+	w.f = 0;
+	for(int i = 0; i < 81; i++)
+		if(z.On(i) && t81[i].v.typ < 2)
+			w = w | t81[i].v.cand;
+	return w;
+}
+/*
+//<<<<<<<<<<<<<<<<
+void 	 CELLS::GenzCand(BF81 & z1,BF81 & z2,int ic)
+{z2.Init();  for(int i=0;i<81;i++)
+if(z1.On(i)&&(!t81[i].v.typ)&&t81[i].v.cand.On(ic)) z2.Set(i);  }
+*/
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+void CELLS::CandidatsT() {
+	if(!Op.ot)
+		return; 
+	int i, j, l, lcol[9], tcol = 0;
+	char * pw;       //lcol  largeur maxi colonne
+	EE->Enl("PM map ");  
+	for(i = 0; i < 9; i++) {  // attention ici i indice colonne
+		lcol[i] = 2;    // 2  mini tous chiffres imposés
+		for(j = 0; j < 9; j++) {
+			l = (int)strlen(t81[9 * j + i].strcol()); 
+			if(l > lcol[i])
+				lcol[i] = l;
+		}
+		tcol += lcol[i];
+	}
+	EE->Enl();
+	for(i = 0; i < 9; i++) {
+		if((i == 3) || (i == 6))
+			EE->E("|");
+		EE->E((char)('A' + i));
+		EE->E(Blancs(lcol[i], 1));
+	} 
+	EE->Enl();
+	for(i = 0; i < 9; i++) { // maintenant indice ligne
+		if((i == 3) || (i == 6)) {
+			for(int ix = 0; ix < (tcol + 10); ix++)
+				EE->E((char)'-');
+			EE->Enl();
+		}
+		for(j = 0; j < 9; j++) {
+			if((j == 3) ||(j == 6))
+				EE->E("|");
+			CELL * pp8 = &t81[9*i + j];
+			pw = pp8->strcol();		  
+			EE->E(pw);
+			EE->E(Blancs(lcol[j] + 1 - (int)strlen(pw), 1));
+		} // end for j
+		EE->Enl();
+	} // end for i
+	EE->Enl("\n\n");
+}
+
+
+
+
+
+int CELLS::RIN(int aig) {      // look for unique rectangle 
+	int ir=0;
+	urt.Init();
+	for(int i0 = 0; i0 < 3; i0++) // band/stack 1 to 3
+		for(int i1 = 0; i1 < 2; i1++)
+			for(int i2 = i1 + 1; i2 < 3; i2++) // 2 rows  
+				for(int j1 = 0; j1 < 2; j1++)
+					for(int j2 = j1 + 1; j2 < 3; j2++) // boxes   12 13 23
+						for(int j3 = 0; j3 < 3; j3++)
+							for(int j4 = 0; j4 < 3; j4++) {  // 2 cols  
+								//analysing band and stack, main diagonal symmetry
+								int l1 = 3 * i0 + i1, l2 = 3 * i0 + i2, c1 = 3 * j1 + j3, c2 = 3 * j2 + j4;
+								if(ur.RID(l1, l2, c1, c2) || ur.RID(c1, c2, l1, l2))
+									ir++;
+							}
+	return ir;
+}
+

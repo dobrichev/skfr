@@ -386,8 +386,11 @@ public:
 
 class CELLS { 
 public:
+	PUZZLE * parentpuz;
+	FLOG * EE;
 	CELL t81[81];       
 
+	void SetParent(PUZZLE * parent,FLOG * xx);
 	void init(); 	
 	void Fixer(int ch,int i8,UCHAR typ);
 	int Clear(BF81 &z,int ch  );
@@ -482,6 +485,7 @@ class SEARCH_LS_FISH
 {
 public:
 	PUZZLE * parentpuz;
+	FLOG * EE;
 	REGION_CELL * eld;
 	REGION_INDEX * regindp,* regindch,* regindchcol,*regxw;
 
@@ -500,7 +504,7 @@ public:
 
 	UCHAR ch; 
 
-    void SetParent(PUZZLE * parent);
+    void SetParent(PUZZLE * parent, FLOG * xx);
 
 	void InitTir(BF16 none,BF16 casese, int rangc,int rangv);
 
