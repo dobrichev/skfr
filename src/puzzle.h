@@ -1063,7 +1063,7 @@ public:
 	int ChargeSet(USHORT * mi, USHORT nmi, SET_TYPE ty);
 	//int CopySet(int ie);
 
-	//void DeriveDirect() {
+	//void DeriveDirect() { // don't cut it so far still possible GP
 	//	direct = 1;
 	//	Derive(3, 4, 3);
 	//	direct=0;
@@ -1071,6 +1071,7 @@ public:
 	void Derive(int min, int max, int maxs); 
 	void DeriveBase(const SET & chx);
 	void DeriveSet(SET & chx);
+	int DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & dn);
 
 	int Interdit_Base80() ;	 
 
@@ -1585,6 +1586,7 @@ public:
 		return 0;
 	}
 	void Image() const;
+	void ImageShort()const;
 };
 
 /* table of events 
