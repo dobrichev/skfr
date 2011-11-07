@@ -604,8 +604,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	}
 
 
-	zcf.h_nest = zcf.h_one; // create the start for that nested level
-
+	d_nested=d_nested2=zcf.h_one.d;
 	for(int i = 2; i < col; i++) {
 		 
 		// first step in the search for nested chains
@@ -615,9 +614,9 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		GoNestedTag(i);
 	}   
 
-	if(rbase>100 && Op.ot){
+	if(0 &&rbase>100 && Op.ot){
 		EE.Enl("full expansion at the start");
-        zcf.h_nest.d.Image();
+        d_nested.Image();
 	}
 
 	// we have now fully expanded tags in zcf.h_nest.d
@@ -628,11 +627,11 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	BFTAG elims1, elims2, elims3, elimst2[300], tchte[500]; 
 	USHORT t2[300], it2 = 0;
 	for(int i = 2; i < col; i += 2) {
-		BFTAG tw (zcf.h_nest.d.t[i]); // full expansion for the tag
+		BFTAG tw (d_nested.t[i]); // full expansion for the tag
 		BFTAG tw1 (tw);
 		tw1 &= tw.Inverse();
 		BFTAG tw2 ( tw);
-		tw2 &= zcf.h_nest.d.t[i ^ 1];
+		tw2 &= d_nested.t[i ^ 1];
 		tw2 = tw2.FalseState();
 		tw1 = tw1.TrueState();
 		if(tw2.IsNotEmpty()) {  // case 2
@@ -655,14 +654,14 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		BFTAG bfw;
 		bfw.SetAll_1();
 		for(int i = 0; i < nni; i++)
-			bfw &= zcf.h_nest.d.t[chx.tcd[i] << 1];
+			bfw &= d_nested.t[chx.tcd[i] << 1];
 		if(Op.ot && 0) { //puz.couprem ==5)
 			chx.Image();
 			Image(bfw,"communs",0);
 		}
 		bfw = bfw.FalseState();	 
 		if(bfw.IsNotEmpty()) {
-			if(Op.ot && rbase>100){
+			if(0&&Op.ot && rbase>100){
                 chx.Image(); 
 			    Image(bfw," actif for ",0);
 			}
@@ -684,7 +683,14 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		Image(elims2,"elims2 potential", 0);
 		Image(elims3,"elims3 potential", 0);
 	}
-	
+
+	/// here an optimisation to see later.
+	// if elimt.count is big
+	//  then try a reduce set of eliminations using d_nested2
+	//  if it works, take it
+
+
+
 	if(elimt.IsEmpty())
 		return 0;
 
@@ -748,7 +754,8 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	}
 
 	if(itch) { // some case 3 through sets to apply
-		for(int i = 0; i < itch; i++) {
+///		for(int i = 0; i < itch; i++) {
+		for(int i = 5; i < 6; i++) {
 			BFTAG * ptg = &tchte[i];
 			SET chx = zcx.zc[tch[i]];
 			if(rbase>100 && Op.ot) {
@@ -758,7 +765,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 				EE.E(tch[i]);
 				chx.Image();
 				EE.Enl(); 
-				continue; //// test prelim phase
+	//			continue; /// test prelim phase
 			}
 			int n = 0, nni = chx.ncd; 
 			USHORT ttt[20];
@@ -3299,9 +3306,9 @@ void CHAINSTORE::Print(USHORT index) const {
 
 void PUZZLE::GoNestedTag(USHORT tag) {
 	opp = 0;  
-	if((rbase== 105) && (tag>49 && tag<55) && (!(tag&1)) ) opp=1; else opp=0;
+//	if((rbase== 105) && (tag>49 && tag<55) && (!(tag&1)) ) opp=1; else opp=0;
 
-	const BFTAG &tt (zcf.h_nest.d.t[tag]); 
+	const BFTAG &tt (d_nested.t[tag]); 
     if(opp) {
 			EE.E("start gonested tag ");
 			EE.E(tag);
@@ -3317,14 +3324,16 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 	to = zcf.h_one.dp.t; //forward and back tracking table 
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
-	zcf.hdp_base_nested=zcf.hdp_base;
+	hdp_base_nested=zcf.hdp_base;
 
 	//now go forward  till nothing or a contradiction
 
 	for(int i = 0; i < 640; i++)
 		tsets[i] = 0;
 	npas = 0;
-	steps[0] = tt; tt.String(tx[0],itx[0]);
+	steps[0] = tt; 
+	tt.String(tx[0],itx[0]);
+	steps[0].Set(tag); // add tag to known
 	if(itx[0] >= 200)
 		itx[0] = 200; // safety measure
 	allsteps = cumsteps[0] = steps[0];  
@@ -3362,9 +3371,20 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 		  if(opp) {
 			puz.Image((*step),"step", 0);
 		  }
+		   // store in d_nested2 if npas==2
+		  if(npas==2)
+			  d_nested2.t[tag] = allsteps;
+		   // stop the process if direct elimination appears
+		  BFTAG wt(allsteps);
+		  wt&=wt.Inverse();
+		  if(wt.IsNotEmpty()){
+			  d_nested.t[tag] = allsteps;
+			  return;
+		  }
+           
 		}
 	}// end while
-	zcf.h_nest.d.t[tag] = cumsteps[npas - 1];// note:the last one is empty
+	d_nested.t[tag] = cumsteps[npas - 1];// note:the last one is empty
 }
 
 /* while cycle  for GoNested first run, just find potential
@@ -3378,7 +3398,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 	USHORT aignl = 1;
 	//const BFTAG &cum_here = *cum;
 	BFTAG * tdpn = dpn.t,  // new set of direct links
-	    * hdpb =zcf.hdp_base_nested.t; // to receive new strong links
+	    * hdpb =hdp_base_nested.t; // to receive new strong links
 
 
 	// look first for direct 
@@ -3429,6 +3449,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 						hdpb[cd2 ^ 1].Set(cd1);
 						aignl = 0;
 						tcandgo.AddStrong(cd1 >> 1, cd2 >> 1, bfw, nni - 2);
+                        nested_aig=1;  // must force new loop
 					}
 					break;
 				}
@@ -3527,11 +3548,10 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
      for the remaining valid candidates of the set
 
 */
-/////
-
+///
 void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check tagelim empty 
 	dpn.Init(); 
-	BFTAG * tdp = zcf.hdp_base_nested.t;
+	BFTAG * tdp = hdp_base_nested.t;
 	USHORT tagc = tag;
 	if(tagc & 1) tagc ^= 1;
 	for(int j = 2; j < puz.col; j++) {
@@ -3548,20 +3568,13 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 		EE.Enl("image dpn de dpnshort");
 		dpn.Image();
 	}
-	if(rbase>100){  //level 4 must find all derived weak links
+	if(rbase>100){  //level 4 must find  derived weak links
 		// this must be a specific process working on reduced sets;
-		// the overall response is too high for the lowest level 4
-		// the process should then be stopped after one or 2 derivations steps
-		zcx.DeriveDynamicShort(allsteps,dpn,dn);
+		// only one step of derivation is made 
 	    dn.ExpandAll(dpn);
- 		/// stop here for tests but should go to the end
-		///zcx.DeriveDynamicShort(allsteps,dpn,dn);
-	   /// dn.ExpandAll(dpn);
-	    //while( zcx.DeriveDynamicShort(allsteps,dpn,dn) )
-		//   dn.ExpandAll(dpn);  
-	}
-	else 
-	   dn.ExpandAll(dpn);
+        zcx.DeriveDynamicShort(allsteps,dpn,dn);
+ 	}
+	dn.ExpandAll(dpn);
 
 }
 
@@ -3664,7 +3677,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
-	zcf.hdp_base_nested=zcf.hdp_base;
+	hdp_base_nested=zcf.hdp_base;
 
 	//now go forward  till nothing or a contradiction
 
@@ -3708,7 +3721,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 	    else 
 			break; // nothing to do
 
-		if(0 && opp) {  
+		if(rbase>100){//0 && opp) {  
 			EE.E("end step=");
 			EE.E(npas);
 			Image((*step),"step ", 0);
@@ -3726,7 +3739,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 		for(int i = 0; i < itx[npas]; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
-				if(0 && opp) {
+				if(1 && opp) {
 					EE.E("\n\nfound active a -> x and a -> ~x");
 					zpln.ImageTag(tgx);
 					EE.E(" step=");
@@ -3766,6 +3779,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 			EE.Enl(npas);
 		}
 	}// end while
+//	if(rbase>100) stop_rating=1;///
 	return 0; //ret_code;
 }
 
@@ -3867,7 +3881,7 @@ int PUZZLE::GoNestedCase2_3( USHORT tag, USHORT target) {
 
 	tcandgo.Init(); // intital storage for strong links and nested eliminations
 	tstore.Init(); // start with an empty table of chains stored
-	zcf.hdp_base_nested=zcf.hdp_base;
+	hdp_base_nested=zcf.hdp_base;
 
 	//now go forward  till nothing or a contradiction
 
@@ -3906,10 +3920,11 @@ int PUZZLE::GoNestedCase2_3( USHORT tag, USHORT target) {
 			break; // nothing to do
 
 
-		if(0) {
+		if(rbase>100) {  ///
 			EE.E("fin step=");
 			EE.E(npas);
-			puz.Image((*step),"step ", 0);
+			Image((*step),"step ", 0);
+			Image(allsteps," allsteps",0);
 		}
 
 		// check for a contradiction in that lot (stop at first)
@@ -3934,7 +3949,7 @@ int PUZZLE::GoNestedCase2_3( USHORT tag, USHORT target) {
 */
 void PUZZLE::GoNestedWhile(USHORT tag) {
 	USHORT aignl = 1;
-	BFTAG  * hdpb = zcf.hdp_base_nested.t; // to receive new strong links
+	BFTAG  * hdpb = hdp_base_nested.t; // to receive new strong links
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
 		BFTAG x = to[ta[it]];
@@ -3986,6 +4001,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 						hdpb[cd2 ^ 1].Set(cd1);
 						aignl = 0;
 						tcandgo.AddStrong(cd1 >> 1, cd2 >> 1, bfw, nni - 2);
+                        nested_aig=1;// force new loop if new strong link
 					}
 				  }
 					break;
@@ -4067,7 +4083,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	   NestedForcing(elims); 
 	else
 	    NestedForcingLevel4(elims); 
-	if(rbase>100 && Op.ot){
+	if(0&&rbase>100 && Op.ot){
 		Image(allsteps,"allsteps",0);
 		puz.Image(elims,"netforcing recap", 0);
 	}
@@ -4086,7 +4102,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	   NestedMulti(elims2); 
 	else
 	   NestedMultiLevel4(elims2); 
-	if(rbase>100 && Op.ot)
+	if(0&& rbase>100 && Op.ot)
 		puz.Image(elims2,"multiforcing recap", 0);
 	if(elims2.IsNotEmpty()) {
 		allsteps |= elims2; //  in the total 
@@ -4268,12 +4284,15 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 	all candidates forced or cleared if the candidate studied is true
 	including all new strong links generated
 	and eliminations depending on the level
-*/
 
+	at level 4 the process is dynamic
+	so the chain must include derived links
+*/
+///
 void PUZZLE::Gen_dpn(USHORT tag)
 {          // create the reduced set of tags check tagelim empty 
  dpn.Init(); 
- BFTAG    * tdp=zcf.hdp_base_nested.t;
+ BFTAG    * tdp=hdp_base_nested.t;
 
 
  for (int j=2;j< puz.col;j++) 
@@ -4288,7 +4307,14 @@ void PUZZLE::Gen_dpn(USHORT tag)
 		   zcf.h.dp.Image();
 		   dpn.Image();
           }
- dn.ExpandAll(dpn);
+ if(rbase>100){  //level 4 must find  derived weak links
+	// this must be a specific process working on reduced sets;
+	// only one step of derivation is made to start
+	   dn.ExpandAll(dpn);
+       zcx.DeriveDynamicShort(allsteps,dpn,dn);
+
+ }
+  dn.ExpandAll(dpn);
  }
 
 //--------------------------------------------------
@@ -6156,6 +6182,7 @@ void PUZZLE::NestedChainWhile(USHORT tag) {
 						joff = j;
 					} 
 				}
+	
 		if(n - 1) continue;	// if ok second round for action	
 		chain4_allsteps.Set(joff);
 		chain4_tsets[joff] = ie;
@@ -6262,10 +6289,9 @@ int PUZZLE::NestedChainGoBack(USHORT tag) {
 
 
 void PUZZLE::NestedForcingLevel4(BFTAG & elims) {
-	if(1){
+	if(0){
 	    EE.E("\nentry nested forcing level 4 step="); EE.Enl(npas);
 	   // Image(allsteps,"alssteps",0);
-
 	   // dpn.Image();
 	    EE.Enl("\n");
 	}
@@ -6325,9 +6351,9 @@ and the source of all new strong links used
 
 */
 void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
-   if(0){
-	  EE.Enl("entry nested multi level 4");
-	  dn.Image();
+   if(1){
+	  EE.E("entry nested multi level 4 step ="); EE.Enl(npas);
+	 // dn.Image();
    }
 
    for(int ie = 1; ie < zcx.izc; ie++) {
@@ -6336,9 +6362,7 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 		BFTAG zt;
 		zt.SetAll_1();
 		zt = zt.FalseState();
-		BFTAG ttt = allsteps;
-		ttt |= elims;
-		zt -= ttt;
+		zt -= allsteps;
 		if(chx.type - SET_base)
 			   continue;
 		    // must be  n false 
@@ -6353,9 +6377,17 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 		}
 		if(aig2 || zt.IsEmpty())
 			continue;	// if ok second round for action	
-		for(int i = 3; i < puz.col; i += 2) {
-			if(!zt.On(i))
-				continue;
+		if(1){
+			EE.E("N Mul Lvl4 ");
+			chx.Image();
+			Image(zt," active for ",0);
+			EE.Enl();
+		}
+
+		USHORT wtt[400],iwtt;
+		zt.String(wtt,iwtt);
+		for(int ii=0;ii<iwtt;ii++){
+		    int i=wtt[ii];
 			chain4_bf.SetAll_0();
 			USHORT istored = 0, istoref = 0, tot_count = 0;
 
@@ -6368,6 +6400,7 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 
 				//??? here can be direct and this is not done in search chain
 				//??? dummy cycle if direct to have common process
+
 			   int ii=CaseNestedLevel4(j,i);
 			   if(ii){ // should always be			       
 				    istoref = tstore.AddChain(chain4_result,chain4_iresult);;
@@ -6375,6 +6408,15 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 					   istored = istoref;
 				   tot_count += chain4_iresult;			       
 				}  //end if
+
+			   else { // debugging sequence
+				   EE.E("m lvl4 failed for ");
+				   zpln.ImageTag(j);
+				   EE.Esp();
+				   zpln.ImageTag(i);
+				   EE.Enl();			
+
+			   }
 			} // end i2 
 
 			if(istored) { //should always be

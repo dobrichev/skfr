@@ -889,11 +889,10 @@ class INFERENCES {
 public:
 	PUZZLE * parentpuz;
 
-	PHASE h, hstart, h_one, h_nest,storehw;
+	PHASE h, hstart, h_one;///, h_nest,storehw;
 
 	SQUARE_BFTAG hdp_base,         // must contain only basic strong and weak links
-		         hdp_dynamic,      // same plus direct events effects
-				 hdp_base_nested;  // hdp_base plus nested strong links
+		         hdp_dynamic;      // same plus direct events effects
 
 	USHORT load_done;
 
@@ -1150,7 +1149,10 @@ public:
 	BFTAG steps[pasmax],cumsteps[pasmax],allsteps, * to;  
 	BFTAG  *cum  ,* step; 
 	USHORT *ta,ita;//,*tb,itb;
-	SQUARE_BFTAG dpn,dn; // in nested mode, dynamic set of primary links
+	SQUARE_BFTAG dpn,dn, // in nested mode, dynamic set of primary links
+		   d_nested, // end of preliminary search in nested mode
+		   d_nested2, // same as above after 2 steps
+	       hdp_base_nested;  // hdp_base plus nested strong links
 	
 	      // added here control for only one search
 	      // bit set to 1 when dynamic search done
