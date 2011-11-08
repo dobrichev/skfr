@@ -620,6 +620,12 @@ public:
 	BFTAG(const BFTAG &x) {
 		(*this) = x;
 	}
+	BFTAG(const bool initial) {
+		if(initial)
+			SetAll_1();
+		else
+			SetAll_0();
+	}
 	///\brief Clear all bits
 	void SetAll_0();
 	///\brief Set all bits
