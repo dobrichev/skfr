@@ -1172,10 +1172,12 @@ public:
 		   *chain4_tx[pasmax],  // pointers to chain4_buf
 		   chain4_itx[pasmax];
 	USHORT chain4_result[500],chain4_iresult;
-	BFTAG chain4_steps[pasmax],chain4_cumsteps[pasmax],chain4_allsteps, * chain4_to;  
+	BFTAG chain4_steps[pasmax],chain4_cumsteps[pasmax],
+		  chain4_allsteps, * chain4_to;  
 	BFTAG  *chain4_cum  ,* chain4_step, chain4_bf; 
 	USHORT *chain4_ta,chain4_ita,
 		   chain4_npas,nested_aig2; 
+	SQUARE_BFTAG chain4_dpn; // reduced set for nested expansion
 
 
 	PUZZLE();
