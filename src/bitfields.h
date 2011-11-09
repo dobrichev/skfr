@@ -614,17 +614,37 @@ class BFTAG {
 	//static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
 
 public:
-	inline BFTAG() {
-		SetAll_0();
-	}
+	enum init {
+		NoInit = 0,
+		InitZero = 1,
+		InitOne = 2,
+		InitFalseState = 3,
+		InitTrueState = 4
+	};
+	//inline BFTAG() {
+	//	SetAll_0();
+	//}
 	BFTAG(const BFTAG &x) {
 		(*this) = x;
 	}
-	BFTAG(const bool initial) {
-		if(initial)
-			SetAll_1();
-		else
-			SetAll_0();
+	BFTAG(const init initMode = InitZero) {
+		switch(initMode) {
+			case NoInit:
+				break;
+			case InitOne:
+				SetAll_1();
+				break;
+			case InitFalseState:
+				for(int i = 0; i < 5; i++)
+					ff[i] = false128;
+				break;
+			case InitTrueState:
+				for(int i = 0; i < 5; i++)
+					ff[i] = true128;
+				break;
+			default: // InitZero
+				break;
+		}
 	}
 	///\brief Clear all bits
 	void SetAll_0();
