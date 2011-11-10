@@ -619,96 +619,31 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
         d_nested.Image();
 	}
 
-	// we have now fully expanded tags in zcf.h_nest.d
+	// we have now fully expanded tags in d_nested2 or d_nested
 	// we look for potential eliminations
 
-	// cases 1 and 2,{ a=>x a=> ~x } { x => ~a and ~x=> ~a}
-	// case 2 includes the so called cell or region eliminations for bi values
-	BFTAG elims1, elims2, elims3, elimst2[300], tchte[500]; 
-	USHORT t2[300], it2 = 0;
-	for(int i = 2; i < col; i += 2) {
-		BFTAG tw (d_nested.t[i]); // full expansion for the tag
-		BFTAG tw1 (tw);
-		tw1 &= tw.Inverse();
-		BFTAG tw2 ( tw);
-		tw2 &= d_nested.t[i ^ 1];
-		tw2 = tw2.FalseState();
-		tw1 = tw1.TrueState();
-		if(tw2.IsNotEmpty()) {  // case 2
-			elimst2[it2] = tw2;
-			t2[it2++] = i;
-			elims2 |= tw2;
-		}
-		if(tw1.IsNotEmpty()) {  // case 1
-			elims1.Set(i);
-		}
-	}
+	//Rbn_Elims(d_nested2.t);
+	//if(rbn_elimt.IsEmpty())
+		Rbn_Elims(d_nested.t);
 
-	// case 3, is there a set killing "a"
-	USHORT tch[600], itch = 0;
-	for(int ie = 1; ie < zcx.izc; ie++) {
-		SET chx = zcx.zc[ie];
-		int n = 0, nni = chx.ncd; 
-		if(chx.type - SET_base)
-			continue;
-		BFTAG bfw;
-		bfw.SetAll_1();
-		for(int i = 0; i < nni; i++)
-			bfw &= d_nested.t[chx.tcd[i] << 1];
-		if(Op.ot && 0) { //puz.couprem ==5)
-			chx.Image();
-			Image(bfw,"communs",0);
-		}
-		bfw = bfw.FalseState();	 
-		if(bfw.IsNotEmpty()) {
-			if(0&&Op.ot && rbase>100){
-                chx.Image(); 
-			    Image(bfw," actif for ",0);
-			}
-			tchte[itch] = bfw;
-			tch[itch++] = ie;
-			elims3 |= bfw;
-		}
-	}// end case 3
-
-	BFTAG elimt = elims1.Inverse();
-	elimt |= elims2;
-	elimt |= elims3;
-	if(Op.ot && rbase>100){
-		EE.Enl("summary of first phase");
-		EE.E("itch ="); EE.E(itch);
-		EE.E(" it2 ="); EE.Enl(it2);
-		Image(elimt,"elimt potential", 0);
-		Image(elims1.Inverse(),"elims1 potential", 0);
-		Image(elims2,"elims2 potential", 0);
-		Image(elims3,"elims3 potential", 0);
-	}
-
-	/// here an optimisation to see later.
-	// if elimt.count is big
-	//  then try a reduce set of eliminations using d_nested2
-	//  if it works, take it
-
-
-
-	if(elimt.IsEmpty())
+	if(rbn_elimt.IsEmpty())
 		return 0;
 
 	// if we are in quick mode, set all elims with rating base+ .3/.5
 	// process as quick mode if achieved rating is high enough
 	if(quick || (base+10+(base-95)/5)<ermax) {
-		Image(elimt,"quick elim potential", 0);
+		Image(rbn_elimt,"quick elim potential", 0);
 		int j = 3;
 		for(int i = 3; i < col; i += 2) { // first in tchain mode
-			if(elimt.On(i)) {
+			if(rbn_elimt.On(i)) {
 				j = i;
 				tchain.LoadChain(base + 3, "quick nested ", i >> 1);
-				elimt.Clear(i);
+				rbn_elimt.Clear(i);
 				break;
 			}
 		}
 		for(int i = j + 2; i < col; i += 2) { // others in direct mode
-			if(elimt.On(i)) {
+			if(rbn_elimt.On(i)) {
 				zpln.Clear(i >> 1);
 			}
 		}
@@ -717,28 +652,27 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	// not quick mode, go step by step to find the lowest rating
 	if(0 && Op.ot) {
 		EE.E("action it2 =");
-		EE.E(it2);
+		EE.E(rbn_it2);
 		EE.E(" itch =");
-		EE.E(itch);
+		EE.E(rbn_itch);
 		EE.Enl(); 
 	}
 
-	if(rbase>100) {elims1.SetAll_0(); it2=0;} /// for tests prelim phase
 
 
-	if(elims1.IsNotEmpty()) {  // some case 1 to apply
+	if(rbn_elims1.IsNotEmpty()) {  // some case 1 to apply
 		for(int i = 2; i < col; i += 2) {
-			if(elims1.On(i)) {
+			if(rbn_elims1.On(i)) {
 				GoNestedCase1(i >> 1);
             if(stop_rating) return 1;// push back error code
 			}
 		}
 	}
 
-	if(it2) { // some case 2 to apply
-		for(int i = 0; i < it2; i++) {
-			BFTAG * ptg = &elimst2[i];
-			USHORT ttt[] = {t2[i], t2[i] ^ 1};
+	if(rbn_it2) { // some case 2 to apply
+		for(int i = 0; i < rbn_it2; i++) {
+			BFTAG * ptg = & rbn_elimst2[i];
+			USHORT ttt[] = {rbn_t2[i], rbn_t2[i] ^ 1};
 			for(int j = 3; j < col; j++) {
 				if(ptg->On(j)) {
 					if(Op.ot && rbase>100){
@@ -753,19 +687,17 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		}
 	}
 
-	if(itch) { // some case 3 through sets to apply
-///		for(int i = 0; i < itch; i++) {
-		for(int i = 5; i < 6; i++) {
-			BFTAG * ptg = &tchte[i];
-			SET chx = zcx.zc[tch[i]];
+	if(rbn_itch) { // some case 3 through sets to apply
+		for(int i = 0; i < rbn_itch; i++) {
+			BFTAG * ptg = & rbn_tchte[i];
+			SET chx = zcx.zc[rbn_tch[i]];
 			if(rbase>100 && Op.ot) {
 				EE.E("action itch pour i =");
 				EE.E(i);
 				EE.E(" set=");
-				EE.E(tch[i]);
+				EE.E(rbn_tch[i]);
 				chx.Image();
 				EE.Enl(); 
-	//			continue; /// test prelim phase
 			}
 			int n = 0, nni = chx.ncd; 
 			USHORT ttt[20];
@@ -783,6 +715,77 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	return Rating_end(200);
 }
 
+/* partial process for Rating_baseNest
+   done either using d_nested2 or d_nested
+   if d_nested gives results, take it
+*/
+
+void PUZZLE::Rbn_Elims(BFTAG * tsquare){
+	// cases 1 and 2,{ a=>x a=> ~x } { x => ~a and ~x=> ~a}
+	// case 2 includes the so called cell or region eliminations for bi values
+	rbn_elims1.SetAll_0();
+	rbn_elims2=rbn_elims3=rbn_elims1;
+	rbn_it2=0;
+	for(int i = 2; i < col; i += 2) {
+		BFTAG tw (tsquare[i]); // full expansion for the tag
+		BFTAG tw1 (tw);
+		tw1 &= tw.Inverse();
+		BFTAG tw2 ( tw);
+		tw2 &= tsquare[i ^ 1];
+		tw2 = tw2.FalseState();
+		tw1 = tw1.TrueState();
+		if(tw2.IsNotEmpty()) {  // case 2
+			rbn_elimst2[rbn_it2] = tw2;
+			rbn_t2[rbn_it2++] = i;
+			rbn_elims2 |= tw2;
+		}
+		if(tw1.IsNotEmpty()) {  // case 1
+			rbn_elims1.Set(i);
+		}
+	}
+
+	// case 3, is there a set killing "a"
+	rbn_itch = 0;
+	for(int ie = 1; ie < zcx.izc; ie++) {
+		SET chx = zcx.zc[ie];
+		int n = 0, nni = chx.ncd; 
+		if(chx.type - SET_base)
+			continue;
+		BFTAG bfw;
+		bfw.SetAll_1();
+		for(int i = 0; i < nni; i++)
+			bfw &= tsquare[chx.tcd[i] << 1];
+		if(Op.ot && 0) { //puz.couprem ==5)
+			chx.Image();
+			Image(bfw,"communs",0);
+		}
+		bfw = bfw.FalseState();	 
+		if(bfw.IsNotEmpty()) {
+			if(0&&Op.ot && rbase>100){
+                chx.Image(); 
+			    Image(bfw," actif for ",0);
+			}
+			rbn_tchte[rbn_itch] = bfw;
+			rbn_tch[rbn_itch++] = ie;
+			rbn_elims3 |= bfw;
+		}
+	}// end case 3
+
+	rbn_elimt = rbn_elims1.Inverse();
+	rbn_elimt |= rbn_elims2;
+	rbn_elimt |= rbn_elims3;
+	if(Op.ot ){///&& rbase>100){
+		EE.Enl("summary of first phase");
+		EE.E("itch ="); EE.E(rbn_itch);
+		EE.E(" it2 ="); EE.Enl(rbn_it2);
+		Image(rbn_elimt,"elimt potential", 0);
+		Image(rbn_elims1.Inverse(),"elims1 potential", 0);
+		Image(rbn_elims2,"elims2 potential", 0);
+		Image(rbn_elims3,"elims3 potential", 0);
+	}
+
+
+}
 
 
 //former _12a_PUZZLE_Chaines.cpp follows
@@ -3659,7 +3662,7 @@ Dynamic search in nested mode for a candidate
 
 
 int PUZZLE::GoNestedCase1(USHORT cand) {
-	opp = 0; 
+	opp = 1;///0; 
 	//if(Op.ot && rbase>100)opp=1;
 	USHORT tag = cand << 1; 
 	if(rbase>90){
@@ -3669,7 +3672,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 	}
 	BFTAG tt = zcf.h.d.t[tag]; 
 
-	if(rbase>100){ /// opp) {
+	if( opp) {
 		    EE.E("go nested for cand ");
 		    zpln.Image(cand);
 		    EE.Enl();
@@ -3711,7 +3714,12 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 		GoNestedWhile(tag);                    // while cycle
 
 		if(nested_aig){// something happenned
-         
+         	if(opp){
+		       EE.Enl("return from while");
+		      if(allsteps.On(0) || allsteps.On(1))
+		       EE.Enl("allsteps polluted");
+	        }
+
 		  cumsteps[npas] = allsteps;   
 		  (*step) = allsteps;
 		  (*step)-=(*cum);  
@@ -3721,11 +3729,16 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 	    else 
 			break; // nothing to do
 
-		if(rbase>100){//0 && opp) {  
+		if( opp) {  
 			EE.E("end step=");
 			EE.E(npas);
 			Image((*step),"step ", 0);
 			Image(allsteps,"all", 0);
+			if(tx[npas][0]<2){
+				EE.Enl("\n\n bug o cand set \n\n");
+				stop_rating=1;
+				return 0;
+			}
 			EE.E(" tbuf.istore=");EE.E( tstore.ibuf);
 			EE.E(" tbuf.ise=");EE.E( tstore.ise);
 			EE.E(" tbuf.ise2=");EE.Enl( tstore.ise2);
@@ -3909,8 +3922,8 @@ int PUZZLE::GoNestedCase2_3( USHORT tag, USHORT target) {
 
 		GoNestedWhile(tag);                    // while cycle
 		if(nested_aig){// something happenned
-         
-		  cumsteps[npas] = allsteps;   
+
+ 		  cumsteps[npas] = allsteps;   
 		  (*step) = allsteps;
 		  (*step)-=(*cum);  
 		  (*step).String(tx[npas],itx[npas] );
@@ -3954,12 +3967,17 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	for(int it = 0; it < ita; it++) {
 		BFTAG x = to[ta[it]];
 		if(x.substract(allsteps)) {
-			if(0)
+			if(opp)
 				puz.Image(x,"applied std", ta[it]);
 			allsteps |= x; // and in the total 
 			nested_aig=1;
 		} 
         
+	}
+	if(opp){
+		 EE.Enl("end direct");
+		 if(allsteps.On(0) || allsteps.On(1))
+		   EE.Enl("allsteps polluted");
 	}
 
 	// check now sets
@@ -4071,6 +4089,11 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	}// end proc
 
 	   // stop if not nested mode or something found
+	if(opp){
+		 EE.Enl("end before nested  ");
+		 if(allsteps.On(0) || allsteps.On(1))
+		   EE.Enl("allsteps polluted");
+	}
 
 	if((rbase<95) || nested_aig)
 		return;    
@@ -4083,7 +4106,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	   NestedForcing(elims); 
 	else
 	    NestedForcingLevel4(elims); 
-	if(0&&rbase>100 && Op.ot){
+	if(opp && Op.ot){
 		Image(allsteps,"allsteps",0);
 		puz.Image(elims,"netforcing recap", 0);
 	}
@@ -4094,6 +4117,13 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 		// 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
 		nested_aig = 1;
 	}
+
+	if(opp){
+		 EE.Enl("end nested forcing");
+		 if(allsteps.On(0) || allsteps.On(1))
+		   EE.Enl("allsteps polluted");
+	}
+
 	if(rbase < 100)
 		return;
 
@@ -4123,6 +4153,12 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 
 */
 void PUZZLE::NestedForcing(BFTAG & elims) {
+	if(opp){
+		 EE.Enl("entry nested forcing");
+		 if(allsteps.On(0) || allsteps.On(1))
+		   EE.Enl("allsteps polluted");
+	}
+
 	for(int i = 2; i < puz.col; i += 2) {
 		if( dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
 			BFTAG wch = dpn.t[i], bfs; 

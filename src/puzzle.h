@@ -1163,6 +1163,14 @@ public:
 		   dynamic_form2[320],   // form x=> ~a and  ~x => ~a
 	       dynamic_sets[320];   // maxi is 384 sets less given 
 
+	// set of data for Rating_baseNest looking for results
+
+	BFTAG rbn_elims1, rbn_elims2, rbn_elims3,rbn_elimt,
+		  rbn_elimst2[300], rbn_tchte[500]; 
+	USHORT rbn_t2[300], rbn_it2;
+	USHORT rbn_tch[600], rbn_itch;
+
+
 	// set fo data for nested dynamic level 4
 	// similar to standard but no "plus" set
 	// reworked to use one buffer to store sets
@@ -1268,6 +1276,7 @@ public:
 	int Rating_base_90();  // dynamic plus 
 	void InitNested();
 	int Rating_baseNest(USHORT base, int quick);  // nesting  95 forcing chains
+	void Rbn_Elims(BFTAG * tsquare);
 	int Rating_base_95_Quick();  // quick nesting   
 	void Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target);
 
