@@ -643,6 +643,7 @@ public:
 					ff[i] = true128;
 				break;
 			default: // InitZero
+				SetAll_0();
 				break;
 		}
 	}

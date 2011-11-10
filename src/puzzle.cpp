@@ -3294,8 +3294,12 @@ void CHAINSTORE::Print(USHORT index) const {
 		return;
 	int id = s2[index], ie = e2[index];
 	for(int i = id; i <= ie; i++) {
-		const USHORT * tx = &buf[starts[i]],
-			n = ends[i] - starts[i];
+		const USHORT * tx = &buf[starts[i]];
+		USHORT 	n = ends[i] - starts[i];
+		if(n>50) {
+			EE.Enl("length too high forced to 50");
+			n=50;
+		}
 		if(n > 0)
 			zpln.PrintImply(tx, n);
 	}
@@ -3662,7 +3666,7 @@ Dynamic search in nested mode for a candidate
 
 
 int PUZZLE::GoNestedCase1(USHORT cand) {
-	opp = 1;///0; 
+	opp = 0; 
 	//if(Op.ot && rbase>100)opp=1;
 	USHORT tag = cand << 1; 
 	if(rbase>90){
@@ -3714,12 +3718,6 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 		GoNestedWhile(tag);                    // while cycle
 
 		if(nested_aig){// something happenned
-         	if(opp){
-		       EE.Enl("return from while");
-		      if(allsteps.On(0) || allsteps.On(1))
-		       EE.Enl("allsteps polluted");
-	        }
-
 		  cumsteps[npas] = allsteps;   
 		  (*step) = allsteps;
 		  (*step)-=(*cum);  
@@ -3734,11 +3732,6 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 			EE.E(npas);
 			Image((*step),"step ", 0);
 			Image(allsteps,"all", 0);
-			if(tx[npas][0]<2){
-				EE.Enl("\n\n bug o cand set \n\n");
-				stop_rating=1;
-				return 0;
-			}
 			EE.E(" tbuf.istore=");EE.E( tstore.ibuf);
 			EE.E(" tbuf.ise=");EE.E( tstore.ise);
 			EE.E(" tbuf.ise2=");EE.Enl( tstore.ise2);
@@ -3974,11 +3967,6 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 		} 
         
 	}
-	if(opp){
-		 EE.Enl("end direct");
-		 if(allsteps.On(0) || allsteps.On(1))
-		   EE.Enl("allsteps polluted");
-	}
 
 	// check now sets
 
@@ -4089,11 +4077,6 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	}// end proc
 
 	   // stop if not nested mode or something found
-	if(opp){
-		 EE.Enl("end before nested  ");
-		 if(allsteps.On(0) || allsteps.On(1))
-		   EE.Enl("allsteps polluted");
-	}
 
 	if((rbase<95) || nested_aig)
 		return;    
@@ -4116,12 +4099,6 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
          //		to study that puzzle generating a huge elims
 		// 1....67...571.......9....1..4....3.......8..29..7...6......24..5..6...9.....3...8;11.40;10.70;10.00
 		nested_aig = 1;
-	}
-
-	if(opp){
-		 EE.Enl("end nested forcing");
-		 if(allsteps.On(0) || allsteps.On(1))
-		   EE.Enl("allsteps polluted");
 	}
 
 	if(rbase < 100)
@@ -4454,7 +4431,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						// we take the shortest size giving that candidate 
 						//   using found candidates (false)  (to code)
 						SET chx = zcx.zc[tsets[x]];
-						if(rbase>100){///0 && nested_print_option) {
+						if(0 && nested_print_option) {
 							EE.E("set");
 							chx.Image();
 							EE.Enl();
@@ -6523,8 +6500,7 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 					continue;
 				}// already false
 
-				//??? here can be direct and this is not done in search chain
-				//??? dummy cycle if direct to have common process
+
 			   int ii=2;
                if(dpn.t[j].On(i)){ // make it simple if direct
 				   chain4_iresult=2;
