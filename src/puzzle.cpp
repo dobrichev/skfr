@@ -622,8 +622,8 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	// we have now fully expanded tags in d_nested2 or d_nested
 	// we look for potential eliminations
 
-	//Rbn_Elims(d_nested2.t);
-	//if(rbn_elimt.IsEmpty())
+	Rbn_Elims(d_nested2.t);
+	if(rbn_elimt.IsEmpty())
 		Rbn_Elims(d_nested.t);
 
 	if(rbn_elimt.IsEmpty())
@@ -3290,15 +3290,29 @@ int SEARCH_UR::RID3() {
 
 
 void CHAINSTORE::Print(USHORT index) const {
-	if(index>=ise2)
+	if(index>=ise2  || index<1){
+		if(!index)
+			EE.Enl("\n\nchainstore::print  index null not stored");
+		else{
+			EE.E("\n\nchainstore::print invalid entry index=");
+			EE.Enl( index);
+		}
 		return;
+	}
 	int id = s2[index], ie = e2[index];
 	for(int i = id; i <= ie; i++) {
 		const USHORT * tx = &buf[starts[i]];
 		USHORT 	n = ends[i] - starts[i];
 		if(n>50) {
-			EE.Enl("length too high forced to 50");
-			n=50;
+			EE.Enl("length too high forced to 5");
+			EE.E("index ="); EE.E(index);
+			EE.E( " id="); EE.E(id); 
+			EE.E( " ie="); EE.E(ie); 
+			EE.E( " i="); EE.E(i); 
+
+			EE.E( " ends[i]="); EE.E(ends[i]); 
+			EE.E( " starts[i]="); EE.Enl(starts[i]); 
+			n=5;
 		}
 		if(n > 0)
 			zpln.PrintImply(tx, n);

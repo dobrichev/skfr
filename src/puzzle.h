@@ -1715,11 +1715,12 @@ public:
   */
   
 class  CHAINSTORE {
+#define Size_Store 80000 
 public:
-	USHORT buf[50000],         
+	USHORT buf[Size_Store],         
 		ise,
-		s2[1000], e2[1000], ise2;
-	int starts[3000], ends[3000],
+		s2[2000], e2[2000], ise2;
+	int starts[5000], ends[5000],
           ibuf;
 
 	void Init() {
@@ -1731,26 +1732,27 @@ public:
 		ise2 = 1;
 	} // 0 is "empty"
 	USHORT AddChain(USHORT * tch, USHORT n) {
-		if(ibuf + n > 50000){
-			return 0;
+		if(n>40)n=40;//don't store more than 40 not realistic
+		starts[ise] = ibuf;
+
+		if((ibuf + n+2 )< Size_Store)  {
+			for(int i = 0; i < n; i++)
+				buf[ibuf++] = tch[i];
 		}
-		starts[ise] = ibuf; 
-		for(int i = 0; i < n; i++)
-			buf[ibuf++] = tch[i];
-		ends[ise] = ibuf; 
-		if(ise >= 3000)
+		ends[ise] = ibuf;
+		if(ise >= 5000)
 			return ise; // don't pass the limit
 		else
 			return ise++;
 	}
 	USHORT AddOne(USHORT * tch, USHORT n) {
-		if(ise2 >= 1000)
+		if(ise2 >= 2000)
 			return 0;
 		s2[ise2] = e2[ise2] = AddChain(tch, n);
 		return ise2++;
 	}
 	USHORT AddMul(USHORT d, USHORT f) {
-		if(ise2 >= 1000)
+		if(ise2 >= 2000)
 			return 0;
 		s2[ise2] = d;
 		e2[ise2] = f;
