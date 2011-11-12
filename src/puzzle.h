@@ -1166,7 +1166,8 @@ public:
 	// set of data for Rating_baseNest looking for results
 
 	BFTAG rbn_elims1, rbn_elims2, rbn_elims3,rbn_elimt,
-		  rbn_elimst2[300], rbn_tchte[500]; 
+		  rbn_elimst2[300], rbn_tchte[500],
+	      *rbn_d_nested; // final table retained for first phase
 	USHORT rbn_t2[300], rbn_it2;
 	USHORT rbn_tch[600], rbn_itch;
 
