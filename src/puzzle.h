@@ -1142,7 +1142,7 @@ public:
 	//USHORT ret_code;
 	USHORT npas,
 		   nested_print_option;
-	int opp;
+	int opp,opdiag;  // for debugging purpose
 	short tsets[640];
 	USHORT tx[pasmax][700],itx[pasmax];
 	USHORT tret[500],pasret[500],itret;

@@ -590,6 +590,7 @@ void PUZZLE::InitNested() { // common part before starting nested processing
 int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	tchain.SetMaxLength(base);
 	rbase=base;
+	opdiag=0;
 	if(Op.ot) {
 		EE.E("start  nested levels base =");
 		EE.Enl(base);
@@ -628,6 +629,22 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 
 	if(rbn_elimt.IsEmpty())
 		return 0;
+
+	/// here a test to locate discrepancies with final 
+	  // produce a detailed analysis for first case in dual mode 
+	// test neutral after bug fixed
+	if(0 && rbn_it2) { // some case 2 to apply
+
+		opdiag=1;
+
+	    d_nested=d_nested2=zcf.h_one.d; // restore the start
+
+		int i=rbn_t2[0];
+		GoNestedTag(i);
+		GoNestedTag(i^1);
+		opdiag=0;
+	}
+
 
 	// if we are in quick mode, set all elims with rating base+ .3/.5
 	// process as quick mode if achieved rating is high enough
@@ -3332,7 +3349,7 @@ void CHAINSTORE::Print(USHORT index) const {
 /// en cours de travail
 
 void PUZZLE::GoNestedTag(USHORT tag) {
-	opp = 0;  
+	opp = opdiag; ///0 ;  
 	//if((rbase== 105) && (tag>12 && tag<16) && (tag&1 )) opp=1; else opp=0;
 
 	const BFTAG &tt (d_nested.t[tag]); 
@@ -3611,11 +3628,17 @@ void PUZZLE::NestedForcingShort(BFTAG & elims) {
 		if(allsteps.Off(i^1) && dn.Is(i,i^1))  // a forcing chain found, find the length
 			elims.Set(i^1); 
 		if(rbase>100){
-           // look also for contradiction chains
-	       // but only for fresh eliminations
-
+           // look  for contradiction chains ??
 		   BFTAG tw(dn.t[i]);
            tw &= (dn.t[i].Inverse()).FalseState();
+		   tw-=allsteps;
+		   if(tw.IsNotEmpty()) elims.Set(i^1);
+
+		   // and also for dual chains
+	       // still  only for fresh eliminations
+
+		   tw=dn.t[i];
+           tw &= dn.t[i^1].FalseState();
 		   tw-=allsteps;
 
 		   elims|=tw;
@@ -3833,7 +3856,7 @@ Dynamic search in nested mode for a candidate
 
 void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 	opp=0;
-	//if(ntags==2) opp=1; else opp=0;   ///
+	if(ntags==2) opp=1; else opp=0;   ///
 
 	USHORT ctarg = target >> 1;
 
@@ -3949,7 +3972,7 @@ int PUZZLE::GoNestedCase2_3( USHORT tag, USHORT target) {
 			break; // nothing to do
 
 
-		if(0){
+		if(opp){
 			EE.E("fin step=");
 			EE.E(npas);
 			Image((*step),"step ", 0);
@@ -4132,8 +4155,8 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	   NestedMulti(elims2); 
 	else
 	   NestedMultiLevel4(elims2); 
-	if(0&& rbase>100 && Op.ot)
-		puz.Image(elims2,"multiforcing recap", 0);
+	if(opp && Op.ot)
+		Image(elims2,"multiforcing recap", 0);
 	if(elims2.IsNotEmpty()) {
 		allsteps |= elims2; //  in the total 
 		nested_aig=1;
@@ -4339,8 +4362,7 @@ void PUZZLE::Gen_dpn(USHORT tag)
       dpn.t[j] = tdp[j];
 	  dpn.t[j] -= allsteps; // reduce the primary weak links
 	 }
-  if(0)   {puz.Image(allsteps,"allsteps at gen time",0);
-		   zcf.h.dp.Image();
+  if(0)   {Image(allsteps,"allsteps at gen time",0);
 		   dpn.Image();
           }
  if(rbase>100){  //level 4 must find  derived weak links
@@ -6432,12 +6454,12 @@ void PUZZLE::NestedForcingLevel4(BFTAG & elims) {
 
 		}// this is the final length
 
-        // we look also for fresh contradiction chains 
+        // we look also for fresh dual chains 
 		BFTAG tw(dn.t[i]);
-        tw &= (dn.t[i].Inverse()).FalseState();
+        tw &= dn.t[i^1].FalseState();
 		tw-=allsteps;
 		tw-=elims;
-		if(tw.IsNotEmpty()){
+		if(tw.IsNotEmpty())  {
 			if(0){ 
 				EE.E("dual chain active source  ");zpln.ImageTag(i);
 				Image(tw,"for targets",0);
@@ -6462,7 +6484,7 @@ void PUZZLE::NestedForcingLevel4(BFTAG & elims) {
 			   jj=tstore.AddChain(chain4_result,chain4_iresult);
 			   USHORT im = tstore.AddMul(ii, jj);
 			   tsets[j] =- tcandgo.itt;
-				elims.Set(i^1); 
+				elims.Set(j); 
 				tcandgo.tt[tcandgo.itt++].Add(im, chain4_bf,length); 
 		    }
 		}
