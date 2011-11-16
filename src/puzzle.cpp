@@ -4475,7 +4475,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						// we take the shortest size giving that candidate 
 						//   using found candidates (false)  (to code)
 						SET chx = zcx.zc[tsets[x]];
-						if(rbase>100){ /// && nested_print_option) {
+						if(0 && nested_print_option) {
 							EE.E("set");
 							chx.Image();
 							EE.Enl();
@@ -6333,7 +6333,7 @@ int PUZZLE::CaseNestedLevel4( USHORT tag,USHORT target)  {
 		(*chain4_step) = chain4_allsteps;
 		(*chain4_step)-=(*chain4_cum);  
 		(*chain4_step).String(chain4_tx[chain4_npas],chain4_itx[chain4_npas] );
-        if(0){  
+        if(opdiag){  ///
 		  EE.E(chain4_npas);EE.E("pas ncase lvl4 ");Image((*chain4_step),"step",0);
 		  Image(chain4_allsteps,"chain4_allsteps",0);
 		  Image(allsteps,"allsteps",0);
@@ -6357,13 +6357,12 @@ int PUZZLE::CaseNestedLevel4( USHORT tag,USHORT target)  {
 				   Image(chain4_steps[0],"step0",0);
 				   Image(chain4_allsteps,"chain4_allsteps",0);
  				   Image(allsteps,"allsteps",0);
-                  stop_rating=1;
-			   }
+				   stop_rating=1;
+ 			   }
 			}
 			// we compute back the length and  the sequence 
 			// we store the chain  if ok
-			USHORT itt=NestedChainGoBack(target),
-				   *tt=chain4_result;
+			USHORT itt=NestedChainGoBack(target);
 			if(!itt) return 0; // should always be ok
 
 			chain4_bf|=back4_bfsource;		
@@ -6430,7 +6429,7 @@ void PUZZLE::NestedChainWhile(USHORT tag) {
 //--------------------------------------------------
 int PUZZLE::NestedChainGoBack(USHORT tag) {
 	int waig=0;
-	if(0) {
+	if(opdiag) {
 		waig=1;
 		EE.E("goback");zpln.ImageTag(tag);
 		EE.E(" npas=");EE.E(chain4_npas);
@@ -6489,28 +6488,36 @@ int PUZZLE::NestedChainGoBack(USHORT tag) {
 						SET chx = zcx.zc[chain4_tsets[x]];
 						if(waig){
 						    EE.E("set ");chx.Image();EE.Enl("set ");
+							Image(back4_bfcount,"back4_bfcount",0);
 						}
 
 						int n = chx.ncd; 
 						for(int j = 0; j < n; j++) {
 							USHORT y = chx.tcd[j] << 1;
+							if(waig){
+								  EE.E("processing" );zpln.ImageTag(y);
+								  EE.Enl( );
+								}
 							if(y == x)
 								continue;
 							y ^= 1;
-							if(allsteps.On(y)){
+							if((*cum).On(y)){
 								back4_bfsource.Set(y);// add to source
 								continue; // already false
 							}
 							if(back4_bfcount.Off(y)) {
+								if(waig){
+								  EE.E("plus1 itret" );EE.Enl(  itret);
+								}
 								tret[itret++] = y;
 								back4_bfcount.Set(y);
 							}
-						}
-					}
+						}// end candidates of the set
+					}  //end of the set
 
 				}// end if (i)
-				break; // stop after the step 
-			}
+//				break; // stop after the step 
+			} // end found the tag
 		}  // end i
        if(aig || itret>300) {
 		   if(aig)
@@ -6678,7 +6685,7 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 		    int i=wtt[ii];
 			if(tsets[i])  // don't do if already found
 				continue;
-			if(0){
+			if(1){
 				EE.E("gen multi ");chx.Image();
 				EE.E(" for ");
 				zpln.ImageTag(i);
@@ -6696,20 +6703,23 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 
 
 			   int ii=2;
+		//	   opdiag=1; ///
                if(dpn.t[j].On(i)){ // make it simple if direct
 				   chain4_iresult=2;
 				   chain4_result[0]=j;
 				   chain4_result[1]=i;
-			//	   back4_bf.SetAll_0();
-				//   back4_bf.Set(j);
-				//   back4_bf.Set(i);
+			 	   back4_bfsource.SetAll_0();
 			   }
 			   else
 				   ii=CaseNestedLevel4(j,i);
+			//   opdiag=0; ///
 			   if(ii){ // should always be	
 				    chain4_bf|=back4_bfsource;
-				    if(0)
+				    if(0){
+						EE.E("return from "); zpln.ImageTag(j);
+						EE.Esp(); zpln.ImageTag(i);EE.Enl();
 						zpln.PrintImply(chain4_result,chain4_iresult);
+					}
 				    istoref = tstore.AddChain(chain4_result,chain4_iresult);
 				    if(!istored)
 					   istored = istoref;
@@ -6732,7 +6742,11 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 				USHORT ii = tstore.AddMul(istored, istoref);
 				tsets[i] =- tcandgo.itt;
 				elims.Set(i); 
-				tcandgo.tt[tcandgo.itt++].Add(ii, chain4_bf, tot_count);                
+				tcandgo.tt[tcandgo.itt++].Add(ii, chain4_bf, tot_count);  
+				if(0){					
+					EE.Enl("multi created");
+					tstore.Print(tcandgo.tt[-tsets[i]].index);
+				}
 			}			
 		} // end tag i
 	}// end ie
