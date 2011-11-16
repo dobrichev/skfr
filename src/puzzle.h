@@ -1183,7 +1183,8 @@ public:
 	USHORT chain4_result[500],chain4_iresult;
 	BFTAG chain4_steps[pasmax],chain4_cumsteps[pasmax],
 		  chain4_allsteps, * chain4_to;  
-	BFTAG  *chain4_cum  ,* chain4_step, chain4_bf; 
+	BFTAG  *chain4_cum  ,* chain4_step, chain4_bf,
+		   back4_bfcount,back4_bfsource; 
 	USHORT *chain4_ta,chain4_ita,
 		   chain4_npas,nested_aig2; 
 	SQUARE_BFTAG chain4_dpn; // reduced set for nested expansion
@@ -1304,6 +1305,7 @@ public:
 		USHORT tag,USHORT target);  // case 2 or case 3
 
 	int CaseNestedLevel4( USHORT tag,USHORT target);  // dynamic 
+	int CaseNestedLevel4Case1( USHORT tag );  // dynamic 
 	void NestedChainWhile(USHORT tag);
 	int NestedChainGoBack(USHORT tag);  // compute the length for a nested dynamic chain 
 
