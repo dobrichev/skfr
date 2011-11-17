@@ -4137,7 +4137,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 	    NestedForcingLevel4(elims); 
 	if(opp && Op.ot){
 		Image(allsteps,"allsteps",0);
-		puz.Image(elims,"netforcing recap", 0);
+		Image(elims,"netforcing recap", 0);
 	}
 	//BFTAG x = elims;  // elims in false state
 	if(elims.IsNotEmpty()) {
@@ -4147,7 +4147,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 		nested_aig = 1;
 	}
 
-	if(rbase < 100)
+	if(rbase < 100 || elims.Count()>20) // limit 20 is realism and avoiding problems
 		return;
 
 	BFTAG elims2; 
@@ -4176,11 +4176,6 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 
 */
 void PUZZLE::NestedForcing(BFTAG & elims) {
-	if(opp){
-		 EE.Enl("entry nested forcing");
-		 if(allsteps.On(0) || allsteps.On(1))
-		   EE.Enl("allsteps polluted");
-	}
 
 	for(int i = 2; i < puz.col; i += 2) {
 		if( dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
@@ -4264,7 +4259,10 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 					bfs.Set(j ^ 1);
 					continue;
 				}// already false
-
+				if(allsteps.On(j^1)){ // this creates a problem, stop the process
+					era=2;
+					break;
+				}
 				// here can be direct and this is not done in search chain
 				// dummy cycle if direct to have common process
 
@@ -4284,8 +4282,18 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 						  erb=2;// intercept error for debugging
 					}
 
-					if(erb) 
+					if(erb) { // add some debugging code
+						EE.E("nested multi erb="); EE.E(erb);
+						EE.E(" npasch="); EE.E(npasch);EE.Esp();
+						chx.Image();
+						EE.E( " search "); zpln.ImageTag(j); EE.Esp();
+						EE.E( " => "); zpln.ImageTag(i); EE.Enl();
+						Image((*cum),"cum ",0);
+						Image(dpn.t[j],"dpn (j)",0);
+						Image(dn.t[j],"dn (j)",0);
+						EE.Enl();
 						era=1;
+					}
 
 					else {
 				
@@ -4305,7 +4313,11 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 				}  //end if
 			} // end i2
 
-            if(era){ // stop and log message to see
+            if(era){ 
+				if(era>1)
+					continue; // process stopped after candidate killed in forcing chains
+				
+				// stop and log message to see
               cerr <<"found failure multi nested"<<endl;
 			  stop_rating=1;
 			  elims.SetAll_0();
@@ -6565,11 +6577,20 @@ int PUZZLE::NestedChainGoBack(USHORT tag) {
 /* this is dynamic mode
    and can be a contradiction chain or a dual chain
 
+  still to do to join serate spec
+  .2..5...94....9......2..64.2..6....4..8....7.9..5....6.1..2....6..9....2......3..
+    [] 1r3c9 ->  ~3r3c9 ->  3r5c9 ->  3r1c8 ->  ~3r5c4 ->  ~3r1c4 ->  3r7c4 ->  ~3r7c1
+    [] 1r3c9 ->  ~3r3c9 ->  3r5c9 ->  ~3r5c1 ->  3r7c1
 
-  still missing here : look for the best of
-             forcing chain
-			 contradiction forcing chain (not processed so far)
+	in that situation serate makes it sorter in that way
+	~3r3c9 ->  3r5c9 ->  3r1c8 ->  ~3r5c4 ->  ~3r1c4 ->  3r7c4 
+	~3r3c9 ->  3r5c9 ->  ~3r5c1 ->  3r7c1 -> ~3r7c4
+	saving 2 in the count
+	and a kind of shortcut in once replacing "3r3c9 true" by "1r3c9 false"
 
+	but the shortest should be 
+	"3r5c9 false" (save 4) -> 3r3c9 -> ~1r3c9 (add 2) 
+	no trick and same count as serate
    */
 ///
 
@@ -6639,6 +6660,18 @@ Now looking for multi chains eliminations if any
 the bfs must contain all candidates killed by the main assumption
 and the source of all new strong links used
 
+   here again, still some work to meet serate spec (same puzzle as nested forcing)
+  .2..5...94....9......2..64.2..6....4..8....7.9..5....6.1..2....6..9....2......3..
+
+[] 8r1c4 ->  ~8r3c6 ->  ~8r3c5 ->  8r3c9 ->  ~1r3c9
+[] 8r7c4 ->  ~8r7c1 ->  8r9c1 ->  ~8r7c9 ->  ~8r9c9 ->  8r3c9 ->  ~1r3c9
+[] 8r9c4 ->  ~8r9c1 ->  8r7c1 ->  ~8r9c9 ->  ~8r7c9 ->  8r3c9 ->  ~1r3c9
+
+here serate stops at 8r3c9 which is correct
+but concludes in once ~1r3c9 same trick as in the forcing chain
+saving in total 4 in the count
+skfr should save 3 in that situation
+
 */
 void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
    if(0){
@@ -6685,7 +6718,7 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 		    int i=wtt[ii];
 			if(tsets[i])  // don't do if already found
 				continue;
-			if(1){
+			if(0){
 				EE.E("gen multi ");chx.Image();
 				EE.E(" for ");
 				zpln.ImageTag(i);
