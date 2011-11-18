@@ -40,7 +40,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 OPSUDO Op;
 FLOG EE;
-CELLS T81dep;
 CELLS *T81;
 CELLS *T81C;		//standard names for main objects of the class
 CELL *T81t;
@@ -49,13 +48,11 @@ CELL *T81tc;		//and corresponding tables of cells
 CELLS_FIX tp81f;
 CELL_FIX *t81f = tp81f.t81f;			//pointer to speed up the process   
 DIVF divf;
-//TWO_REGIONS_INDEX aztob; 
 PUZZLE puz;
 ULT tult;
-TPAIRES zpaires;
+ZGROUPE zgs(&puz);
 SEARCH_UR ur;
 SEARCH_URT urt;
-ZGROUPE zgs(&puz);
 CANDIDATES zpln(&puz);
 INFERENCES zcf(&puz);
 SETS_BUFFER zcxb(&puz);

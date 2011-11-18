@@ -340,43 +340,18 @@ public:
    CELL_FIX * f; 
    CELL_VAR v;
    void Init(){v.Init();}     // at the start
-   int Change (int ch) ;      // clear one candate
-   int Change (BF16 cb9) {    // clear candidates 
-	   int ir=0;
-	   for(int i=0; i < 9; i++) 
-		   if(cb9.On(i))
-			   ir += Change(i);
-	   return ir;
-   }
-   int Keep (BF16 cb9) {       // clear candidates others than
-	   int ir=0;
-	   for(int i = 0; i < 9; i++) {
-		   if(v.cand.On(i) && !cb9.On(i)) {
-			   Change(i);
-			   ir=1;
-		   }
-	   }
-	   return ir;
-   }
-   int Keep(int ch1,int ch2) { // clear candidates others than
-	   int ir = 0;
-	   for(int i = 0; i < 9; i++) {
-		   if(v.cand.On(i) && (i - ch1) && (i - ch2)) {
-			   Change(i);
-			   ir = 1;
-		   }
-	   }
-	   return ir;
-   }
+   int Change  (int ch,PUZZLE * ppuz) ;      // clear one candate
+   int Changex (int ch) ;      // clear one candate  obsolete to clean
+   int Change (BF16 cb9,PUZZLE * ppuz) ;   // clear candidates 
+   int Changey (BF16 cb9) ;   // clear candidates   obsolete to clean
+   int Keepy (BF16 cb9) ;       // clear candidates others than
+   int Keepy(int ch1,int ch2); // clear candidates others than
+   int Keep (BF16 cb9,PUZZLE * ppuz) ;       // clear candidates others than
+   int Keep(int ch1,int ch2,PUZZLE * ppuz); // clear candidates others than
    int ObjCommun(CELL * p8) {
 	   return f->ObjCommun(p8->f);
    }   // same row, column or box
-
-   void Fixer(UCHAR type,UCHAR ch) { // force digit as valid in the solution
-	   v.Fixer(type, ch);
-	   scand[1] = 0;
-	   scand[0] = '1' + ch;
-   }
+   void Fixer(UCHAR type,UCHAR ch) ; // force digit as valid in the solution
    char * strcol() {
 	   return scand;
    } // no tagging in print
@@ -396,24 +371,11 @@ public:
 	int Clear(BF81 &z,int ch  );
 	int Clear(BF81 &z,BF16 ch  );
 	int CheckClear(BF81 &z,BF16 ch  );
-//	void GenzCand(BF81 & z1,BF81 & z2,int ic);
 	BF16   GenCand(BF81 & z);    
 	BF16   GenCandTyp01(BF81 & z);
 	void Actifs(BF81 & z);
 	int RIN(int aig=0);
-	void Candidats() {
-		//if(Op.ot)
-			CandidatsT();
-	}
-	//void Candidatsz() 
-	//{
-	//	if(!Op.ot)return;
-	//	EE.Enl("justificatif a posteriori"); 
-	//	CandidatsT();
-	//}
-	
-private: 	
-	void CandidatsT();
+	void Candidats() ;
 };
 
 // several small classes to work on a view per object/pos/digit
@@ -543,6 +505,7 @@ public:
 class TPAIRES {
 public: 
     PUZZLE * parentpuz;
+	FLOG * EE;
 	PAIRES zp[80], zpt[80]; // collection of bivalues in cells
 	int izpd[50];           // start/end index in zp for tp table
 	BF16 tp[50],            // collection of different possibilities for bivalues in cells
@@ -561,7 +524,7 @@ public:
 		nwp;             // index for wplus
 	int ip, np, aigpmax, aigun, brat;
 
-	void SetParent(PUZZLE * parent);
+	void SetParent(PUZZLE * parent,FLOG * xx);
 	void CreerTable(const CELL * tt);
 	int CommunPaires(int i, int j);
 	int CommunTrio(int i, int j);
@@ -1091,12 +1054,14 @@ public:
     SEARCH_LS_FISH yt;
     TCHAIN tchain;
     TWO_REGIONS_INDEX alt_index; 
+    CELLS T81dep;
+    CELLS tp8N,		tp8N_cop;  
+    TPAIRES zpaires;
+//	ZGROUPE zgs();
 
 
     GG gg,          //< copy of the puzzle (normalized form - empty cell '0')
        gsolution;   // final result if valid (one solution)
-    CELLS tp8N,
-		tp8N_cop;  
 	BF81 
 		c[9],
 		c_cop[9];	// grille globale et par chiffre
@@ -1771,7 +1736,6 @@ public:
 
 extern OPSUDO Op;
 extern FLOG EE;
-extern CELLS T81dep;
 extern CELLS *T81;
 extern CELLS *T81C;		//standard names for main objects of the class
 extern CELL *T81t;
@@ -1780,10 +1744,9 @@ extern CELL *T81tc;		//and corresponding tables of cells
 extern CELLS_FIX tp81f;
 extern CELL_FIX *t81f;			//pointer to speed up the process   
 extern DIVF divf;
-//extern TWO_REGIONS_INDEX aztob; 
+
 extern PUZZLE puz;
 extern ULT tult;
-extern TPAIRES zpaires;
 extern SEARCH_UR ur;
 extern SEARCH_URT urt;
 extern ZGROUPE zgs;

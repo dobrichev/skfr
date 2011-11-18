@@ -81,8 +81,11 @@ void GG::Image(char * lib) const {
 PUZZLE::PUZZLE() {
 	tp8N.SetParent(this,&EE);
 	yt.SetParent(this,&EE);
-	zpaires.SetParent(this);
 	tchain.SetParent(this,&EE);
+//	T81dep.SetParent(this,&EE);
+	tp8N.SetParent(this,&EE);
+	zpaires.SetParent(this,&EE);
+
 	//un_jeu.SetParent(this,&EE);
 	solution = gsolution.pg;  
 	T81 = &tp8N;
@@ -351,19 +354,6 @@ void PUZZLE::cReport() {    // on charge cand de ztzch
 	}
 }
 
-//void PUZZLE::TReport() {    // on charge c de table en mode depart impose
-//	for(int i = 0; i < 9; i++)
-//		c[i].SetAll_0();
-//	for(int i8 = 0; i8 < 81; i8++) {
-//		CELL *p8 = &tp8N.t81[i8];
-//		if(p8->v.typ)
-//			continue;
-//		for(int i = 0; i < 9; i++)
-//			if(p8->v.cand.On(i))
-//				c[i].Set(i8);
-//		p8->v.ncand = p8->v.cand.CountEtString(p8->scand);
-//	}
-//}
 
 int PUZZLE::Recale() {
 	//cReport();
@@ -464,7 +454,7 @@ int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single 
 	else EE.Enl(" assigned");
 	if((solution[i] - c1) && (!stop_rating)) { // validite  fixation
 		stop_rating=1;
-		cerr << "stop fication invalide"<<endl;
+		cerr << "stop invalid assignment"<<endl;
 		EE.E( "FIXATION INVALIDE");
 		return 0;
 	}
@@ -479,7 +469,7 @@ int PUZZLE::ChangeSauf(int elem, BF16 pos, BF16 chiffres) {
 	for(int i = 0; i < 9; i++) {
 		if(pos.On(i))
 			continue;
-		ir += T81t[divf.el81[elem][i]].Change(chiffres);
+		ir += T81t[divf.el81[elem][i]].Change(chiffres,this);
 	}
 	return ir;
 }
@@ -489,7 +479,7 @@ int PUZZLE::Keep(int elem, BF16 pos, BF16 chiffres) {
 	int ir=0;
 	for(int i=0;i<9;i++) {
 		if(pos.On(i))
-			ir += T81t[divf.el81[elem][i]].Keep(chiffres);
+			ir += T81t[divf.el81[elem][i]].Keep(chiffres,this);
 	}
 	return ir;
 }
@@ -1272,7 +1262,7 @@ int PUZZLE::AlignedTripletN() {
 						if(!allowed[ice2].Off(icand))
 							continue;
 						// we have found one "aligned triplet exclusion"
-						T81t[iCell[ice2]].Change(icand); 
+						T81t[iCell[ice2]].Change(icand,this); 
 						if(Op.ot) {
 							EE.E(" aligned triplet exclusion for ");
 							EE.E(icand+1);
@@ -1393,7 +1383,7 @@ int PUZZLE::AlignedPairN() {
 				}
 			}
 			if(cell8 >= 0) { // we have found one pair exclusion
-				T81t[cell8].Change(ch); // erase candidate
+				T81t[cell8].Change(ch,this); // erase candidate
 				if(Op.ot) {
 					EE.E(" aligned pair exclusion for ");
 					EE.E(ch+1);
@@ -2089,7 +2079,7 @@ int PUZZLE::TraiteLocked(int rating) {
 					if(ok) {  // clear others candidates in the cell to be fixed
 						messlock(ialt,iel,ich);
 						int i8 = ww.First();
-						T81t[i8].Keep(ich);
+						T81t[i8].Keep(ich,this);
 						EE.Enl("lock assignment");
 						return puz.FaitGoA(i8, ich + '1', 4);
 					} // immediate return after assign  
@@ -2122,10 +2112,6 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 		}
 	}
 	return ir;
-}
-
-void TPAIRES::SetParent(PUZZLE * parent){
-parentpuz=parent;
 }
 
 
@@ -2174,35 +2160,6 @@ void TPAIRES::CreerTable(const CELL * tt) {
 	}
 	izpd[++np] = ip;
 }
-//====================================
-int TPAIRES::UL() {
-	int ir = 0;
-	tult.Init();
-	for(int i = 0; i < np; i++) {
-		USHORT id = izpd[i], ie = izpd[i + 1];
-		// EE.Enl("un depart paire");
-		UL_SEARCH uls(tp[i], this, &zpt[id], ie - id); //build search 
-		for(int j = id; j < ie - 1; j++) {
-			for(int k = j + 1; k < ie; k++) {
-				USHORT i1 = zpt[j].i8, i2 = zpt[k].i8;
-				CELL_FIX p1 = t81f[i1], p2 = t81f[i2];
-				if(!(p1.el==p2.el || p1.pl==p2.pl))
-					continue; // start row or col
-				//  EE.E(p1.pt); EE.E(p2.pt);EE.Enl("un depart lig/col");
-				UL_SEARCH ulsn(&uls);
-				ulsn.Set(i1);
-				if(p1.el == p2.el)
-					ulsn.el_used.Set(p1.el);  
-				else
-					ulsn.el_used.Set(p1.pl+9); 
-				ir += ulsn.Add_Chain(i2);  // looking for all equivalent moves
-			}// end k
-		} // end j
-	}// end i
-	return ir;
-}
-
-
 //========================= insert a new cell after el_used correct
 void UL_SEARCH::Set(int i8) { // el_used already ok if necessary
 	cells.Set(i8);  
@@ -2340,7 +2297,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	// les deux ci-dessous sortent en 4.6 et 4.7; voir l'origine de l'écart (nb de pas???)
 	if(action == 1 && nadds < 2) { //one cell with adds rating 4.6 revérifié, c'est bien 4.6
 		USHORT iu = adds[0];
-		if(T81t[iu].Change(chd)) {
+		if(T81t[iu].Changey(chd)) {
 			UL_Mess("one cell with extra digits ", 1);
 			return 1;
 		}
@@ -2406,468 +2363,6 @@ void UL_SEARCH::UL_Mess(char * lib,int pr) { // et flag des "faits"
    type 3 extra cells combined to a naked quad 6.0 
    type 3 extra cells combined to a naked (5) 6.1
    type 4 extra cells (2) have a locked digit 5.7   */
-//==============================
-int TPAIRES::BUG() {
-	EE.Enl("debut recherche bug");
-	aigun = 0;
-	if(ntplus > 6 || aigpmax > 4)
-		return 0;  // maxi a vérifier 6 cases et 4 candidats
-	// set the parity of digits for bivalue cells in all elements
-	for(int i = 0; i < 27; i++)
-		el_par_ch[i].f = 0;
-	for(int i = 0; i < ip; i++) {
-		CELL p = T81t[zp[i].i8];  
-		el_par_ch[p.f->el] ^= p.v.cand; 
-		el_par_ch[p.f->pl+9] ^= p.v.cand; 
-		el_par_ch[p.f->eb+18] ^= p.v.cand;         }
-	//EE.Enl("debut recherche bug 1");
-	if(ntplus == 1)
-		return Bug1();
-	//EE.Enl("debut recherche bug 2");
-	if(Bug2())
-		return 1; // priority to bug 2
-	//EE.Enl("debut recherche bug 3 4");
-	if(Bug3a(58))
-		return 1;
-	return 0;
-}
-//===================== calls 
-int TPAIRES::Bug3a(int rat) {
-	brat = rat;  // maximum authorized in that step
-	for(int i = 0; i < 27; i++) {
-		if(zplus.EstDans(divf.elz81[i])) {
-			ntpa = nwp = 0;// collect data in that row/col/box
-			candp_or.f = candnp_or.f = nwp = 0;
-			//candp_xor.f = 0;
-			//candnp_xor.f = 0;
-			for(int j = 0; j < 9; j++) {
-				int i8 = divf.el81[i][j];
-				CELL p = T81t[i8];
-				if(zplus.On(i8)) { // wplus has the same order as tplus
-					candnp_or |= p.v.cand;
-					//candnp_xor ^= p.v.cand;
-					//wplus[nwp] = p.v.cand;
-					nwp++;
-				}
-				else if(p.v.ncand == 2) {
-					candp_or |= p.v.cand;
-					//candp_xor ^= p.v.cand;
-					tpa[ntpa++] = i8;
-				}
-			}
-			aigun = 1;
-			if(Bug3(i))
-				return 1;//bug3 and bug4
-			continue;//only one row/col/box
-		}
-	}
-	return 0;
-}
-
-//===========================
-int TPAIRES::Bug1() {
-	int i8 = zplus.First();
-	CELL p = T81t[i8];
-	BF16 wc = p.v.cand & el_par_ch[p.f->el],
-		w = p.v.cand - wc;
-	if(wc.QC() - 2)
-		return 0; //must be 2 to reach parity
-	T81t[i8].Keep(w); // eliminate the others
-	BugMess(" 1");
-	return 1;
-}
-
-//================================ cells in different objects or one digit
-int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
-	if(ntplus > 6 || aigpmax > 3)
-		return 0;  
-	BF16 possible;
-	possible.f = 0x1ff;
-	BF32 b18;
-	b18.f = 0; // find parity of cells in r/c
-	for(int i = 0; i < ntplus; i++) {
-		CELL_FIX p1 = t81f[tplus[i]];
-		b18.f ^= 1 << p1.el;
-		b18.f ^= 1 << (p1.pl + 9);
-	}
-	BF81 zw;
-	zw.SetAll_1();
-	for(int i = 0; i < ntplus; i++) { // analyse all cells
-		CELL p1 = T81t[tplus[i]];
-		zw &= p1.f->z;
-		BF16 w1;
-		w1.f = 0;
-		if(b18.On(p1.f->el))
-			w1 = p1.v.cand - el_par_ch[p1.f->el];
-		if(!w1.f) { // if nothing comes in row odd cells, try the column
-			if(b18.On(p1.f->el))
-				return 0;
-			else
-				w1 = p1.v.cand - el_par_ch[p1.f->pl + 9];
-		}
-		else if(b18.On(p1.f->pl + 9)) { // check other direction
-			BF16 w2 = p1.v.cand - el_par_ch[p1.f->pl + 9];
-			if(w1.f - w2.f)
-				return 0;
-		}
-		possible &= w1;
-	}
-	if(zw.IsEmpty())
-		return 0;// must have a comon control on some cells
-	if(possible.QC() - 1)
-		return 0; // must be one common digit
-	// last check, parity ok everywhere
-	for(int i = 0; i < 27; i++)
-		el_par2_ch[i] = el_par_ch[i];
-	for(int i = 0; i < ntplus; i++) { // change parity for all cells
-		CELL_FIX p1 = t81f[tplus[i]]; 
-		BF16 wch = T81t[tplus[i]].v.cand - possible;
-		el_par2_ch[p1.el] ^= wch;
-		el_par2_ch[p1.pl+9] ^= wch;
-		el_par2_ch[p1.eb+18] ^= wch;
-	}
-	for(int i = 0; i < 27; i++)
-		if(el_par2_ch[i].f)
-			return 0;
-
-	// ok for bug type 2 clear the commonly controled  cells
-
-	int ir = 0, ch = possible.First(); 
-	for(int i = 0; i < 81; i++)
-		if(zw.On(i))
-			ir += T81t[i].Change(ch);
-	if(ir) {
-		BugMess("2 same digit");
-		puz.SetDif(57);
-	}
-	return ir;
-}
-//===========================================
-void TPAIRES::BugMess(const char * lib) const {
-	EE.E("Bug type ");
-	EE.Enl(lib);
-	if(Op.ot)
-		T81C->Candidats();
-}
-
-//former _04d_paires_bug3.cpp follows
-//===================  all cells in the same  element(s )(can be type 2)
-int TPAIRES::Bug3(int el) {
-	if((ntplus == 2) && Bug_lock(el))
-		return 1;
-	if(el < 18)
-		return Bug3_4_Nacked(el);
-	EE.Enl("recherche en boite"); 
-
-	// we have now a box and not 2 cells with a digit locked
-
-	if(ntplus > 3)
-		return 0; // would not work with that process
-	// look first row and col with only one cell
-	BF16 wrow, wcol;  // on cherche parite de row/col
-	CELL *pp;
-	USHORT elx, phx[5];
-	for(int i = 0; i < ntplus; i++) { // first look for parity
-		pp = &T81t[tplus[i]];
-		phx[i] = 0;
-		BF16 wr(pp->f->el), wc(pp->f->pl);
-		wrow ^= wr;
-		wcol ^= wc; // change parity
-	}
-	BF16 wcx, welim, annul, wpar; 
-
-	EE.Enl("recherche en boite phase 1"); 
-
-	for(int i = 0; i < ntplus; i++) {
-		pp = &T81t[tplus[i]]; 
-		if(wrow.On(pp->f->el))
-			elx = pp->f->el;    
-		else if(wcol.On(pp->f->pl))
-			elx = pp->f->pl + 9; 
-		else
-			continue;// not processed the 
-		phx[i] = 1;
-		wcx = pp->v.cand & el_par_ch[elx];
-		annul = pp->v.cand - wcx;
-		wpar ^= wcx;  // to adjust parity for the last if needed
-		if((wcx.QC() - 2))
-			return 0;
-		welim |= annul;
-	}	 
-	EE.E("recherche en boite phase 2"); 
-	EE.E(" wpar");
-	EE.Enl(wpar.String());
-
-	wpar ^= el_par_ch[el];  // adjust parity in the box
-
-	// finish the task if one has no row/col free
-	for(int i=0;i<ntplus;i++) {
-		if(phx[i])
-			continue;// done
-		pp = &T81t[tplus[i]]; 
-		wcx = pp->v.cand & wpar;
-		annul = pp->v.cand - wcx;
-		EE.E(t81f[tplus[i]].pt);
-		EE.Esp();
-		EE.E(" wpar");
-		EE.E(wpar.String());
-		EE.E(" wcx");
-		EE.Enl(wcx.String());
-		if((wcx.QC() - 2))
-			return 0;
-		welim |= annul;
-	}	 
-
-	return Nacked_Go(welim);
-}
-
-int TPAIRES::Nacked_Go(BF16 welim) {
-	//we look now for  "naked locked sets"
-	EE.E("recherche  bug3_4 Nacked ok to go welim= ");
-	EE.Enl(welim.String());
-	int nelim = welim.QC(); // look for naked in increasing order
-	if(nelim < 2 || nelim > 5)
-		return 0;
-	if(brat == 58 && nelim < 3) { //then search for naked 2
-		for(int i = 0; i < ntpa; i++) {
-			if(T81t[tpa[i]].v.cand.f == welim.f) { // we found it
-				int ir = 0;
-				for(int j = 0; j < ntpa; j++)
-					if(j-i)
-						ir += T81t[tpa[j]].Change(welim);
-				if(ir) {
-					BugMess("type 3/4 naked pair");
-					puz.SetDif(58);
-					return 1;
-				}
-			}
-		}
-	}
-	if(brat == 59) {        // look for triplet
-		for(int i1 = 0; i1 < ntpa - 1; i1++) {
-			for(int i2 = i1 + 1; i2 < ntpa; i2++) {
-				BF16 ww = welim | T81t[tpa[i1]].v.cand | T81t[tpa[i2]].v.cand;
-				if(ww.QC() - 3)
-					continue; // if not we got it
-				int ir = 0;
-				for(int j = 0; j < ntpa; j++)
-					if((j - i1) && (j - i2))
-						ir += T81t[tpa[j]].Change(ww);
-				if(ir) {
-					BugMess("type 3/4 naked triplet");
-					puz.SetDif(59);
-					return 1;
-				}
-			}
-		}
-	} // end triplet
-	if(brat == 60) {                   // look for quad
-		for(int i1 = 0; i1 < ntpa - 2; i1++) {
-			for(int i2 = i1 + 1; i2 < ntpa - 1; i2++) {
-				for(int i3 = i2 + 1; i3 < ntpa; i3++) {
-					BF16 ww = welim | T81t[tpa[i1]].v.cand | T81t[tpa[i2]].v.cand | T81t[tpa[i3]].v.cand;
-					if(ww.QC() - 4)
-						continue; // if not we got it
-					int ir = 0;
-					for(int j = 0; j < ntpa; j++)
-						if((j - i1) && (j - i2) && (j-i3))
-							ir += T81t[tpa[j]].Change(ww);
-					if(ir) {
-						BugMess("type 3/4 naked quad");
-						puz.SetDif(60);
-						return 1;
-					}
-				}
-			}
-		}
-	}// end quad
-	if(brat == 61) {                   // look for (5)
-		for(int i1 = 0; i1 < ntpa - 3; i1++) {
-			for(int i2 = i1 + 1; i2 < ntpa - 2; i2++) {
-				for(int i3 = i2 + 1; i3 < ntpa - 1; i3++) {
-					for(int i4 = i3 + 1; i4 < ntpa; i4++) {
-						BF16 ww = welim | T81t[tpa[i1]].v.cand | T81t[tpa[i2]].v.cand
-							| T81t[tpa[i3]].v.cand | T81t[tpa[i4]].v.cand;
-						if(ww.QC() - 5)
-							continue; // if not we got it
-						int ir = 0;
-						for(int j = 0; j < ntpa; j++)
-							if((j - i1) && (j - i2) && (j - i3) && (j - i4))
-								ir += T81t[tpa[j]].Change(ww);
-						if(ir) {
-							BugMess("type 3/4 naked (5)");
-							puz.SetDif(61);
-							return 1;
-						}
-					}
-				}
-			}
-		}
-	}// end (5)
-	return 0;
-}
-
-//former _04d_paires_bug4.cpp follows
-//===================  all cells in the same  element(s )(can be type 2)
-int TPAIRES::Bug_lock(int el) {
-	EE.Enl("recherche  bug_lock"); 
-	BF16 clock = candnp_or - candp_or;  // locked candidate
-	EE.E(" clock=");
-	EE.Enl(clock.String());
-	if(!clock.f)
-		return 0; 
-	CELL p1 = T81t[tplus[0]], p2 = T81t[tplus[1]];
-	int el1 = p1.f->el, el2 = p2.f->el; // use the row in priority
-	if(el < 9)  {
-		el1 = p1.f->pl + 9;
-		el2 = p2.f->pl + 9;
-	}  // and col if row is "el"
-	if(el1==el2) {
-		if(el>=9) return 0;
-		el1 = p1.f->pl + 9;  // can not accept el1=el2 chaeck the other direction
-		el2 = p2.f->pl + 9;
-	}
-
-	BF16 wc1 = (p1.v.cand & el_par_ch[el1]), wce1 = p1.v.cand - wc1,
-		wc2 = (p2.v.cand & el_par_ch[el2]), wce2 = p2.v.cand - wc2;
-	EE.E(p1.f->pt);
-	EE.E(" el=");
-	EE.E(el1 + 1);
-	EE.E(" wc1=");
-	EE.Enl(wc1.String());
-	EE.E(p2.f->pt);
-	EE.E(" el=");
-	EE.E(el2 + 1);
-	EE.E(" wc2=");
-	EE.Enl(wc2.String());
-
-	if(wce2.f-wce1.f) return 0; // must be the same digit
-	if((wc1.QC() - 2) || (wc2.QC() - 2))
-		return 0;	 
-
-	T81t[tplus[0]].Keep(wce1 | clock);
-	T81t[tplus[1]].Keep(wce2 | clock);
-	BugMess("3/4 a digit locked");
-	puz.SetDif(57);
-	return 1;
-}
-
-//============================================
-int TPAIRES::Bug3_4_Nacked(int el) {
-	EE.Enl("recherche  bug3_4 Nacked"); 
-
-	USHORT ctl = ntplus, aig = 1;  
-	CELL *pp;
-	USHORT elx;
-	BF16 wcx, welim, annul; 
-
-	for(int i = 0; i < ntplus; i++) {
-		pp = &T81t[tplus[i]];
-		elx = pp->f->el;
-		if(el < 9)
-			elx = pp->f->pl + 9; 
-		wcx = pp->v.cand & el_par_ch[elx];
-		annul = pp->v.cand - wcx;
-		//EE.E(t81f[tplus[i]].pt); EE.E(" el=");EE.E(elx+1);
-		//EE.E(" wc=");EE.Enl(wcx.String());
-		if((wcx.QC() - 2))
-			return 0;
-		welim |= annul;
-	}	
-	return Nacked_Go(welim);
-}
-
-//former _04d_XYW.cpp follows
-
-//<<<<<<<<<<<<<<<<<<<< // depart deux paires pas objet commun et trio
-int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs
-	int ir = 0;
-	for(int i = 0; i < ip - 1; i++) {
-		for(int j = i + 1; j < ip; j++) {
-			if(CommunPaires(i, j))
-				continue;
-			BF16 w = zp[i].pa|zp[j].pa;
-			if(w.QC() - 3)
-				continue;
-			BF16 w1 = (zp[i].pa&zp[j].pa), w2=w1 ^ w;  // les deux non communs
-			for(int k = 0; k < ip; k++) {
-				if(zp[k].pa.f - w2.f)
-					continue; // il faut =
-				if(!CommunPaires(i, k))
-					continue;
-				if(!CommunPaires(j, k))
-					continue;
-				// on a un XYWing  potentiel
-				int ich = w1.First(); // le chiffre 
-				BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z,
-					z2 = z1 & puz.c[ich];  // z2 est à supprimer
-				if(z2.IsNotEmpty()) {
-					if(Op.ot)
-						CommunLib(i, j, zp[k].i8, "->XY WING pivot= ");
-					T81->Clear(z2, ich);
-					return 1;
-				}
-			} 
-		}
-	}
-	return ir;
-}
-
-//<<<<<<<<<<<<<<<<<<<< // depart deux paires pas objet commun et trio
-int TPAIRES::XYZWing() { // troisieme est le trio objets communs
-	int ir = 0;  
-	for(int i = 0; i < ip - 1; i++) {
-		for(int j = i + 1; j < ip; j++) {
-			if(CommunPaires(i, j))
-				continue;
-			BF16 w = zp[i].pa|zp[j].pa;
-			if(w.QC() - 3)
-				continue;
-			BF16 w1 = (zp[i].pa&zp[j].pa);  // le chiffre
-			for(int k = 0; k < 81; k++) {
-				if(T81t[k].v.cand.f - w.f)
-					continue; // il faut = trio
-				if(!CommunTrio(k, i)) continue;
-				if(!CommunTrio(k, j)) continue;
-				// on a un XYZWing  potentiel
-				int ich = w1.First(); // le chiffre
-				BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z & t81f[k].z,
-					z2 = z1 & puz.c[ich];  // z2 est à supprimer
-				if(z2.IsNotEmpty()) {
-					if(Op.ot)
-						CommunLib(i, j, k, "->XYZ WING pivot= ");
-					T81->Clear(z2, ich);
-					return 1;
-				}
-			}   
-		}
-	}
-	return ir;
-}
-
-void TPAIRES::CommunLib(int i, int j, int k, char * lib) {
-	if(!Op.ot)
-		return;
-	EE.E(lib);
-	EE.E(t81f[k].pt);
-	EE.E(" ");
-	EE.E(T81t[k].scand);	 
-	EE.E(" (1)=");
-	EE.E(t81f[zp[i].i8].pt);
-	EE.E(" ");
-	EE.E(T81t[zp[i].i8].scand);
-	EE.E(" (2)=");
-	EE.E(t81f[zp[j].i8].pt);
-	EE.E(" ");
-	EE.Enl(T81t[zp[j].i8].scand);	
-}
-
-int TPAIRES::CommunPaires(int i, int j) {
-	return T81t[zp[i].i8].ObjCommun(&T81t[zp[j].i8]);
-}
-int TPAIRES::CommunTrio(int i, int j) {
-	return T81t[i].ObjCommun(&T81t[zp[j].i8]);
-}
 
 
 
@@ -2976,7 +2471,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 	}
 	if(action == 1) { //   this is a "basis"  
 		if(Jum(el, chc1)) {
-			int ir1 = T81t[pp1].Change(chc2) + T81t[pp2].Change(chc2);
+			int ir1 = T81t[pp1].Changex(chc2) + T81t[pp2].Changex(chc2);
 			if(ir1) {
 				EE.E("UR/UL bivalue ");
 				EE.Enl(chc1+1);
@@ -2984,7 +2479,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 			}
 		}
 		else if(Jum(el,chc2)) {
-			int ir1 = T81t[pp1].Change(chc1) + T81t[pp2].Change(chc1);
+			int ir1 = T81t[pp1].Changex(chc1) + T81t[pp2].Changex(chc1);
 			if(ir1) {
 				EE.E("UR/UL bivalue ");
 				EE.Enl(chc2 + 1);
@@ -3042,7 +2537,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 		return 2; // store it if not basic
 	//  hidden pair 
 	if(nth < 2 && (action == 2)) {  //  hidden pair if active
-		if(T81t[th[0]].Keep(wc)) {
+		if(T81t[th[0]].Keepy(wc)) {
 			EE.Enl("UR/UL hidden pair");
 			return 1;
 		}
@@ -3073,7 +2568,7 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len)
  if(whh.QC()-(nth+1)) return 0;
  //go for the a hidden set if active
   int ir1=0;
-  for(int i=0;i<nth;i++)  ir1+=T81t[th[i]].Keep(whh); 
+  for(int i=0;i<nth;i++)  ir1+=T81t[th[i]].Keepy(whh); 
   if(ir1) { EE.E("UR/UL hls whh="); EE.Enl(whh.String());
 	       EE.Enl("UR/UL hidden locked set"); return 1;}	
  }
@@ -3085,8 +2580,8 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len)
     for(int j=0;j<nnh;j++) if(j-i) wb|=T81t[tnh[j]].v.cand;
 	wx=wa-wb-wr; // must not be an extra digit included in the UR
 	if(wx.QC()==4) // we got it
-	{int ir1=0; ir1+=T81t[tnh[i]].Keep(wx);
-     for(int k=0;k<nth;k++)  ir1+=T81t[th[k]].Keep(wx); 
+	{int ir1=0; ir1+=T81t[tnh[i]].Keepy(wx);
+     for(int k=0;k<nth;k++)  ir1+=T81t[th[k]].Keepy(wx); 
      if(ir1) { EE.E("UR/UL hls wx="); EE.Enl(wx.String());
 	       EE.Enl("UR/UL hidden locked set"); return 1;}	
 	}
@@ -3167,7 +2662,7 @@ if(nnh>=nautres && (len==nnh))
  {BF16 wdx; int ir=0;
   for (int i=0;i<nnh;i++) wdx|=T81t[tnh[i]].v.cand;
   if(nnh==(wdx.QC()-1) && ((wdx&wr).f == wr.f) ) 
-    { for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Change(wdx  );
+    { for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Changey(wdx  );
       if(ir)  { EE.E("UR/UL nacked LS");EE.Enl(wdx.QC());return 1;}
     } 
  }
@@ -3180,8 +2675,8 @@ if(nnh>=nautres && (len==(nnh-1)))
   if((wdx&wr).f-wr.f) continue;
   if(nnh==wdx.QC()) 
     { BF81 zwel1=zwel; 
-      for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Change(wdx  );
-	  ir+=T81t[tnh[j]].Change(wdx  );
+      for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Changey(wdx  );
+	  ir+=T81t[tnh[j]].Changey(wdx  );
       if(ir)  { EE.E("UR/UL nacked LS");EE.Enl(wdx.QC());return 1;}
     } 
   }
@@ -3196,8 +2691,8 @@ if(nnh>=(nautres+1) && (len==(nnh-2)))
    if((wdx&wr).f-wr.f) continue;
    if(nnh==wdx.QC()+1) 
     { BF81 zwel1=zwel; 
-      for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Change(wdx  );
-	  ir+=T81t[tnh[j]].Change(wdx  ); ir+=T81t[tnh[k]].Change(wdx  );
+      for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Changey(wdx  );
+	  ir+=T81t[tnh[j]].Changey(wdx  ); ir+=T81t[tnh[k]].Changey(wdx  );
       if(ir)  { EE.E("UR/UL nacked LS");EE.Enl(wdx.QC());return 1;}
     } 
   }
@@ -3246,7 +2741,7 @@ int SEARCH_UR::RID(int i1,int i2,int c1,int c2) {
 		return 0;
 	CalcDeux();   
 	if(ndeux == 3) {
-		ta[pp1].Change(wc);
+		ta[pp1].Changey(wc);
 		ImageRI("1");
 		return 1;
 	}// type 1
@@ -4656,61 +4151,7 @@ void PATH::PrintPathTags() {
 }
 
 
-
-ZGROUPE::ZGROUPE (PUZZLE * parent) {
-	parentpuz = parent;
-	int i,j;
-	BF81 z0,z1; 
-	z0.SetAll_0(); 
-	z1.SetAll_1();
-	for(i=0;i<81;i++)
-	{
-		z[i]=z0;
-		z[i].Set(i);
-	}  // les z de 81 cases
-	int k,n=0,il=81;                    // puis les z de groupe
-	for(i=0;i<18;i++)
-		for(j=0;j<3;j++)
-		{
-			z[il].SetAll_0();
-			if(i<9)
-				for(k=0;k<3;k++)
-					z[il].Set(n++);
-			else
-			{
-				int c=i-9; 
-				for(k=0;k<3;k++)
-					z[il].Set(c+27*j+9*k);
-			}
-		il++; 
-		}
-	ReInit();
-}
-
-//------ pour les additions
-USHORT ZGROUPE::Charge(const BF81 &ze)
-{
-	if(ze.IsEmpty())
-	{
-		parentpuz->Estop( "zgs groupe IsEmpty");
-		return 0;
-	}
-	for(int i=0;i<iz;i++) 
-		if(z[i]==ze) 
-			return i;
-	if(iz<zgs_lim) 
-	{
-		z[iz++]=ze ;
-		return (iz-1);
-	}
-	parentpuz->Elimite( "ZGS");return 0;
-}
-
-//BF81 * CANDIDATE::GetZ() const {
-//	return &zgs.z[ig];
-//}     
-
-void CANDIDATE::Clear(){T81t[ig].Change(ch); }
+void CANDIDATE::Clear(){T81t[ig].Changex(ch); }
 void CANDIDATE::Image(int no) const {EE.Esp();if(no)EE.E("~");
                      EE.E(ch+1);EE.E(t81f[ig].pt); }
 
