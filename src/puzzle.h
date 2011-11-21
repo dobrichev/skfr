@@ -544,45 +544,7 @@ public:
 };
 
 
-//#include "_03b_puzzle_chains.h"    //  puzzles chain eliminations
 
-//file _03b_puzzle_chains.h start
-
-// that table contains 81 bits pattern in use in the process
-// the 81 first entries are the 81 bit patterns corresponding to each of the 81 cells
-// next 54 entries were assigned to common cells row/box and col/box;
-// more  are filled upon request.
-// it could be that in SE clone only the first 81 entries are used
-// in the table storing candidates or group of candidates, we have a pointer to ZGROUPE
-
-/* the class PATH has been specifically designed for SE clone
-   it is a support to look for the shortest path 
-     after elimination/cycle has been found in tags terms
-   having that class designed, all path are using it
-*/
-class PATH {
-public:
-	USHORT pth[100], ipth;
-	//USHORT ipth_plus;
-	//inline void Init() {
-	//	ipth = ipth_plus = 0;
-	//}
-	//inline void Set(USHORT i, USHORT x) {
-	//	pth[i] = x;
-	//}
-	inline void Add(USHORT x) {
-		if(ipth < 50)
-			pth[ipth++] = x;
-	}
-	//void Add(USHORT *pthp, USHORT ipthp) {
-	//	for(int i = 0; i < ipthp; i++)
-	//		Add(pthp[i]);
-	//}
-
-	void PrintPathTags();
-
-
-};  
 
 /* the following classes have been designed specifically for SE clone.
    the goal is to find and store chains type eliminations 
@@ -688,7 +650,7 @@ public:
 
 	inline void Charge(USHORT i,USHORT che) {ig=i;ch=che;}
 	//inline BF81 * GetZ() const;     
-	void Image(int no=0) const; // no=1 if false state
+	void Image(FLOG * EE,int no=0) const; // no=1 if false state
 	void Clear();
 };
 
@@ -696,7 +658,7 @@ public:
 class CANDIDATES {
 public:
 	   PUZZLE * parentpuz;
-	   FLOG * yy;
+	   FLOG * EE;
 	   CANDIDATE zp[zpln_lim];
 	   BFCAND candtrue; 
 	   USHORT ip;            // index to zp
@@ -706,7 +668,6 @@ public:
 
 	   USHORT Getch(int i){return zp[i].ch;};
 
-	   CANDIDATES(PUZZLE * parent) {parentpuz=parent;}
 
 	   void SetParent(PUZZLE * parent,FLOG * fl);
 
@@ -730,20 +691,38 @@ public:
 	// void SuppMarque(USHORT mm,int direct=0);   
 	void Clear(USHORT c) {zp[c].Clear();}
 	int ChainPath(int i1,int i2);
-	void PrintPath(USHORT * tp,USHORT np) const;
+
 	void PrintImply(const USHORT * tp,USHORT np) const;
 	void PrintListe(USHORT * t,USHORT n,int modetag=0) const;
 
-	void Image(int i,int no=0) const {zp[i].Image(no);  }
+	void Image(int i,int no=0) const {zp[i].Image(EE,no);  }
 	void ImageTag(int i) const {Image(i>>1,i&1);}
-	void Liste() const;        // for debugging only
-	void ListeIndexc();  // for debugging only
+
 };  
 
 
+
+/* the class PATH has been specifically designed for SE clone
+   it is a support to look for the shortest path 
+     after elimination/cycle has been found in tags terms
+   having that class designed, all path are using it
+*/
+class PATH {
+public:
+	USHORT pth[100], ipth;
+
+	inline void Add(USHORT x) {
+		if(ipth < 50)
+			pth[ipth++] = x;
+	}
+
+	void PrintPathTags(CANDIDATES * zpln);
+
+};  
  
 class SQUARE_BFTAG {
 public:  
+static PUZZLE * parentpuz; // temporary 
 static BFTAG done[50]; // already in the path
 static USHORT ich,mode,length,mmfin;
 static PATH path, pathr;
@@ -784,25 +763,9 @@ void Parents(USHORT x);
 int ExpandToFind(USHORT td,USHORT tf,USHORT lim);
 void Shrink(BFTAG & x,USHORT it);
 
-//int Plus(int m1, int m2) {
-//	if(!t[m1].On(m2)) {
-//		t[m1].Set(m2);
-//		return 1;
-//	}
-//	else
-//		return 0;
-//}
 void Plus(int m1, int m2) {
 	t[m1].Set(m2);
 }
-
-//int Entre(int m1, int m2) {
-//	return (Plus(m1,m2^1) + Plus(m2,m1^1));
-//}
-//void Entre(int m1, int m2) {
-//	Plus(m1,m2^1);
-//	Plus(m2,m1^1);
-//}
 
 void Image();
 private:
@@ -847,7 +810,7 @@ class INFERENCES {
 
 public:
 	PUZZLE * parentpuz;
-	FLOG * yy;
+	FLOG * EE;
 
 	PHASE h, hstart, h_one;///, h_nest,storehw;
 
@@ -859,27 +822,11 @@ public:
 	BFTAG  xb, xi, xbr, xbr2; 
 	BFCAND isbival;
 
-	INFERENCES(PUZZLE * parent){parentpuz=parent;}
+//	INFERENCES(PUZZLE * parent){parentpuz=parent;}
 
 	void SetParent(PUZZLE * parent,FLOG * fl);
 
 
-	//inline BFTAG * Getd(int m) {
-	//	return & h.d.t[m];
-	//}
-	//inline BFTAG * Getdp(int m) {
-	//	return & h.dp.t[m];
-	//}
-	//inline int IsConflitD(int m1, int m2) {
-	//	if(m1 == (m2 ^ 1))
-	//		return 1;
-	//	return h.dp.IsConflit(m1, m2);
-	//}
-	//inline int IsConflit(int m1, int m2) {
-	//	if(m1 == (m2 ^ 1))
-	//		return 1;
-	//	return h.d.IsConflit(m1, m2);
-	//}
 	inline int IsStart(int i, int j) {
 		return hstart.d.Is(i, j);
 	}
@@ -901,9 +848,7 @@ public:
 	void ExpandAll() {
 		h.d.ExpandAll(h.dp);
 	}
-	//void NewPhase() {
-	//	h.d.ExpandAll(h.dp);
-	//}
+
 	int DeriveCycle(int nd, int nf, int ns, int npas = 0);
 	void ExpandShort(int npas) {
 		h.d.ExpandShort(h.dp, npas);
@@ -926,21 +871,11 @@ public:
 	void ExplainPath(BFTAG &forward, int start, int send, int npas, USHORT relay);
 	int Fast_Aic_Chain();// quick eliminations high rating reached
 
-	//int Nested_QuickForcing(SQUARE_BFTAG &xt, BFTAG &elims); 
-	//int Nested_QuickMulti(SQUARE_BFTAG &xt, BFTAG &elims); 
-	//int Nested_QuickDynamic(SQUARE_BFTAG &xt,BFTAG &elims) ; 
-
 
 private:
-	//int Plusp(int m1, int m2) {
-	//	return h.dp.Plus(m1, m2);
-	//}
 	void Plusp(int m1, int m2) {
 		h.dp.Plus(m1, m2);
 	}
-	//int Entrep(int m1, int m2) {
-	//	return (Plusp(m1, m2 ^ 1) + Plusp(m2, m1 ^ 1));
-	//}
 	void Entrep(int m1, int m2) {
 		Plusp(m1, m2 ^ 1);
 		Plusp(m2, m1 ^ 1);
@@ -961,8 +896,15 @@ private:
 class SETS_BUFFER   // buffer for candidates + "events"
 {public: 
  PUZZLE * parentpuz;
+ FLOG * EE;
  USHORT zs[setsbuffer_lim],izs,izs_one;
- SETS_BUFFER(PUZZLE * parent){parentpuz=parent;}
+
+
+ void SetParent(PUZZLE * parent,FLOG * fl){
+	 parentpuz=parent;
+	 EE=fl;
+ }
+
  inline void Init(){izs=0;}
  inline void LockNestedOne() {izs_one=izs;}
  inline void StartNestedOne() {izs=izs_one;}
@@ -986,14 +928,9 @@ class SET
 		ncd,   // number of candidates + "event"
 		type; // as of SET_TYPE 
 
- int Prepare (USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe);
+ int Prepare (PUZZLE * parentpuz,USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe);
 
- //void GetCand(BFCAND & ms)// init à la charge de l'appelant
- //          {for(int i=0;i<ncd;i++) ms.Set(tcd[i]);}
-
- //inline int ChoixBase(){return (!type);}
- //void PrintInterditSimple(USHORT mi,USHORT derive){}//;
- void Image() const;
+ void Image(PUZZLE * parentpuz, FLOG * EE) const;
 
  } ;
 
@@ -1004,7 +941,7 @@ class SET
 class SETS {
 public: 
 	PUZZLE * parentpuz;
-	FLOG * yy;
+	FLOG * EE;
 	SET zc[sets_lim];
 	USHORT izc,     //index to zc
 		izc_one,
@@ -1014,8 +951,10 @@ public:
 		*t;       // pointer to zcf.h.d.t or zcf.h.dp.t depending on direct
 	SQUARE_BFTAG allparents; // table for derivation
 
-	SETS(PUZZLE * parent){parentpuz=parent;}
-	void SetParent(PUZZLE * parent,FLOG * fl);
+	void SetParent(PUZZLE * parent,FLOG * fl){
+		parentpuz=parent;
+		EE=fl;
+	}
 
 	void Init();
 	inline void LockNestedOne() {
@@ -1053,14 +992,16 @@ public:
 class EVENTLOT {
 public:
 	//BFCAND bf;            // the set in bit field form
+	PUZZLE * parentpuz;
+	FLOG * EE;
 	USHORT tcd[30], itcd;  // list and current maxindex
 	EVENTLOT() { // constructor
 		itcd = 0;
 	}
-	EVENTLOT(BF81 &x, USHORT ch);  // constructor equivalent to a BF16 pattern for ch
-	void AddCand(USHORT cell, USHORT ch);
-	int GenForTag(USHORT cand, WL_TYPE type,FLOG * xx) const;
-	void Image(FLOG * xx) const;
+	EVENTLOT(PUZZLE * parent,FLOG * EE,BF81 &x, USHORT ch);  // constructor equivalent to a BF16 pattern for ch
+	void AddCand(PUZZLE * parent,FLOG * EE,USHORT cell, USHORT ch);
+	int GenForTag(PUZZLE * parent,FLOG * EE,USHORT cand, WL_TYPE type) const;
+	void Image(PUZZLE * parent,FLOG * EE) const;
 };
 
 
@@ -1086,8 +1027,8 @@ public:
 	EVENT_TYPE type; // the pattern identification
 	void Load(USHORT tage, EVENT_TYPE evt, const EVENTLOT & evb, const EVENTLOT & evx);
 	int IsPattern (USHORT cand) const ;
-	void Image(FLOG * xx) const;
-	void ImageShort(FLOG * xx)const;
+	void Image(PUZZLE * parentpuz,FLOG * xx) const;
+	void ImageShort(PUZZLE * parentpuz,FLOG * xx)const;
 };
 
 /* table of events 
@@ -1102,7 +1043,7 @@ public:
 	FLOG * EE;
 	EVENT t[event_size];
 	USHORT it;             // next value in t
-
+	TEVENT(){}
 	void SetParent(PUZZLE * parent,FLOG * fl);
 
 	inline void Init() {
@@ -1354,6 +1295,12 @@ public:
     SEARCH_UR ur;
     SEARCH_URT urt;
 	ULT tult;
+    CANDIDATES zpln;
+    INFERENCES zcf;
+    SETS_BUFFER zcxb;
+	SETS zcx;
+
+
 
 //	ZGROUPE zgs();
 
@@ -1672,11 +1619,14 @@ public:
 class  CHAINSTORE {
 #define Size_Store 80000 
 public:
+	PUZZLE * parentpuz;
 	USHORT buf[Size_Store],         
 		ise,
 		s2[2000], e2[2000], ise2;
 	int starts[5000], ends[5000],
           ibuf;
+
+	CHAINSTORE(PUZZLE * parent){parentpuz=parent;}
 
 	void Init() {
 		ibuf=0;
@@ -1731,13 +1681,11 @@ extern CELL *T81tc;		//and corresponding tables of cells
 extern CELLS_FIX tp81f;
 extern CELL_FIX *t81f;			//pointer to speed up the process   
 extern DIVF divf;
-
-extern PUZZLE puz;
 extern ZGROUPE zgs;
-extern CANDIDATES zpln;
-extern INFERENCES zcf;
-extern SETS_BUFFER zcxb;
-extern SETS zcx;
+extern PUZZLE puz;
+
+
+
 extern TCANDGO tcandgo;
 extern CHAINSTORE tstore;
 
