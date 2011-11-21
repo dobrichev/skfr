@@ -672,20 +672,11 @@ public:
 
 
 
-#define zgs_lim 10000
+#define zgs_lim 200
 class ZGROUPE {    // en fixe 81 points 8       puis  54 groupes
 public:
 	BF81 z[zgs_lim];
-	PUZZLE *parentpuz;
-	USHORT iz;
-	ZGROUPE(PUZZLE *parent); 
-	void ReInit() {
-		iz = 81 + 54;
-	} // first after compulsory entries
-	//inline BF81 getz(int i) {
-	//	return z[i];
-	//}
-	USHORT Charge(const BF81 & z);
+	ZGROUPE(); 
 };
 
 
@@ -705,6 +696,7 @@ public:
 class CANDIDATES {
 public:
 	   PUZZLE * parentpuz;
+	   FLOG * yy;
 	   CANDIDATE zp[zpln_lim];
 	   BFCAND candtrue; 
 	   USHORT ip;            // index to zp
@@ -715,6 +707,10 @@ public:
 	   USHORT Getch(int i){return zp[i].ch;};
 
 	   CANDIDATES(PUZZLE * parent) {parentpuz=parent;}
+
+	   void SetParent(PUZZLE * parent,FLOG * fl);
+
+
 	   void Init();
 	   USHORT Charge0();
 
@@ -851,6 +847,7 @@ class INFERENCES {
 
 public:
 	PUZZLE * parentpuz;
+	FLOG * yy;
 
 	PHASE h, hstart, h_one;///, h_nest,storehw;
 
@@ -863,6 +860,9 @@ public:
 	BFCAND isbival;
 
 	INFERENCES(PUZZLE * parent){parentpuz=parent;}
+
+	void SetParent(PUZZLE * parent,FLOG * fl);
+
 
 	//inline BFTAG * Getd(int m) {
 	//	return & h.d.t[m];
@@ -1004,6 +1004,7 @@ class SET
 class SETS {
 public: 
 	PUZZLE * parentpuz;
+	FLOG * yy;
 	SET zc[sets_lim];
 	USHORT izc,     //index to zc
 		izc_one,
@@ -1014,6 +1015,8 @@ public:
 	SQUARE_BFTAG allparents; // table for derivation
 
 	SETS(PUZZLE * parent){parentpuz=parent;}
+	void SetParent(PUZZLE * parent,FLOG * fl);
+
 	void Init();
 	inline void LockNestedOne() {
 		izc_one = izc;
@@ -1043,7 +1046,82 @@ public:
 
 }; //zcx ;  
 
-//file _03b_puzzle_chains.h end
+
+/* a small class to prepare data to collect for a new event
+   each member contains a list of candidates in both forms, table and bit field
+*/
+class EVENTLOT {
+public:
+	//BFCAND bf;            // the set in bit field form
+	USHORT tcd[30], itcd;  // list and current maxindex
+	EVENTLOT() { // constructor
+		itcd = 0;
+	}
+	EVENTLOT(BF81 &x, USHORT ch);  // constructor equivalent to a BF16 pattern for ch
+	void AddCand(USHORT cell, USHORT ch);
+	int GenForTag(USHORT cand, WL_TYPE type,FLOG * xx) const;
+	void Image(FLOG * xx) const;
+};
+
+
+/* class to store an potential event waiting for candidates establishing the event.
+*/
+
+enum EVENT_TYPE {
+	evlockrc,
+	evlockbox,
+	evpairhidden,
+	evpairnacked,
+	evxwrow,
+	evxwcol
+};
+
+class EVENT {
+public:
+	EVENTLOT evl;   // the list of candidates false (out of the set) if 'true'
+
+	USHORT tcand[4], // to store the candidates of the pattern 
+		ntcand,   // number of candidates in the pattern
+		tag;  // the tag value (index + tpat_vi)
+	EVENT_TYPE type; // the pattern identification
+	void Load(USHORT tage, EVENT_TYPE evt, const EVENTLOT & evb, const EVENTLOT & evx);
+	int IsPattern (USHORT cand) const ;
+	void Image(FLOG * xx) const;
+	void ImageShort(FLOG * xx)const;
+};
+
+/* table of events 
+*/
+
+#define event_size 10000
+extern USHORT event_vi;
+
+class TEVENT {
+public:
+	PUZZLE * parentpuz;
+	FLOG * EE;
+	EVENT t[event_size];
+	USHORT it;             // next value in t
+
+	void SetParent(PUZZLE * parent,FLOG * fl);
+
+	inline void Init() {
+		it = 1;
+	} // keep 0 for return false and temp PAT_TAG
+
+	void LoadXW();
+	void LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT &eva, EVENTLOT &evx);
+	void LoadPairs();
+	void LoadPairsD(USHORT cell1, USHORT cell2, USHORT el);
+	void PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLOT & hid);
+	void LoadLock();
+
+	void LoadAll() ;
+	void EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT & evx);
+
+	int EventSeenFor(USHORT tagfrom, USHORT tagevent) const;
+	void LoadFin(); // only for debugging purpose
+}; //tevent;
 
 #define pasmax 70
 
@@ -1057,6 +1135,9 @@ public:
     CELLS T81dep;
     CELLS tp8N,		tp8N_cop;  
     TPAIRES zpaires;
+	TEVENT tevent;
+
+
 //	ZGROUPE zgs();
 
 
@@ -1298,6 +1379,7 @@ class UL_SEARCH {
 public:
 	TPAIRES * tpa;          // calling TPAIRES
 	PAIRES * pa;            // subtable in TPAIRES::zpt for processed bivalue
+	FLOG * EE;
 	USHORT npa;             // size of pa for that bivalue 
 	BF32 el_used,parity;   // to chexk Used sets 
 	BF81 cells;            // to check used cells 
@@ -1313,37 +1395,13 @@ public:
 	UL_SEARCH(UL_SEARCH * old) {
 		(*this) = (*old);
 	}
-	UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae) {
-		// initial for a new start
-		tpa = tpae;
-		pa = pae;
-		npa = npae;
-		chd = cht = c;
-		nadds = line_count = 0; 
-		char * st = c.String();
-		c1 = st[0] - '1';
-		c2 = st[1] - '1';
-		cells.SetAll_0();
-		el_used.f = parity.f = 0;
-		for(int i = 0; i < 27; i++)
-			elcpt[i] = 0;
-	}
+	UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,FLOG * xx );
 	void Copie(UL_SEARCH &x) {
 		(*this) = x;
 	}
 	void Set(int i8);  //a new cell is added to the search
 	int Add_Chain(int i8);
 	int Loop_OK(int action = 0); 
-	//int Valid_Set(CELL_FIX &f, char c) {
-	//	int el = f.el;
-	//	if(c == 'c')
-	//		el = f.pl + 9;
-	//	else if(c == 'b')
-	//		el = f.eb + 18;
-	//	if(el_used.Off(el))
-	//		return el; 
-	//	return -1;
-	//}
 	int Is_OK_Suite(USHORT i8);
 	int El_Suite(USHORT el);
 	void UL_Mess(char * lib, int pr);
@@ -1520,93 +1578,6 @@ public:
 	}
 };
 
-// file _20a_event.h start
-
-/* a small class to prepare data to collect for a new event
-   each member contains a list of candidates in both forms, table and bit field
-*/
-class EVENTLOT {
-public:
-	//BFCAND bf;            // the set in bit field form
-	USHORT tcd[30], itcd;  // list and current maxindex
-	EVENTLOT() { // constructor
-		itcd = 0;
-	}
-	EVENTLOT(BF81 &x, USHORT ch);  // constructor equivalent to a BF16 pattern for ch
-	void AddCand(USHORT cell, USHORT ch);
-	int GenForTag(USHORT cand, WL_TYPE type) const;
-	void Image() const;
-};
-
-
-/* class to store an potential event waiting for candidates establishing the event.
-*/
-
-enum EVENT_TYPE {
-	evlockrc,
-	evlockbox,
-	evpairhidden,
-	evpairnacked,
-	evxwrow,
-	evxwcol
-};
-
-class EVENT {
-public:
-	EVENTLOT evl;   // the list of candidates false (out of the set) if 'true'
-
-	USHORT tcand[4], // to store the candidates of the pattern 
-		ntcand,   // number of candidates in the pattern
-		tag;  // the tag value (index + tpat_vi)
-	EVENT_TYPE type; // the pattern identification
-	void Load(USHORT tage, EVENT_TYPE evt, const EVENTLOT & evb, const EVENTLOT & evx);
-	int IsPattern (USHORT cand) const {
-		for(int i = 0; i < ntcand; i++)
-			if(cand == tcand[i])
-				return 1;
-		return 0;
-	}
-	void Image() const;
-	void ImageShort()const;
-};
-
-/* table of events 
-*/
-
-#define event_size 10000
-extern USHORT event_vi;
-
-class TEVENT {
-public:
-	PUZZLE * parentpuz;
-	EVENT t[event_size];
-	USHORT it;             // next value in t
-
-	TEVENT(PUZZLE * parent){parentpuz=parent;}
-
-	inline void Init() {
-		it = 1;
-	} // keep 0 for return false and temp PAT_TAG
-
-	void LoadXW();
-	void LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT &eva, EVENTLOT &evx);
-	void LoadPairs();
-	void LoadPairsD(USHORT cell1, USHORT cell2, USHORT el);
-	void PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLOT & hid);
-	void LoadLock();
-
-	void LoadAll() {
-		Init();
-		LoadLock();
-		LoadPairs();
-		LoadXW();
-		//LoadFin();
-	}
-	void EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT & evx);
-
-	int EventSeenFor(USHORT tagfrom, USHORT tagevent) const;
-	void LoadFin(); // only for debugging purpose
-}; //tevent;
 
 // file _20a_event.h end
 
@@ -1754,7 +1725,6 @@ extern CANDIDATES zpln;
 extern INFERENCES zcf;
 extern SETS_BUFFER zcxb;
 extern SETS zcx;
-extern TEVENT tevent;
 extern TCANDGO tcandgo;
 extern CHAINSTORE tstore;
 

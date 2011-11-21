@@ -33,6 +33,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
             <<<<<<  SEARCH_LS_FISH  >>>>>>
             <<<<<<  CELL  CELLS   >>>>>>
             <<<<<<  TPAIRES  >>>>>> 
+            <<<<<<  ZGS table   >>>>>>
+            <<<<<<  UL_SEARCH module   >>>>>>
+            <<<<<< EVENT family classes >>>>>>>>>>
+
 
 /*              <<<<<<  TCHAIN module   >>>>>>
             handling all potential eliminations through chains
@@ -617,7 +621,7 @@ int TPAIRES::UL() {
 	for(int i = 0; i < np; i++) {
 		USHORT id = izpd[i], ie = izpd[i + 1];
 		// EE->Enl("un depart paire");
-		UL_SEARCH uls(tp[i], this, &zpt[id], ie - id); //build search 
+		UL_SEARCH uls(tp[i], this, &zpt[id], ie - id,EE); //build search 
 		for(int j = id; j < ie - 1; j++) {
 			for(int k = j + 1; k < ie; k++) {
 				USHORT i1 = zpt[j].i8, i2 = zpt[k].i8;
@@ -637,6 +641,16 @@ int TPAIRES::UL() {
 	}// end i
 	return ir;
 }
+
+/* searching and processing all forms of bugs included in SE
+   type 1 one extra cell  5.6
+   type 2 2 extra cells with one same extra digit  5.7
+   type 3 extra cells combined to a naked duo  5.8
+   type 3 extra cells combined to a naked triplet 5.9
+   type 3 extra cells combined to a naked quad 6.0 
+   type 3 extra cells combined to a naked (5) 6.1
+   type 4 extra cells (2) have a locked digit 5.7   */
+
 
 //==============================
 int TPAIRES::BUG() {
@@ -1098,6 +1112,666 @@ int TPAIRES::CommunTrio(int i, int j) {
 	return T81t[i].ObjCommun(&T81t[zp[j].i8]);
 }
 
+/*              <<<<<<  ZGS table   >>>>>>
+        list of all BF81 in use
+		can disappear in an optimised code for skfr
+		inherited from GP solver where more pattern were used
+		as it is, it is a a "quasi constant"
+		initialised by the constructor
+
+		81 BF81 for the cells
+		then 54 BF81 for the groups row/box column box
+
+*/
 
 
+ZGROUPE::ZGROUPE () {
+	int i,j;
+	BF81 z0,z1; 
+	z0.SetAll_0(); 
+	z1.SetAll_1();
+	for(i=0;i<81;i++)
+	{
+		z[i]=z0;
+		z[i].Set(i);
+	}  // les z de 81 cases
+	int k,n=0,il=81;                    // puis les z de groupe
+	for(i=0;i<18;i++)
+		for(j=0;j<3;j++)
+		{
+			z[il].SetAll_0();
+			if(i<9)
+				for(k=0;k<3;k++)
+					z[il].Set(n++);
+			else
+			{
+				int c=i-9; 
+				for(k=0;k<3;k++)
+					z[il].Set(c+27*j+9*k);
+			}
+		il++; 
+		}
+	//ReInit();
+}
+
+
+
+
+
+
+/*             <<<<<<  UL_SEARCH module   >>>>>>
+
+that clas is a support to find a UL
+each occurence is normally stored for further processins
+
+
+*/
+
+
+
+// constructor to start a UL search
+
+
+UL_SEARCH::UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,FLOG * xx ) {
+		// initial for a new start
+		EE=xx;
+		tpa = tpae;
+		pa = pae;
+		npa = npae;
+		chd = cht = c;
+		nadds = line_count = 0; 
+		char * st = c.String();
+		c1 = st[0] - '1';
+		c2 = st[1] - '1';
+		cells.SetAll_0();
+		el_used.f = parity.f = 0;
+		for(int i = 0; i < 27; i++)
+			elcpt[i] = 0;
+	}
+
+
+
+//========================= insert a new cell after el_used correct
+void UL_SEARCH::Set(int i8) { // el_used already ok if necessary
+	cells.Set(i8);  
+	CELL_FIX p = t81f[i8];
+	last = i8; 
+	CELL_VAR pv = T81tc[i8].v;
+	parity.Inv(p.el);
+	parity.Inv(p.pl + 9);
+	parity.Inv(p.eb + 18);                   
+	elcpt[p.el]++;
+	elcpt[p.pl + 9]++;
+	elcpt[p.eb + 18]++;
+	cht |= pv.cand;
+	int nc = pv.cand.QC(); 
+	if(nc > 2)
+		adds[nadds++] = i8;
+	// EE->E("UL lc=");EE->E(line_count);EE->Esp();EE->Enl(p.pt);
+	tcount[line_count++] = i8;
+}
+
+//====================================
+// Check if the loop has more than 0 solutions by parity
+bool UL_SEARCH::ParityCheck(void) {
+	// Check for the "0 solutions" parity check
+	unsigned int oddPos = 0, evenPos = 0;
+	bool isOdd = false;
+	for(int i = 0; i < (line_count - 1); ++i) {
+		isOdd = !isOdd;
+		unsigned int curRow = tcount[i]/9;
+		unsigned int curCol = tcount[i] % 9;
+		unsigned int curBox = I81::Boite(curRow, curCol);
+		int newPos = 1 << curRow | 1 << (curCol + 9) | 1 << (curBox + 18);
+		if(isOdd) {
+			if(oddPos & newPos)
+				return false;
+			oddPos |= newPos;
+		}
+		else {
+			if(evenPos & newPos)
+				return false;
+			evenPos |= newPos;
+		}
+	}
+	if(oddPos != evenPos)
+		return false;
+	return true;
+}
+
+
+//============================= recurrent process to add next point
+int UL_SEARCH::Add_Chain(int i8) {
+	if(line_count > 20)
+		return 0; // securite
+	if(cells.On(i8)) { // terminé on élimine URs et fausses boucles
+		//EE->E("UL end ");EE->E(t81f[i8].pt);EE->Esp();cells.ImagePoints();EE->Enl();
+		if(line_count < 5 || (i8 - tcount[0]))
+			return 0;  
+		tcount[line_count++] = i8;
+		return Loop_OK();
+	}
+	Set(i8);              // On met le point en place
+	CELL_FIX f = t81f[i8];
+
+	// a défaut une case avec additifs  ligne, puis col, puis bloc en paire
+	// uniquement dans éléments non traités et si pas de double paire
+	// not more than 3 adds except one digit
+	if(nadds > 7 || (cht.QC() > 3 && nadds > 2))
+		return 0; 
+	if(El_Suite(f.el))
+		return 1;
+	if(El_Suite(f.pl + 9))
+		return 1;
+	if(El_Suite(f.eb + 18))
+		return 1;
+	return 0;
+}
+
+//====================================
+int UL_SEARCH::El_Suite(USHORT ele) {
+	if(el_used.On(ele))
+		return 0;
+	//EE->E("suite el=");EE->Enl(ele+1);
+	BF16 wc = puz.alt_index.tchbit.el[ele].eld[c1].b & puz.alt_index.tchbit.el[ele].eld[c2].b;
+	for(int i = 0; i < 9; i++) {
+		if(wc.On(i)) { // cells with both digits
+			int i8r = divf.el81[ele][i];
+			//EE->E("essai i8=");EE->Enl(t81f[i8r].pt);
+			if(ele > 17) { // in a box, only not row col
+				CELL_FIX f = t81f[i8r], f2 = t81f[last];
+				if(f.el == f2.el || f.pl == f2.pl)
+					continue;
+			}
+			if(!Is_OK_Suite(i8r))
+				continue;
+			UL_SEARCH ulsn(this);
+			ulsn.el_used.Set(ele); 
+			if(ulsn.Add_Chain(i8r))
+				return 1;
+		}
+	}// end for
+	return 0;
+}
+
+//=================================================
+int UL_SEARCH::Is_OK_Suite(USHORT i8) {
+	if(i8 == last)
+		return 0;
+	if(i8 == tcount[0])
+		return 1;
+	if(cells.On(i8))
+		return 0; // false loop  
+	CELL_FIX f = t81f[i8]; 
+	if(elcpt[f.el] > 1 || elcpt[f.pl + 9] > 1 || elcpt[f.eb + 18] > 1)
+		return 0;
+	// for the time being, I see no more exclusion
+	return 1;
+}
+//  entry action 0 is the start 4.6.  store after
+//       one digit in excess and 
+
+//==================================================
+int UL_SEARCH::Loop_OK(int action) {
+	//UL_Mess("potential loop",1);
+	if(parity.f)
+		return 0; // must be even number everywhere
+	if(!ParityCheck()) // check for more than 0 solutions
+		return 0;
+	if(!action) // split processing depending on size of the loop
+		if(line_count>7) {
+			tult.Store(*this);
+			return 0;
+		}
+		else
+			action++;
+	// les deux ci-dessous sortent en 4.6 et 4.7; voir l'origine de l'écart (nb de pas???)
+	if(action == 1 && nadds < 2) { //one cell with adds rating 4.6 revérifié, c'est bien 4.6
+		USHORT iu = adds[0];
+		if(T81t[iu].Changey(chd)) {
+			UL_Mess("one cell with extra digits ", 1);
+			return 1;
+		}
+	} // nothing if redundancy with another loop
+
+	// now one digit in excess ++++++++++++
+	if(action == 1 && (cht.QC() == 3)) {
+		BF81 zi;
+		zi.SetAll_1();
+		for(int i = 0; i < nadds; i++)
+			zi &= t81f[adds[i]].z;
+		if(T81->Clear(zi, (cht - chd).First())) {
+			UL_Mess(" one digit in excess", 1);
+			return 1;
+		}         
+	}
+
+	// action 1, launching the process common to UR/UL
+	if(nadds == 2) { // type 2;3;4 must be same object 
+		if(!(t81f[adds[0]].ObjCommun(&t81f[adds[1]])))
+			return 0;	
+		int ir = ur.StartECbi(adds[0], adds[1], chd, action);
+		if(ir == 1)
+		{UL_Mess("action UL / 2 cells)", 1);
+		return 1;
+		}   
+	}
+	// store it if action 0 
+	if(action < 2) {
+		tult.Store(*this);
+		return 0;
+	}
+
+	//UL_Mess("nothing",1);
+	return 0;
+}
+//-----  
+void UL_SEARCH::UL_Mess(char * lib,int pr) { // et flag des "faits"
+	EE->Enl();
+	EE->E("UL loop nadds=");
+	EE->E(nadds);
+	EE->E(" count=");
+	EE->E(line_count - 1);
+	EE->E(" rating=");
+	EE->E(puz.difficulty);
+	for(int i = 0; i < line_count; i++) {
+		EE->Esp();
+		EE->E(t81f[tcount[i]].pt);
+	}
+	EE->Enl();
+	if(pr) {
+		EE->E("active due to " );
+		EE->Enl(lib);
+	}
+}
+ 
+/*           <<<<<< EVENT family classes >>>>>>>>>>
+
+  EVENT is the name given to a state of the PM where a specific pattern occurs
+
+  eg  XWing, Nacked pait, Hidden pair ...
+
+  Any event has 3 component
+
+  (1) the set of candidates that must be false to have the "event"
+  (2) the event description (candidates)
+  (3) the set of candidates cleared if the "event" is established
+
+  set (1) is loaded in the table of sets
+  set (3) is an EVENLOT
+  set (2) is located in the EVENT
+
+
+  all potential events are search for each cycle and stored in TEVENT
+
+*/
+
+USHORT event_vi = 1024;
+
+EVENTLOT::EVENTLOT(BF81 &x, USHORT ch) {
+	itcd = 0;
+	for(int i = 0; i < 81; i++)
+		if(x.On(i))
+			AddCand(i, ch);
+}
+
+
+void EVENTLOT::AddCand(USHORT cell, USHORT ch) {
+	tcd[itcd++] = zpln.indexc[ch*81 + cell];
+}
+
+int EVENTLOT::GenForTag(USHORT tag, WL_TYPE type,FLOG * EE) const {
+	for(int i = 0; i < itcd; i++) {
+		USHORT cand2 = tcd[i], tag2 = (cand2 << 1) ^ 1;
+		if(zcf.Isp(tag, tag2))
+			continue;// only if not yet defined
+		if(0 && (tag ==(tag2 ^ 1))) {
+			EE->E("gen contraire");
+			Image(EE);
+			return 1;
+		}
+
+		if(tag == tag2)
+			continue;// redundancy
+		if(type == wl_ev_direct)
+			zcf.LoadEventDirect(tag >> 1, cand2); 
+		else
+			zcf.LoadEventTag(tag, cand2);
+	}
+	return 0;
+}
+
+void EVENTLOT::Image(FLOG * EE) const {
+	EE->E(" evenlot itcd=");
+	EE->E(itcd);
+	for(int i = 0; i < itcd; i++) {
+		EE->Esp();
+		zpln.Image(tcd[i]);
+	}
+	EE->Enl();
+}
+
+             //============================
+
+
+void EVENT::Load(USHORT tage, EVENT_TYPE evt, const EVENTLOT & evb, const EVENTLOT & evx) {
+	tag = tage;
+	type = evt;
+	evl = evb;
+	ntcand = evx.itcd;
+	if(ntcand > 4)
+		ntcand = 4;
+	for(int i = 0; i < ntcand; i++)
+		tcand[i] = evx.tcd[i];
+}
+
+
+int EVENT::IsPattern (USHORT cand) const {
+	for(int i = 0; i < ntcand; i++)
+		if(cand == tcand[i])
+			return 1;
+		return 0;
+}
+
+
+void EVENT::Image(FLOG * EE) const {
+	if(!Op.ot)
+		return;
+	EE->E(" event image tag=");
+	EE->E(tag);
+	EE->E(" type=");
+	EE->E(type); 
+	for(int i = 0; i < ntcand; i++) {
+		EE->Esp();
+		zpln.Image(tcand[i]);
+	} 
+	evl.Image(EE);
+}
+void EVENT::ImageShort(FLOG * EE) const {
+	char * tlib[]={"pointing rc","pointing b","naked pair","hidden pair","Xwingr","Xwingc"};
+	if(!Op.ot)
+		return;
+	EE->E("\t event   ");
+	EE->E(tlib[type]); 
+	EE->E("\t\t");
+	for(int i = 0; i < ntcand; i++) {
+		EE->Esp();
+		zpln.Image(tcand[i]);
+	} 
+
+}
+               //================================
+
+void TEVENT::SetParent(PUZZLE * parent,FLOG * fl)
+{parentpuz=parent; 
+EE=fl;}
+
+/* we have found the 2 sets (EVENLOT) linked to the event
+   create the entry in the table TEVENT
+   if first set is more than one create entry in TSET
+   else generate directly conflicts for candidates in conflict
+        if they don't belong to the pattern 
+   evt event type
+   eva lot of candidates creating the event
+   evb lot of candidates not valid if the pattern is established
+   evx candidates of the pattern
+   */
+
+
+// initial seacrh with the priority to the first found
+void TEVENT::LoadAll() {
+	Init();
+	LoadLock();
+	LoadPairs();
+	LoadXW();
+}
+
+
+void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT & evx) {
+	if(eva.itcd < 1 || evb.itcd < 1)
+		return;
+	// if only one in the set, go to gen and return
+	if(eva.itcd == 1) {
+		USHORT cw = eva.tcd[0]; 
+		if(0 && Op.ot) {
+			EE->E("gen direct event type=");
+			EE->E(evt);
+			EE->Esp(); 
+			eva.Image(EE);
+			evb.Image(EE);
+			EE->Enl();
+		}
+		evb.GenForTag((cw << 1) ^ 1, wl_ev_direct,EE);
+		return;
+	}
+	if(eva.itcd > chx_max)
+		return; // forget if too big	 
+	if(it >= event_size) {
+		parentpuz->Elimite("TEVENT limite atteinte");
+		return;
+	}
+	USHORT evv = event_vi + (it);
+	t[it++].Load(evv, evt, evb, evx); 
+	eva.tcd[eva.itcd] = evv;
+	zcx.ChargeSet(eva.tcd, eva.itcd + 1, SET_set); // set loaded
+}
+
+ /* the event has been created by  "tagfrom" for the event "tagevent"
+    find the corresponding element in the talbe and generate the weak links
+	*/
+int TEVENT::EventSeenFor(USHORT tagfrom, USHORT tagevent) const {
+	USHORT candfrom = tagfrom >> 1, ind = tagevent - event_vi;  
+	if(ind < 1 || ind >= it)
+		return 0; // should never be
+	if(t[ind].IsPattern(candfrom))
+		return 0;// ?? do nothing if part of the pattern not 100% sure
+	if(t[ind].evl.GenForTag(tagfrom, wl_event,EE)) { // diag a supprimer
+		t[ind].Image(EE);
+		return 1;
+	} 
+	return 0; 
+}
+
+/* process to locate all potential XW
+   load the corresponding tags and sets
+   
+*/
+void TEVENT::LoadXW() {
+	for(int i1 = 0; i1 < 8; i1++) {
+		for(int j1 = 0; j1 < 8; j1++) {  // first cell
+			USHORT cell1 = I81::Pos(i1, j1);
+			if(T81t[cell1].v.ncand < 2)
+				continue;
+			for(int i2 = i1 + 1; i2 < 9; i2++) {
+				USHORT cell2 = I81::Pos(i2, j1);
+				if(T81t[cell2].v.ncand < 2)
+					continue;
+				BF16 ch2 = T81t[cell1].v.cand & T81t[cell1].v.cand;
+				if(!ch2.f)
+					continue; // must have at least a common digit
+				for(int j2 = j1 + 1; j2 < 9; j2++) {
+					USHORT cell3 = I81::Pos(i1, j2);
+					if(T81t[cell3].v.ncand < 2)
+						continue;
+					USHORT cell4 = I81::Pos(i2, j2);
+					if(T81t[cell4].v.ncand < 2)
+						continue;
+					BF16 cht = ch2 & T81t[cell3].v.cand & T81t[cell4].v.cand;
+					if(!cht.f)
+						continue; // must have at least a common digit
+					// we now explore all possible row and column XWings in that group
+					for(int ich = 0; ich < 9; ich++) {
+						if(cht.On(ich)) { // all possible digits
+							// build the row  and the column sets
+							EVENTLOT evr, evc, evx;
+							LoadXWD(ich, i1, i2, j1, j2, evr, evx);
+							if(!evr.itcd)
+								continue; // pure XWing
+							LoadXWD(ich, j1 + 9, j2 + 9, i1, i2, evc, evx); // now can not be a pure XWing
+							EventBuild(evxwcol, evr, evc, evx);
+							EventBuild(evxwrow, evc, evr, evx);
+						}
+					} //ich
+				} // j2
+			} // i2
+		} // j1
+	}// i1
+}
+
+/* we have identified an XW pattern
+   generate if any the set or the direct event weak links  */
+void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT & eva, EVENTLOT & evx) {
+	REGION_CELL el1d = puz.alt_index.tchbit.el[el1].eld[ch], el2d = puz.alt_index.tchbit.el[el2].eld[ch];
+	for(int i = 0; i < 9; i++)
+		if(el1d.b.On(i))
+			if((i - p1) && (i - p2))
+				eva.AddCand(divf.el81[el1][i], ch); 
+			else
+				evx.AddCand(divf.el81[el1][i], ch);
+	for(int i = 0; i < 9; i++)
+		if(el2d.b.On(i))
+			if((i - p1) && (i - p2))
+				eva.AddCand(divf.el81[el2][i], ch);
+			else
+				evx.AddCand(divf.el81[el2][i], ch);
+}
+
+void TEVENT::LoadPairs() { // all rows, columns, and boxes  
+	for(int iel = 0; iel < 27; iel++) {
+		// pick up 2 unknown cells in that region
+		for(int i1 = 0; i1 < 8; i1++) {
+			USHORT cell1 = divf.el81[iel][i1];
+			if(T81t[cell1].v.ncand < 2)
+				continue;
+			for(int i2 = i1 + 1; i2 < 9; i2++) {
+				USHORT cell2 = divf.el81[iel][i2];
+				if(T81t[cell2].v.ncand < 2)
+					continue;
+				LoadPairsD(cell1, cell2, iel);
+			}
+		} // end i1;i2
+	}// end iel
+}
+// work on a pair 
+void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
+	BF16 ch2 = T81t[cell1].v.cand & T81t[cell2].v.cand,
+		chor = T81t[cell1].v.cand | T81t[cell2].v.cand; // pour traiter le cas 1 commun
+	if(ch2.QC() < 2)
+		return; // non il faudrait aussi accepter 1 commun à revoir
+	// nothing to do if box/row and box/col (already done)
+	CELL_FIX p1 = t81f[cell1], p2=t81f[cell2];
+	if(iel > 17 && ((p1.el == p2.el) || (p1.pl == p2.pl)))
+		return;
+	for(int i1 = 0; i1 < 8; i1++) {
+		if(!ch2.On(i1)) 
+			continue;
+		for(int i2 = i1 + 1; i2 < 9; i2++) {
+			if(!ch2.On(i2))
+				continue;
+			//all pairs must be processed
+			// buid the set for nacked pair	 
+			EVENTLOT nack, hid1, hid2, evx; 
+			BF16 com(i1, i2), v1 = T81t[cell1].v.cand, v2 = T81t[cell2].v.cand;
+			for(int j = 0; j < 9; j++) {
+				if(v1.On(j))
+					if(com.On(j))
+						evx.AddCand(cell1, j);
+					else
+						nack.AddCand(cell1, j);
+				if(v2.On(j))
+					if(com.On(j))
+						evx.AddCand(cell2, j);
+					else
+						nack.AddCand(cell2, j);
+			}
+			// build the set for hidden pair in el and generate the event
+			PairHidSet(cell1, cell2, iel, com, hid1);
+			if(nack.itcd <= chx_max)
+				EventBuild(evpairnacked, nack, hid1, evx);
+			if(hid1.itcd <= chx_max)
+				EventBuild(evpairhidden, hid1, nack, evx);
+
+			// if el is row col and same box, do it as well for the box
+			if(iel > 17 || (p1.eb - p2.eb))
+				continue;
+			PairHidSet(cell1, cell2, p2.eb + 18, com, hid2);
+			if(nack.itcd <= chx_max)
+				EventBuild(evpairnacked, nack, hid2, evx);
+			if(hid2.itcd <= chx_max)
+				EventBuild(evpairhidden, hid2, nack, evx);
+		}
+	}
+}
+
+void TEVENT::PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLOT & hid) {
+	for(int i = 0; i < 9; i++) {
+		int cell = divf.el81[el][i];
+		if((cell == cell1) || (cell == cell2))
+			continue;
+		CELL_VAR p = T81t[cell].v;
+		if(p.ncand < 2)
+			continue;
+		BF16 w = p.cand&com;
+		if(!w.f)
+			continue;
+		for(int j = 0; j < 9; j++)
+			if(w.On(j))
+				hid.AddCand(cell, j);
+	}
+}
+
+/* prepare all claiming pointing sets
+   to be done in each row/box row/col if there is a digit not locked
+*/
+
+void TEVENT::LoadLock() {
+	for(int iel = 0; iel < 18; iel++) {
+		for(int ib = 18; ib < 27; ib++) {
+			for(int ich = 0; ich < 9; ich++) {
+				BF81 chel = divf.elz81[iel] & puz.c[ich];  // the elem pattern for the ch
+				if(chel.IsEmpty())
+					continue; // nothing  
+				BF81 chbcom = chel & divf.elz81[ib]; // common part with the block
+				if(chel == chbcom)
+					continue; //  already locked
+				if(chbcom.Count() < 2)
+					continue; // nothing to do I guess
+				chel -= chbcom; // set in row col
+				BF81 chb = (divf.elz81[ib] & puz.c[ich]) - chbcom; // set in box
+
+				// check what does SE if evrc,evb,evx all one candidate ?? 
+
+				EVENTLOT evrc(chel, ich), evb(chb, ich), evx(chbcom, ich);
+				EventBuild(evlockrc, evrc, evb, evx);
+				EventBuild(evlockbox, evb, evrc, evx);
+			}
+		}
+	}
+}
+
+/* code for preliminary tests
+ status of table after having loaded events
+ */
+void TEVENT::LoadFin() {
+	if(!Op.ot)
+		return;
+
+	EE->E("check after having loaded events nb events=");
+	EE->Enl(it);
+	EE->E("zcx izc=");
+	EE->Enl(zcx.izc);
+	for(int i = 1; i < it; i++) {
+		EVENT ev = t[i]; 
+		EE->E("ev type=");
+		EE->E(ev.type);
+		EE->E(" tag=");
+		EE->E(ev.tag);
+		for(int j = 0; j < ev.ntcand; j++) {
+			EE->Esp();
+			zpln.Image(ev.tcand[j]);
+		}
+		ev.evl.Image(EE);
+	}
+	zcx.Image();
+}
 
