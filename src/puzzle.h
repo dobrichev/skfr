@@ -1123,6 +1123,221 @@ public:
 	void LoadFin(); // only for debugging purpose
 }; //tevent;
 
+// class defined to handle Unique rectangles and Unique loops
+// the search for URs is started in TCELL , locating potential URs
+// That class is called by TCELL 
+
+class SEARCH_UR {
+public:     //on ne traite que deux communs. 
+	PUZZLE * parentpuz;
+	FLOG * EE;
+	CELL *ta, *tr; // ta action, tr recherche 
+	REGION_INDEX * tchel;
+	BF16 wc, wou, wr;   
+	int ia, ib, ic, id, deux[4], plus[9], pp1, pp2, // voir pourquoi plus est 9
+		ndeux, nplus, nwc, ch1, ch2, chc1, chc2, nautres, diag, rating;
+
+	// data specific to common processing UR/UL (need sub routines)
+	int th[10], td[10], tnh[10], nth, ntd, nnh, aig_hid;
+	BF16 wh, wd, wnh, wnd, wdp;
+	BF81 zwel; // to prepare clearing of naked sets
+
+	void SetParent(PUZZLE * parent,FLOG * fl,
+		 CELL * tae, CELL * tre,
+		 REGION_INDEX * tchele);
+
+
+
+	//==================================================
+	// main subroutines RID is the first entry
+	int RIDx(int l1, int l2, int c1, int c2);  // entry : a potential UR to check
+	int RID2(int rat);
+	int RID3();
+
+	// short functions called by the mains ones
+
+	int GetElPlus();
+	int IsDiag();
+	int Setw() {
+		wc = tr[ia].v.cand & tr[ib].v.cand & tr[ic].v.cand & tr[id].v.cand;   
+		nwc = wc.QC();
+		return nwc;
+	}
+	int Setwou() {
+		wou = tr[ia].v.cand | tr[ib].v.cand | tr[ic].v.cand | tr[id].v.cand;
+		wr = wou ^ wc;
+		nautres = wr.QC();
+		return nautres;
+	}
+
+	void CalDeuxd(int i) {
+		if((tr[i].v.cand - wc).f)
+			plus[nplus++] = i;
+		else
+			deux[ndeux++] = i;
+	}
+	void CalcDeux() {
+		ndeux = nplus = 0;
+		CalDeuxd(ia);
+		CalDeuxd(ib);
+		CalDeuxd(ic);
+		CalDeuxd(id);
+		pp1 = plus[0];
+		pp2 = plus[1];
+	}
+
+	inline int Jum(USHORT el, USHORT ch) {
+		if(tchel[el].eld[ch].n == 2)
+			return 1;
+		return 0;
+	}
+	int Jumeau(USHORT a,USHORT b,USHORT ch);
+
+	int GetJJDir(USHORT a, USHORT b, USHORT c, USHORT d, int ch) {
+		int ok = Jumeau(a, b, ch);
+		ok += Jumeau(b, d, ch) << 1;
+		ok += Jumeau(c, d, ch) << 2;
+		ok += Jumeau(a, c, ch) << 3;
+		return ok;
+	} 
+	int GetJJDir(int ch){ int ok=Jumeau(ia,ib,ch); ok+=Jumeau(ib,id,ch)<<1;
+	ok+=Jumeau(ic,id,ch)<<2;ok+=Jumeau(ia,ic,ch)<<3; return ok;}
+
+	void GenCh(){BF16 ww=wr;ch1=ww.First(); ww.Clear(ch1);ch2=ww.First();
+	ww=wc;chc1=ww.First(); ww.Clear(chc1);chc2=ww.First();}
+
+	BF81 GetZ(){BF81 zw(ia,ib);zw.Set(ic);zw.Set(id);return zw;} // le BF81 des 4 points
+
+	void ImageRI(char * lib,USHORT a);
+	void ImageRI(char * lib);
+
+	// look for pseudo locked set in a unique loop
+	int StartECbi(USHORT p1, USHORT p2, BF16 com, int action) {
+		pp1 = p1;
+		pp2 = p2;
+		wc = com;
+		chc1 = com.First();
+		com.Clear(chc1);
+		chc2 = com.First();
+		wr = (ta[p1].v.cand | ta[p2].v.cand) - wc;
+		nautres = wr.QC();
+		return T2(action);
+	}
+
+	int T2(USHORT action);
+	int T2_el(USHORT el,USHORT action);
+	int T2_el_set(USHORT len);// if len =0 get len if len>0 go
+	int T2_el_set_nacked(USHORT len);
+	int T2_el_set_hidden(USHORT len);
+	int T2_el_set_nack_pair();
+	//! TO BE DOCUMENTED !
+	// provides a print form of the cells iset to 1  in the field
+	// combine rows and column when possible eg : r12c3 r5c678
+
+
+};
+
+// SEARCH_URT is a table storing possible UR type other than 1 for further processing
+class SEARCH_URT {
+public:
+	SEARCH_UR tur[20];  
+	int n;
+
+	void Init(){
+		n=0;
+	}
+	void Store(SEARCH_UR *x) {
+		if(n < 20)
+			tur[n++] = (*x);
+	}
+	int Traite(int rat) {
+		int irat = rat - 44;
+		if(irat < 2 || irat > 4)
+			return 0;
+		// EE.E("recherche UR rating =");EE.E(rat);EE.E(" pour irat=");EE.Enl(irat);
+		for(int i = 0; i < n; i++)
+			if( tur[i].T2(irat) == 1) {
+				tur[i].ImageRI(" action from object");
+				return 1;
+			}	
+			return 0;
+	}
+};
+
+
+class UL_SEARCH {
+public:
+	TPAIRES * tpa;          // calling TPAIRES
+	PAIRES * pa;            // subtable in TPAIRES::zpt for processed bivalue
+	PUZZLE * parentpuz;
+	FLOG * EE;
+	USHORT npa;             // size of pa for that bivalue 
+	BF32 el_used,parity;   // to chexk Used sets 
+	BF81 cells;            // to check used cells 
+	BF16 chd,cht;          // starting pair ; total digits included
+	USHORT nadds,adds[8],   // cells with more digits
+		tcount[40],      // storing the list or cells forming the loop 
+		c1,c2,           // the 2 digits
+		elcpt[27],       // count per elem
+		last,            // last cell number
+		line_count;      // must end with more than 4 to have a valid UL (not a UR)
+	CELL_FIX  p;            // last cell row col box 
+	UL_SEARCH() {}      // empty constructor for the storing table below
+	UL_SEARCH(UL_SEARCH * old) {
+		(*this) = (*old);
+	}
+	UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,
+		      PUZZLE * parent,FLOG * xx );
+	void Copie(UL_SEARCH &x) {
+		(*this) = x;
+	}
+	void Set(int i8);  //a new cell is added to the search
+	int Add_Chain(int i8);
+	int Loop_OK(int action = 0); 
+	int Is_OK_Suite(USHORT i8);
+	int El_Suite(USHORT el);
+	void UL_Mess(char * lib, int pr);
+private:
+	// Check if the loop has more than 0 solutions by parity
+	bool ParityCheck(void);
+};
+
+// ULT is a table storing possible UL rating more than 4.6 for further processing
+class ULT {
+public:
+	UL_SEARCH ult[20];  
+	int n;
+	void Init() {
+		n=0;
+	}
+	void Store(UL_SEARCH &x) {
+		if(n < 20)
+			ult[n++].Copie(x);
+	}
+	// the processing is lenght dependant
+	int Traite(int rat) {
+		// up to 6 cells basis=4.6 (+0.1)  7_8 cells 4.7 (+0.2)  10_.. 4.8 (+0.3)
+		//EE.E("recherche UL rating =");EE.E(rat);EE.E(" n=");EE.Enl(n);
+		for(int i = 0; i < n; i++) {
+			int len = ult[i].line_count, irat, rbase = 46;	
+			if(len > 7)
+				rbase++;
+			if(len > 9)
+				rbase += 3;//  ?? what is the rule  ??
+			// now the relative difficulty for loop_ok nand UR common processing
+			irat = rat - rbase + 1;
+			if(irat < 1 || irat > 4)
+				continue;		
+			if(ult[i].Loop_OK(irat))
+				return 1; 
+		}
+		return 0;
+	}
+};
+
+
+
+
 #define pasmax 70
 
 class PUZZLE
@@ -1136,7 +1351,9 @@ public:
     CELLS tp8N,		tp8N_cop;  
     TPAIRES zpaires;
 	TEVENT tevent;
-
+    SEARCH_UR ur;
+    SEARCH_URT urt;
+	ULT tult;
 
 //	ZGROUPE zgs();
 
@@ -1300,6 +1517,8 @@ public:
 	}
     int TraiteLocked(int rating);  // start for locked in row,cil,box
     int TraiteLocked2(int eld, int elf); // detail for ratings 2.6  2.8
+
+
     void PKInit() {
 		couprem = 0;
 	}
@@ -1374,209 +1593,6 @@ private:
 	int FaitGo(int i8,char c1,char c2);
 };
 
-
-class UL_SEARCH {
-public:
-	TPAIRES * tpa;          // calling TPAIRES
-	PAIRES * pa;            // subtable in TPAIRES::zpt for processed bivalue
-	FLOG * EE;
-	USHORT npa;             // size of pa for that bivalue 
-	BF32 el_used,parity;   // to chexk Used sets 
-	BF81 cells;            // to check used cells 
-	BF16 chd,cht;          // starting pair ; total digits included
-	USHORT nadds,adds[8],   // cells with more digits
-		tcount[40],      // storing the list or cells forming the loop 
-		c1,c2,           // the 2 digits
-		elcpt[27],       // count per elem
-		last,            // last cell number
-		line_count;      // must end with more than 4 to have a valid UL (not a UR)
-	CELL_FIX  p;            // last cell row col box 
-	UL_SEARCH() {}      // empty constructor for the storing table below
-	UL_SEARCH(UL_SEARCH * old) {
-		(*this) = (*old);
-	}
-	UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,FLOG * xx );
-	void Copie(UL_SEARCH &x) {
-		(*this) = x;
-	}
-	void Set(int i8);  //a new cell is added to the search
-	int Add_Chain(int i8);
-	int Loop_OK(int action = 0); 
-	int Is_OK_Suite(USHORT i8);
-	int El_Suite(USHORT el);
-	void UL_Mess(char * lib, int pr);
-private:
-	// Check if the loop has more than 0 solutions by parity
-	bool ParityCheck(void);
-};
-
-// ULT is a table storing possible UL rating more than 4.6 for further processing
-class ULT {
-public:
-	UL_SEARCH ult[20];  
-	int n;
-	void Init() {
-		n=0;
-	}
-	void Store(UL_SEARCH &x) {
-		if(n < 20)
-			ult[n++].Copie(x);
-	}
-	// the processing is lenght dependant
-	int Traite(int rat) {
-		// up to 6 cells basis=4.6 (+0.1)  7_8 cells 4.7 (+0.2)  10_.. 4.8 (+0.3)
-		//EE.E("recherche UL rating =");EE.E(rat);EE.E(" n=");EE.Enl(n);
-		for(int i = 0; i < n; i++) {
-			int len = ult[i].line_count, irat, rbase = 46;	
-			if(len > 7)
-				rbase++;
-			if(len > 9)
-				rbase += 3;//  ?? what is the rule  ??
-			// now the relative difficulty for loop_ok nand UR common processing
-			irat = rat - rbase + 1;
-			if(irat < 1 || irat > 4)
-				continue;		
-			if(ult[i].Loop_OK(irat))
-				return 1; 
-		}
-		return 0;
-	}
-};
-
-
-// class defined to handle Unique rectangles and Unique loops
-// the search for URs is started in TCELL , locating potential URs
-// That class is called by TCELL 
-
-class SEARCH_UR {
-public:     //on ne traite que deux communs. 
-	static CELL *ta, *tr; // ta action, tr recherche 
-	static REGION_INDEX * tchel;
-	BF16 wc, wou, wr;   
-	int ia, ib, ic, id, deux[4], plus[9], pp1, pp2, // voir pourquoi plus est 9
-		ndeux, nplus, nwc, ch1, ch2, chc1, chc2, nautres, diag, rating;
-
-	// data specific to common processing UR/UL (need sub routines)
-	int th[10], td[10], tnh[10], nth, ntd, nnh, aig_hid;
-	BF16 wh, wd, wnh, wnd, wdp;
-	BF81 zwel; // to prepare clearing of naked sets
-
-	SEARCH_UR();	 // constructor
-
-	// short functions called by the mains ones
-
-	int GetElPlus();
-	int IsDiag();
-	int Setw() {
-		wc = tr[ia].v.cand & tr[ib].v.cand & tr[ic].v.cand & tr[id].v.cand;   
-		nwc = wc.QC();
-		return nwc;
-	}
-	int Setwou() {
-		wou = tr[ia].v.cand | tr[ib].v.cand | tr[ic].v.cand | tr[id].v.cand;
-		wr = wou ^ wc;
-		nautres = wr.QC();
-		return nautres;
-	}
-
-	void CalDeuxd(int i) {
-		if((tr[i].v.cand - wc).f)
-			plus[nplus++] = i;
-		else
-			deux[ndeux++] = i;
-	}
-	void CalcDeux() {
-		ndeux = nplus = 0;
-		CalDeuxd(ia);
-		CalDeuxd(ib);
-		CalDeuxd(ic);
-		CalDeuxd(id);
-		pp1 = plus[0];
-		pp2 = plus[1];
-	}
-
-	inline int Jum(USHORT el, USHORT ch) {
-		if(tchel[el].eld[ch].n == 2)
-			return 1;
-		return 0;
-	}
-	int Jumeau(USHORT a,USHORT b,USHORT ch);
-
-	int GetJJDir(USHORT a, USHORT b, USHORT c, USHORT d, int ch) {
-		int ok = Jumeau(a, b, ch);
-		ok += Jumeau(b, d, ch) << 1;
-		ok += Jumeau(c, d, ch) << 2;
-		ok += Jumeau(a, c, ch) << 3;
-		return ok;
-	} 
-	int GetJJDir(int ch){ int ok=Jumeau(ia,ib,ch); ok+=Jumeau(ib,id,ch)<<1;
-	ok+=Jumeau(ic,id,ch)<<2;ok+=Jumeau(ia,ic,ch)<<3; return ok;}
-
-	void GenCh(){BF16 ww=wr;ch1=ww.First(); ww.Clear(ch1);ch2=ww.First();
-	ww=wc;chc1=ww.First(); ww.Clear(chc1);chc2=ww.First();}
-
-	BF81 GetZ(){BF81 zw(ia,ib);zw.Set(ic);zw.Set(id);return zw;} // le BF81 des 4 points
-
-	void ImageRI(char * lib,USHORT a);
-	void ImageRI(char * lib);
-
-	// look for pseudo locked set in a unique loop
-	int StartECbi(USHORT p1, USHORT p2, BF16 com, int action) {
-		pp1 = p1;
-		pp2 = p2;
-		wc = com;
-		chc1 = com.First();
-		com.Clear(chc1);
-		chc2 = com.First();
-		wr = (ta[p1].v.cand | ta[p2].v.cand) - wc;
-		nautres = wr.QC();
-		return T2(action);
-	}
-
-	int T2(USHORT action);
-	int T2_el(USHORT el,USHORT action);
-	int T2_el_set(USHORT len);// if len =0 get len if len>0 go
-	int T2_el_set_nacked(USHORT len);
-	int T2_el_set_hidden(USHORT len);
-	int T2_el_set_nack_pair();
-	//==================================================
-	// main subroutines
-	int RID(int l1, int l2, int c1, int c2);  // entry : a potential UR to check
-	int RID2(int rat);
-	int RID3();
-	//! TO BE DOCUMENTED !
-	// provides a print form of the cells iset to 1  in the field
-	// combine rows and column when possible eg : r12c3 r5c678
-
-
-};
-
-// SEARCH_URT is a table storing possible UR type other than 1 for further processing
-class SEARCH_URT {
-public:
-	SEARCH_UR tur[20];  
-	int n;
-
-	void Init() {
-		n = 0;
-	}
-	void Store(SEARCH_UR *x) {
-		if(n < 20)
-			tur[n++] = (*x);
-	}
-	int Traite(int rat) {
-		int irat = rat - 44;
-		if(irat < 2 || irat > 4)
-			return 0;
-		// EE.E("recherche UR rating =");EE.E(rat);EE.E(" pour irat=");EE.Enl(irat);
-		for(int i = 0; i < n; i++)
-			if( tur[i].T2(irat) == 1) {
-				tur[i].ImageRI(" action from object");
-				return 1;
-			}	
-			return 0;
-	}
-};
 
 
 // file _20a_event.h end
@@ -1717,9 +1733,6 @@ extern CELL_FIX *t81f;			//pointer to speed up the process
 extern DIVF divf;
 
 extern PUZZLE puz;
-extern ULT tult;
-extern SEARCH_UR ur;
-extern SEARCH_URT urt;
 extern ZGROUPE zgs;
 extern CANDIDATES zpln;
 extern INFERENCES zcf;

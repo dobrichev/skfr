@@ -59,9 +59,7 @@ CELLS *T81C;		//standard names for main objects of the class
 CELL *T81t;
 CELL *T81tc;		//and corresponding tables of cells  
                     // the corresponding tables are located in class PUZZLE
-ULT tult;
-SEARCH_UR ur;
-SEARCH_URT urt;
+
 CANDIDATES zpln(&puz);
 INFERENCES zcf(&puz);
 SETS_BUFFER zcxb(&puz);

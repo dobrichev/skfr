@@ -36,6 +36,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
             <<<<<<  ZGS table   >>>>>>
             <<<<<<  UL_SEARCH module   >>>>>>
             <<<<<< EVENT family classes >>>>>>>>>>
+            <<<<< SEARCH_UR >>>>>>>>>>>>>>>>
 
 
 /*              <<<<<<  TCHAIN module   >>>>>>
@@ -581,7 +582,7 @@ void CELLS::Candidats() {
 
 int CELLS::RIN(int aig) {      // look for unique rectangle 
 	int ir=0;
-	urt.Init();
+	parentpuz->urt.Init();
 	for(int i0 = 0; i0 < 3; i0++) // band/stack 1 to 3
 		for(int i1 = 0; i1 < 2; i1++)
 			for(int i2 = i1 + 1; i2 < 3; i2++) // 2 rows  
@@ -590,8 +591,10 @@ int CELLS::RIN(int aig) {      // look for unique rectangle
 						for(int j3 = 0; j3 < 3; j3++)
 							for(int j4 = 0; j4 < 3; j4++) {  // 2 cols  
 								//analysing band and stack, main diagonal symmetry
-								int l1 = 3 * i0 + i1, l2 = 3 * i0 + i2, c1 = 3 * j1 + j3, c2 = 3 * j2 + j4;
-								if(ur.RID(l1, l2, c1, c2) || ur.RID(c1, c2, l1, l2))
+								int l1 = 3 * i0 + i1, l2 = 3 * i0 + i2, 
+									c1 = 3 * j1 + j3, c2 = 3 * j2 + j4;
+								if(parentpuz->ur.RIDx(l1, l2, c1, c2) || 
+								   parentpuz->ur.RIDx(c1, c2, l1, l2))
 									ir++;
 							}
 	return ir;
@@ -614,14 +617,63 @@ int CELLS::RIN(int aig) {      // look for unique rectangle
  EE=xx;
 }
 
+ 
+void TPAIRES::CreerTable(const CELL * tt) {
+	ip = 0;
+	ntplus = aigpmax = 0;
+	zplus.SetAll_0();
+	for(int i = 0; i < 81; i++) {
+		int n = tt[i].v.ncand;
+		if(n == 2) {
+			zp[ip].Charge(tt[i]);
+			zpt[ip] = zp[ip++];
+		}
+		else if(n > 2) {
+			if(ntplus < 8) {
+				tplus[ntplus] = i;//direct access to first plus cells
+				ntplus++;
+				zplus.Set(i);
+			}
+			if(n > aigpmax)
+				aigpmax = n;
+		}
+	}
+	// now sorting the table zpt for the search of UR/UL 
+	for(int i = 0; i < ip - 1; i++) {
+		for(int j = i + 1; j < ip; j++) {
+			if(zpt[j].pa.f<zpt[i].pa.f ||(zpt[j].pa.f == zpt[i].pa.f && zpt[j].i8<zpt[i].i8)) {
+				PAIRES temp = zpt[i];
+				zpt[i] = zpt[j];
+				zpt[j] = temp;
+			}
+		}
+	}
+	// and final entries in tp izpd izpf
+	np = 0;
+	if(!ip)
+		return;
+	tp[0] = zpt[0].pa;
+	izpd[0] = 0;
+	for(int i = 1; i < ip; i++) {
+		if(zpt[i].pa.f == tp[np].f)
+			continue;
+		izpd[++np] = i;
+		tp[np] = zpt[i].pa;
+	}
+	izpd[++np] = ip;
+}
+
+
+
+
 //====================================
 int TPAIRES::UL() {
 	int ir = 0;
-	tult.Init();
+	parentpuz->tult.Init();
 	for(int i = 0; i < np; i++) {
 		USHORT id = izpd[i], ie = izpd[i + 1];
 		// EE->Enl("un depart paire");
-		UL_SEARCH uls(tp[i], this, &zpt[id], ie - id,EE); //build search 
+		UL_SEARCH uls(tp[i], this, &zpt[id], ie - id,parentpuz,EE); //build search 
 		for(int j = id; j < ie - 1; j++) {
 			for(int k = j + 1; k < ie; k++) {
 				USHORT i1 = zpt[j].i8, i2 = zpt[k].i8;
@@ -1172,8 +1224,10 @@ each occurence is normally stored for further processins
 // constructor to start a UL search
 
 
-UL_SEARCH::UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,FLOG * xx ) {
+UL_SEARCH::UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,
+	                PUZZLE * parent,FLOG * xx ) {
 		// initial for a new start
+		parentpuz=parent;
 		EE=xx;
 		tpa = tpae;
 		pa = pae;
@@ -1320,7 +1374,7 @@ int UL_SEARCH::Loop_OK(int action) {
 		return 0;
 	if(!action) // split processing depending on size of the loop
 		if(line_count>7) {
-			tult.Store(*this);
+			parentpuz->tult.Store(*this);
 			return 0;
 		}
 		else
@@ -1350,7 +1404,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	if(nadds == 2) { // type 2;3;4 must be same object 
 		if(!(t81f[adds[0]].ObjCommun(&t81f[adds[1]])))
 			return 0;	
-		int ir = ur.StartECbi(adds[0], adds[1], chd, action);
+		int ir = parentpuz->ur.StartECbi(adds[0], adds[1], chd, action);
 		if(ir == 1)
 		{UL_Mess("action UL / 2 cells)", 1);
 		return 1;
@@ -1358,7 +1412,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	}
 	// store it if action 0 
 	if(action < 2) {
-		tult.Store(*this);
+		parentpuz->tult.Store(*this);
 		return 0;
 	}
 
@@ -1774,4 +1828,447 @@ void TEVENT::LoadFin() {
 	}
 	zcx.Image();
 }
+
+/*                  <<<<< SEARCH_UR >>>>>>>>>>>>>>>>
+
+this is a class used to searhc ( and store) URs
+
+*/
+
+
+void SEARCH_UR::SetParent(PUZZLE * parent , FLOG * xx,
+	               CELL * tae, CELL * tre,
+				   REGION_INDEX * tchele ) {	
+    parentpuz=parent;
+	EE=xx;
+	ta = tae;
+	tr = tre;
+	tchel = tchele;
+}
+
+int SEARCH_UR::GetElPlus() {
+	return tp81f.GetLigCol(pp1,pp2);
+} // assuming nplus=2
+
+int SEARCH_UR::IsDiag() {
+	if(divf.IsObjet(deux[0],deux[1]))
+		diag=0;
+	else
+		diag = 1;
+	return diag;
+}
+
+int SEARCH_UR::Jumeau(USHORT a,USHORT b,USHORT ch) {
+	USHORT el = tp81f.GetLigCol(a,b);
+	return Jum(el, ch);
+}
+
+void SEARCH_UR::ImageRI(char * lib,USHORT a) {
+	EE->E(lib);
+	EE->E(tr[a].f->pt);
+	EE->E(" ");
+	EE->E(tr[a].scand);
+}
+
+void SEARCH_UR::ImageRI(char * lib) {
+	if(!Op.ot) return;
+	EE->E( "->UR" );
+	EE->E(lib);
+	ImageRI(" P1=", ia);
+	ImageRI(" P2=", ib);
+	ImageRI(" P3=", ic);
+	ImageRI(" P4=", id);
+	EE->Enl();
+}
+
+//former _05a_rin_el.cpp follows
+
+/* full processing for 2 cells with adds in one object UR or UL
+   can be bivalue, "hidden locket set" or "locked set"
+   always the lowest rating found
+   the rule has been copied from SE code analysis adjusted to lksudokuffixed8 veersion.
+   here "basis" is the rating entry for the specific object
+       UR basi=4.5 
+       UL up to 6 cells basis=4.6 (+0.1)  7_8 cells 4.7 (+0.2)  10_.. 4.8 (+0.3)
+   basis        one digit bivalue
+   basis +0.1 (n-1) hidden/nacked sets of "n" cells
+
+   for hidden and naked sets, the lowest rating is taken depending on "n" values 
+
+summary of rating having "equalled" hidden and naked as in lksudoku 1.2.5.0
+
+ URUL 
+ cells -->  4    6    8   >=10
+
+ pair     4.6  4.7  4.8  4.9    action 2
+ triplet  4.7  4.8  4.9  5.0    action 3
+ quad     4.8  4.9  5.0  5.1    action 4
+
+
+*/
+int SEARCH_UR::T2(USHORT action) {
+	int ir1 = 0, ir2 = 0, iel = GetElPlus();
+	if(iel >= 0) {
+		ir1 = T2_el(iel, action);
+		if(ir1 == 1)
+			return 1;
+	}
+	int eb = t81f[pp1].eb;
+	if(eb == t81f[pp2].eb)
+		ir2 = T2_el(eb + 18, action);
+	if(ir2 == 1)
+		return 1;
+	if((ir1 + ir2) == 0)
+		return 0;
+	else
+		return 2;
+}
+
+// same but el is now identified 
+int SEARCH_UR::T2_el(USHORT el, USHORT action) {
+	//look mode 1 for a bivalue of one of the common digits
+	if(0) {
+		ImageRI("");
+		EE->E("UR/UL el ");
+		EE->E(el + 1);
+		EE->E(" action=");
+		EE->E(action);
+		EE->E(" pp1=");
+		EE->E(t81f[pp1].pt);
+		EE->E(" pp2=");
+		EE->Enl(t81f[pp2].pt);
+	}
+	if(action == 1) { //   this is a "basis"  
+		if(Jum(el, chc1)) {
+			int ir1 = T81t[pp1].Changex(chc2) + T81t[pp2].Changex(chc2);
+			if(ir1) {
+				EE->E("UR/UL bivalue ");
+				EE->Enl(chc1+1);
+				return 1;
+			}
+		}
+		else if(Jum(el,chc2)) {
+			int ir1 = T81t[pp1].Changex(chc1) + T81t[pp2].Changex(chc1);
+			if(ir1) {
+				EE->E("UR/UL bivalue ");
+				EE->Enl(chc2 + 1);
+				return 1;
+			}
+		}
+	}
+
+	// first look  for cells having a potential for hidden/direct locked sets
+	int ir = 0;
+	aig_hid = 0;
+	nth = ntd = nnh = 0;
+	wh = wc;
+	wd = wr;
+	wnh = wr;
+	wnd = wc;
+	wdp.f = 0;
+	zwel.SetAll_0(); // to prepare clearing of naked sets
+	for(int i = 0; i < 9; i++) {
+		int ppi = divf.el81[el][i];
+		if((ppi == pp1) || (ppi == pp2))
+			continue;
+		CELL_VAR v = T81t[ppi].v;
+		if(v.typ)
+			continue; // given or assigned 
+		// count and store cells including common digits 
+		zwel.Set(ppi);//will contain all active cells out of the UR at the end
+		BF16 ww = v.cand & wc;
+		if(ww.f) {
+			th[nth++] = ppi;
+			wh |= v.cand;
+			if(ww.f == wc.f)
+				aig_hid = 1;
+		} 
+		else { // naked locked set  can not have common digits	  
+			wnh |= v.cand; 
+			tnh[nnh++] = ppi; // nnh to check at least one cell without common digits
+			ww = v.cand & wr; 
+			if(ww.f) {
+				td[ntd++] = ppi;
+				wd |= v.cand;
+			}
+			else
+				wnd |= v.cand;
+		}
+	}
+	//ImageRI(" ");EE->E(" nth=");EE->E(nth );EE->E(" wh=");EE->Enl(wh.String() );
+
+	if(!nnh)
+		return 0;//all cells have common digits nothing to do
+
+	//EE->E(" nth=");EE->E(nth );EE->E(" nnh=");EE->E(nnh );EE->E(" nd=");EE->Enl(ntd );
+
+	if(action < 2)
+		return 2; // store it if not basic
+	//  hidden pair 
+	if(nth < 2 && (action == 2)) {  //  hidden pair if active
+		if(T81t[th[0]].Keepy(wc)) {
+			EE->Enl("UR/UL hidden pair");
+			return 1;
+		}
+	}
+
+	// we now look  for  a hidden or nacked set of the appropriate length
+
+	if(T2_el_set_hidden(action - 1))
+		return 1;
+	if(T2_el_set_nacked(action - 1))
+		return 1;
+	return 0;
+}
+
+//former _05a_rin_el2.cpp follows
+
+// we are now looking for nacked or hidden sets not  pair
+// we have not so many possible patterns, 
+// we try to catch them per pattern
+// it need more code, but it should be faster and easier to debug
+
+// look for hidden  
+int SEARCH_UR::T2_el_set_hidden(USHORT len)
+{	// first pattern, take it if direct 
+ if(nth==len)   // not the expected length
+ { // identify extra digits in hidden locked set
+ BF16 whh=wh-wnh;  // all digits of the assumed locked set
+ if(whh.QC()-(nth+1)) return 0;
+ //go for the a hidden set if active
+  int ir1=0;
+  for(int i=0;i<nth;i++)  ir1+=T81t[th[i]].Keepy(whh); 
+  if(ir1) { EE->E("UR/UL hls whh="); EE->Enl(whh.String());
+	       EE->Enl("UR/UL hidden locked set"); return 1;}	
+ }
+ if(nth==2 && len==3) 
+// second pattern with nth=2 but a hidden quad 
+// adding another cell
+ {	for(int i=0;i<nnh;i++)
+   {BF16 wa=wh|T81t[tnh[i]].v.cand,wb,wx;
+    for(int j=0;j<nnh;j++) if(j-i) wb|=T81t[tnh[j]].v.cand;
+	wx=wa-wb-wr; // must not be an extra digit included in the UR
+	if(wx.QC()==4) // we got it
+	{int ir1=0; ir1+=T81t[tnh[i]].Keepy(wx);
+     for(int k=0;k<nth;k++)  ir1+=T81t[th[k]].Keepy(wx); 
+     if(ir1) { EE->E("UR/UL hls wx="); EE->Enl(wx.String());
+	       EE->Enl("UR/UL hidden locked set"); return 1;}	
+	}
+   }
+ }
+
+return 0;}
+
+// look for nacked sets n
+int SEARCH_UR::T2_el_set_nacked(USHORT len)
+ {if(ntd<(nautres-1)) return 0;  // minimum without extra digit
+
+ if(ntd && (nautres==2)&&(len==1)) // look for a nacked pair
+  {for(int i=0;i<ntd;i++) 
+   {int i8=td[i];BF16 ww=T81t[i8].v.cand;  
+    if( ww.f==wr.f) // we got it     
+	{ BF81 zwel1=zwel; zwel1.Clear(i8);
+	  if(T81->Clear(zwel1,wr  ))
+		{ EE->Enl("UR/UL nacked pair");return 1;}
+	}}
+  }
+
+ if(len<2) return 0;// nothing else if a pair is expected
+if(0) { EE->E("look for nacked len ="); EE->E( len);
+          EE->E(" nnh ="); EE->Enl( nnh);}
+// first   pattern is nacked triplet no extra digit
+if(nautres==3 && ntd>2 && len==2)
+ { BF81 zwel1=zwel; int n=0;  
+   for (int i=0;i<ntd;i++)      if(!(T81t[td[i]].v.cand-wr).f)  
+	                           { n++; zwel1.Clear(td[i]);}
+   if(n==2 && T81->Clear(zwel1,wr  ))
+		       { EE->Enl("UR/UL nacked LS3");return 1;}
+ }
+
+// second  pattern : directly correct (may be with extra digit)
+if(((ntd+1)==wd.QC())  && (len== ntd))
+ { BF81 zwel1=zwel; 
+   for (int i=0;i<ntd;i++)  zwel1.Clear(td[i]);
+   if(T81->Clear(zwel1,wd  ))
+		{ EE->E("UR/UL nacked LS");EE->Enl(ntd+1);return 1;}
+ }
+// third  pattern is  "one cell in excess"
+//should cover several situations 
+if(ntd>=nautres && (len==(ntd-1)))
+ { for (int i=0;i<ntd;i++)
+	{BF16 wdx=wr;	 // wr is the minimum fo the nacked lock set
+	 for (int j=0;j<ntd;j++) if(j-i) wdx|=T81t[td[j]].v.cand;
+	 // check if now correct
+	      if(ntd==wdx.QC()) //  one cell less ntd must be number of digits
+       { BF81 zwel1=zwel; 
+        for (int j=0;j<ntd;j++)  if(j-i)zwel1.Clear(td[j]);
+		if(T81->Clear(zwel1,wdx  ))
+		   { EE->E("UR/UL nacked LS");EE->Enl(ntd);return 1;}
+       }
+     }
+  }
+
+// Fourth  pattern is  "2 cells in excess"
+//could cover several situations 
+if(ntd>=(nautres+1) && (len==(ntd-2)))
+ { for (int i=0;i<(ntd-1);i++)for (int k=i+1;k<ntd;k++)
+	{BF16 wdx=wr;	 // wr is the minimum fo the nacked lock set
+	 for (int j=0;j<ntd;j++) if((j-i) && (j-k))
+		    wdx|=T81t[td[j]].v.cand;
+	 // check if now correct
+	if(ntd==(wdx.QC()+1))  
+       { BF81 zwel1=zwel; 
+        for (int j=0;j<ntd;j++)  if((j-i) && (j-k))
+			 zwel1.Clear(td[j]);
+		if(T81->Clear(zwel1,wdx  ))
+		   { EE->E("UR/UL nacked LS");EE->Enl(ntd-1);return 1;}
+       }
+     }
+  }
+// fifth pattern,  we look now for something with all extra cells "over all"
+// have an example of naked quad, but can be simpler
+if(nnh>=nautres && (len==nnh))
+ {BF16 wdx; int ir=0;
+  for (int i=0;i<nnh;i++) wdx|=T81t[tnh[i]].v.cand;
+  if(nnh==(wdx.QC()-1) && ((wdx&wr).f == wr.f) ) 
+    { for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Changey(wdx  );
+      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
+    } 
+ }
+
+// fifth all extra cells except one
+if(nnh>=nautres && (len==(nnh-1)))
+ {for (int j=0;j<nnh;j++)
+  {BF16 wdx; int ir=0;
+	  for (int i=0;i<nnh;i++) if(j-i)  wdx|=T81t[tnh[i]].v.cand;
+  if((wdx&wr).f-wr.f) continue;
+  if(nnh==wdx.QC()) 
+    { BF81 zwel1=zwel; 
+      for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Changey(wdx  );
+	  ir+=T81t[tnh[j]].Changey(wdx  );
+      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
+    } 
+  }
+ }
+// sixth all extra cells except 2
+if(nnh>=(nautres+1) && (len==(nnh-2)))
+ { EE->E("look for all extra -2 nnh=");EE->Enl(nnh);
+ for (int j=0;j<nnh-1;j++)for (int k=j+1;k<nnh;k++)
+  {BF16 wdx; int ir=0;
+	  for (int i=0;i<nnh;i++) if((j-i)  && (k-i))
+		     wdx|=T81t[tnh[i]].v.cand;
+   if((wdx&wr).f-wr.f) continue;
+   if(nnh==wdx.QC()+1) 
+    { BF81 zwel1=zwel; 
+      for (int i=0;i<nth;i++)  ir+=T81t[th[i]].Changey(wdx  );
+	  ir+=T81t[tnh[j]].Changey(wdx  ); ir+=T81t[tnh[k]].Changey(wdx  );
+      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
+    } 
+  }
+ }
+
+
+return 0;}
+
+/*
+
+// sixth pattern,  we look now for something with 3 extra cells "over all"
+// has been seen 
+if(nnh>=(nautres+1)&& (len==(nnh-3)) )
+ {EE->Enl("look for nacked LS + extra digit less 3 cells");
+	 for (int i1=0;i1<nnh-2;i1++)for (int i2=i1+1;i2<nnh-1;i2++)
+     for (int i3=i2+1;i3<nnh;i3++)
+	{BF16 wdx=wr;	 // wr is the minimum fo the nacked lock set
+	 for (int j=0;j<nnh;j++) 
+		  if((j-i1) &&(j-i2)&&(j-i3))    wdx|=T81t[tnh[j]].v.cand;
+	 // check if now correct
+     if((nnh-2)==wdx.QC()) 
+       { BF81 zwel1=zwel; 
+        for (int j=0;j<nnh;j++)  
+			 if((j-i1) &&(j-i2)&&(j-i3))zwel1.Clear(tnh[j]);
+         if(T81->Clear(zwel1,wdx  ))
+		   { EE->E("UR/UL nacked LS");EE->Enl(nnh-2);return 1;}
+       }
+     }
+  }	 
+*/
+
+//a piece of former _05b_RI_2N.cpp follows
+
+// one posible location for a UR;
+// no assigned position, 2 and only 2 common digits
+
+int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
+	ia = I81::Pos(i1, c1);
+	ib = I81::Pos(i1, c2);
+	ic = I81::Pos(i2, c1);
+	id = I81::Pos(i2, c2);
+	char * gr = puz.gg.pg;
+	if((gr[ia] - '0') || (gr[ib] - '0') || (gr[ic] - '0') || (gr[id] - '0'))
+		return 0;
+	if(Setw() - 2)
+		return 0;
+	CalcDeux();   
+	if(ndeux == 3) {
+		ta[pp1].Changey(wc);
+		ImageRI("1");
+		return 1;
+	}// type 1
+	Setwou();
+	GenCh(); 
+	if((ndeux - 2) || IsDiag())
+		if(ndeux == 1)
+			return RID3();
+		else
+			return 0; // not processed
+
+	// if one digit active, do it now 4.5
+	if(nautres == 1) { // un chiffre en lig/col  ou diagonal
+		if(puz.Keep(ch1, pp1, pp2)) {
+			ImageRI(" one digit active");
+			return 1;
+		}
+	}
+	// if one of the common digit is a bivalue, do it as well it is 4.5
+	while((tr[ia].v.ncand > 2) || (tr[ic].v.ncand > 2)) {
+		USHORT pw = ia;
+		ia = ib;
+		ib = id;
+		id = ic;
+		ic = pw;
+	}// sort cells 
+	int ir = T2(1); // we  want only rating 4.5 as "good" so far
+	if(ir == 1) {
+		ImageRI(" action from object");
+		return 1;
+	} // it was ok
+	if(ir)
+		parentpuz->urt.Store(this); 
+	return 0; //store if something else seen
+}
+
+int SEARCH_UR::RID3() {
+	if(nautres - 1)
+		return 0;
+	BF81 zw;
+	zw.SetAll_1();
+
+	if(tr[ia].v.ncand == 3)
+		zw &= t81f[ia].z;
+	if(tr[ib].v.ncand == 3)
+		zw &= t81f[ib].z;
+	if(tr[ic].v.ncand == 3)
+		zw &= t81f[ic].z;
+	if(tr[id].v.ncand == 3)
+		zw &= t81f[id].z;
+
+	zw &= puz.c[ch1];
+
+	if(zw.IsNotEmpty()) {
+		ImageRI(" UR one digit active");	
+		return T81->Clear(zw,ch1);
+	}
+	return 0;
+}
+
 
