@@ -42,27 +42,28 @@ const char *orig1="RCB ";
 
 
 PUZZLE::PUZZLE() {
-	tp8N.SetParent(this,&EE);
-	yt.SetParent(this,&EE);
-	tchain.SetParent(this,&EE);
-//	T81dep.SetParent(this,&EE);
-	tp8N.SetParent(this,&EE);
-	zpaires.SetParent(this,&EE);
-	ur.SetParent(this,&EE,T81t,T81tc,
-		   alt_index.tchbit.el);
-	zpln.SetParent(this,&EE);
-	tevent.SetParent(this,&EE);
-    zcf.SetParent(this,&EE);
-    zcxb.SetParent(this,&EE);
-    zcx.SetParent(this,&EE);
-
-
 	//un_jeu.SetParent(this,&EE);
 	solution = gsolution.pg;  
 	T81 = &tp8N;
 	T81C = &tp8N_cop;
 	T81t = T81->t81;
 	T81tc = T81C->t81;
+
+	tp8N.SetParent(this,&EE);
+	yt.SetParent(this,&EE);
+	tchain.SetParent(this,&EE);
+	T81dep.SetParent(this,&EE);
+	tp8N.SetParent(this,&EE);
+	zpaires.SetParent(this,&EE);
+	tevent.SetParent(this,&EE);
+ 	ur.SetParent(this,&EE,T81t,T81tc,
+		   alt_index.tchbit.el);
+	zpln.SetParent(this,&EE);
+    zcf.SetParent(this,&EE);
+    zcxb.SetParent(this,&EE);
+    zcx.SetParent(this,&EE);
+
+
 }
 
 /* added here routines preliminary in Bitfields
@@ -1495,12 +1496,10 @@ int PUZZLE::Traite(char * ze) {
 		// the table of candidates is loaded once per cycle
 
 		zpln.Init();  // table of candidates  
-//		zgs.ReInit(); // 81 bits patterns in use      
 		if(stop_rating)
 			break; // in case we would exceed the TCAND limit
 		//=========================
 		tchain.NewCycle();
-
 		Step(AlignedPairExclusion);
 		if(rating_ir > 1)
 			return rating_ir;
@@ -1820,7 +1819,6 @@ int PUZZLE::Traite_a() {
     if(Op.ot)
 		T81->Candidats();
 
-
     Copie_T_c(); // to be done now copie for UR same rating
     zpaires.CreerTable(T81t);  
 
@@ -1883,6 +1881,8 @@ int PUZZLE::Traite_a() {
 		 return 1;
 	 } 
 
+EE.Enl("ctla6");
+
 	Step(UniqueLoop1);
 	if(rating_ir > 1)
 		return 0;
@@ -1906,6 +1906,8 @@ int PUZZLE::Traite_a() {
 		SetEr();
 		return 1;
 	}  //4.9
+
+EE.Enl("ctla7"); ///
 
 	Step(NakedQuad);
 	if(rating_ir > 1)

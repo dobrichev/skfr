@@ -2263,6 +2263,7 @@ int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
 	char * gr = puz.gg.pg;
 	if((gr[ia] - '0') || (gr[ib] - '0') || (gr[ic] - '0') || (gr[id] - '0'))
 		return 0;
+
 	if(Setw() - 2)
 		return 0;
 	CalcDeux();   
@@ -2305,6 +2306,7 @@ int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
 }
 
 int SEARCH_UR::RID3() {
+
 	if(nautres - 1)
 		return 0;
 	BF81 zw;
