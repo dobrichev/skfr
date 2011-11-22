@@ -44,6 +44,53 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
             <<<<<<<   TCANDGO  >>>>>>>>>>>>>
             <<<<<<< CHAINSTORE   >>>>>>>>>>
 
+/*    <<<<< GG >>>>>>>>>>>>>> 
+
+raw puzzle stored
+
+*/
+
+
+
+GG::GG() {	// constructor
+	pg = g[0]; 
+	pg[81] = 0;
+}
+
+int GG::NBlancs() const {
+	int i, n = 0;
+	for(i = 0; i < 81; i++)
+		if(pg[i] == '0')
+			n++;   
+	return n;
+}
+
+int GG::Nfix() const {
+	int i, n = 0; 
+	for(i = 0; i < 81; i++) 
+		if(pg[i] - '0')
+			n++;   
+	return n;
+}
+
+void GG::Image(FLOG * EE,char * lib) const {
+	EE->E(lib); 
+	EE->Enl(); 
+	char wc[10];
+	for(int i=0;i<9;i++) {
+		strncpy_s(wc, 10, g[i], 9);
+		wc[9] = 0;
+		EE->E(i + 1);
+		EE->E("=");
+		EE->E(wc);
+		EE->Enl();
+	}
+}
+
+
+
+
+
 /*              <<<<<<  TCHAIN module   >>>>>>
             handling all potential eliminations through chains
 

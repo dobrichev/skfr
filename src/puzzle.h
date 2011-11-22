@@ -249,9 +249,6 @@ public:
 
 	GG();		// constructor
 
-	//inline char * Getpg() const {
-	//	return pg;
-	//}
 	//! Copy the grid value
 	inline void Copie(const GG & ge) {
 		strcpy_s(pg, 82, ge.pg);
@@ -271,7 +268,7 @@ public:
 	 * Print on a first line the string passed as parameter. Print 9 more lines
 	 * representing the grid with line numbers.
 	 */
-	void Image(char * lib) const;
+	void Image(FLOG * EE,char * lib) const;
 };
 
 

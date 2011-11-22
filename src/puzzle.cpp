@@ -40,41 +40,6 @@ const char *orig1="RCB ";
 #include "puzzle_ww.cpp"
 #include "puzzle_globals.cpp"
 
-GG::GG() {	// constructor
-	pg = g[0]; 
-	pg[81] = 0;
-}
-
-int GG::NBlancs() const {
-	int i, n = 0;
-	for(i = 0; i < 81; i++)
-		if(pg[i] == '0')
-			n++;   
-	return n;
-}
-
-int GG::Nfix() const {
-	int i, n = 0; 
-	for(i = 0; i < 81; i++) 
-		if(pg[i] - '0')
-			n++;   
-	return n;
-}
-
-void GG::Image(char * lib) const {
-	EE.E(lib); 
-	EE.Enl(); 
-	char wc[10];
-	for(int i=0;i<9;i++) {
-		strncpy_s(wc, 10, g[i], 9);
-		wc[9] = 0;
-		EE.E(i + 1);
-		EE.E("=");
-		EE.E(wc);
-		EE.Enl();
-	}
-}
-
 
 PUZZLE::PUZZLE() {
 	tp8N.SetParent(this,&EE);
@@ -84,7 +49,7 @@ PUZZLE::PUZZLE() {
 	tp8N.SetParent(this,&EE);
 	zpaires.SetParent(this,&EE);
 	ur.SetParent(this,&EE,T81t,T81tc,
-		   puz.alt_index.tchbit.el);
+		   alt_index.tchbit.el);
 	zpln.SetParent(this,&EE);
 	tevent.SetParent(this,&EE);
     zcf.SetParent(this,&EE);
@@ -199,7 +164,7 @@ void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
 
 void PUZZLE::Image(const SQUARE_BFTAG & zz) const{
 	EE.Enl( "SQUARE_BFTAG Image");
-	for(int i=2;i< puz.col;i++)  
+	for(int i=2;i< col;i++)  
 		if(zz.t[i].IsNotEmpty())  
 			Image(zz.t[i]," ",i); 
 }
@@ -379,10 +344,10 @@ int PUZZLE::Recale() {
 		if(T81t[i].v.ncand == 0)
 			return 0;
 	}
-	puz.alt_index.Genere();   
+	alt_index.Genere();   
 	for(int i = 0; i < 27; i++)
 		for(int j = 0; j < 9; j++)
-			if(puz.alt_index.tchbit.el[i].eld[j].n == 0)
+			if(alt_index.tchbit.el[i].eld[j].n == 0)
 				return 0;
 	return 1;
 }
@@ -397,8 +362,8 @@ int PUZZLE::Directs() { //en tete appliquer regle de base
 	}
 	for(i = 0; i < 27; i++) {
 		for(int j = 0; j < 9; j++) {  // chiffre une place
-			if(puz.alt_index.tchbit.el[i].eld[j].n == 1) {
-				int k = puz.alt_index.tchbit.el[i].eld[j].b.First(),
+			if(alt_index.tchbit.el[i].eld[j].n == 1) {
+				int k = alt_index.tchbit.el[i].eld[j].b.First(),
 					i8 = divf.el81[i][k];
 				if(!T81t[i8].v.typ)	{
 					FixerAdd(i8,(char)('1' + j), i/9);
@@ -434,13 +399,13 @@ int PUZZLE::FaitDirects(int rating) {
 					ok = 1;
 				break;
 			case 12:
-				if(puz.alt_index.tchbit.el[p.eb + 18].eld[c1 - '1'].n == 1)
+				if(alt_index.tchbit.el[p.eb + 18].eld[c1 - '1'].n == 1)
 					ok = 10;
 				break;
 			case 15:
-				if(puz.alt_index.tchbit.el[p.el].eld[c1 - '1'].n == 1)
+				if(alt_index.tchbit.el[p.el].eld[c1 - '1'].n == 1)
 					ok = 1;
-				if(puz.alt_index.tchbit.el[p.pl + 9].eld[c1 -'1'].n == 1)
+				if(alt_index.tchbit.el[p.pl + 9].eld[c1 -'1'].n == 1)
 					ok = 1;
 				break;
 			case 23:
@@ -784,7 +749,7 @@ void PUZZLE::Rbn_Elims(BFTAG * tsquare){
 		bfw.SetAll_1();
 		for(int i = 0; i < nni; i++)
 			bfw &= tsquare[chx.tcd[i] << 1];
-		if(Op.ot && 0) { //puz.couprem ==5)
+		if(Op.ot && 0) { //couprem ==5)
 			chx.Image(this,&EE);
 			Image(bfw,"communs",0);
 		}
@@ -1047,7 +1012,7 @@ void PUZZLE::ChainPlus() {
 
 
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
-	for(int i = 2; i < puz.col; i += 2) {
+	for(int i = 2; i < col; i += 2) {
 		int icand=i>>1;
 		if(dynamic_form1.Off(i)){  
 		   BFTAG zw1 = t[i];
@@ -1058,7 +1023,7 @@ void PUZZLE::ChainPlus() {
 				   EE.E("\n\nfound active a->x and a->~x  a=" );
 				   zpln.ImageTag(i);
 				   EE.Enl();
-	    		   //puz.Image(zw1," elims",i);
+	    		   //Image(zw1," elims",i);
 			    }           
            if(godirect) 
 			   tchain.ClearImmediate(icand);
@@ -1083,17 +1048,17 @@ void PUZZLE::ChainPlus() {
 			dynamic_form2[icand]|=zw2;  
 			if(1 && Op.ot) {
 				EE.E("\n\nfound active x->~a and ~x->~a");
-				puz.Image(zw2,"elims", i);
+				Image(zw2,"elims", i);
 			}
 			if(godirect){
-				for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )
+				for(int j = 3; j < col; j += 2) if(zw2.On(j) )
 					 tchain.ClearImmediate(j>>1);
 			}
 			else{
 		      USHORT ttt[]={i,i^1};
               zcf.h.dp.Shrink(zw2,i);
 			  Image(zw2,"elims solde", i);
-              for(int j = 3; j < puz.col; j += 2) if(zw2.On(j) )	
+              for(int j = 3; j < col; j += 2) if(zw2.On(j) )	
 				  Rating_Nested(ttt,2,j);
 			}
 			
@@ -1132,7 +1097,7 @@ void PUZZLE::ChainPlus() {
 		dynamic_sets[ie] |= tbt;  
 
 
-        for(int j = 3; j < puz.col; j += 2) if(tbt.On(j))	
+        for(int j = 3; j < col; j += 2) if(tbt.On(j))	
 			if(godirect)  
 				tchain.ClearImmediate(j>>1);
 			else
@@ -1691,7 +1656,7 @@ int PUZZLE::Traite(char * ze) {
 	//=========================================================================	 
 	EE.E("fin traitement stop_rating=");
 	EE.Enl(stop_rating );
-	gg.Image("fin");
+	gg.Image(&EE,"fin");
 	return stop_rating;
 }
 
@@ -2085,7 +2050,7 @@ int PUZZLE::TraiteLocked(int rating) {
 					BF81 ww;
 					for(int i = 18; i < 27; i++) { // must be a box
 						if((i-ialt) && (divf.elz81[i] & divf.elz81[ialt]).IsNotEmpty()) {
-							ww = (divf.elz81[i] & puz.c[ich]) - wex;
+							ww = (divf.elz81[i] & c[ich]) - wex;
 							if(ww.Count() == 1) {
 								ok = 1;
 								break;
@@ -2097,7 +2062,7 @@ int PUZZLE::TraiteLocked(int rating) {
 						int i8 = ww.First();
 						T81t[i8].Keep(ich,this);
 						EE.Enl("lock assignment");
-						return puz.FaitGoA(i8, ich + '1', 4);
+						return FaitGoA(i8, ich + '1', 4);
 					} // immediate return after assign  
 				}
 			}
@@ -2241,7 +2206,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 		BFTAG x = to[ta[it]];
 		if(x.substract(allsteps)) {
 			if(opp)
-				puz.Image(x,"applied std" ,ta[it]);	   
+				Image(x,"applied std" ,ta[it]);	   
 			allsteps |= x; // and in the total 
 			nested_aig = 1;
 		}    
@@ -2360,7 +2325,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 
 	if(elims.substract(allsteps)) { // force false so use elims.inverse()
 		if(opp)
-			puz.Image(elims,"forcing chain elims" ,0);	
+			Image(elims,"forcing chain elims" ,0);	
 		allsteps |= elims; // and in the total 
 		nested_aig = 1;
 	}
@@ -2370,7 +2335,7 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 	BFTAG elims2; 
 	NestedMultiShort(elims2); 
 	if(opp && Op.ot)
-		puz.Image(elims2,"multiforcing recap short ", 0);
+		Image(elims2,"multiforcing recap short ", 0);
 	if(elims2.IsNotEmpty()) {
 		allsteps |= elims2; //   in the total 
 		nested_aig=1;
@@ -2389,7 +2354,7 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 	BFTAG * tdp = hdp_base_nested.t;
 	USHORT tagc = tag;
 	if(tagc & 1) tagc ^= 1;
-	for(int j = 2; j < puz.col; j++) {
+	for(int j = 2; j < col; j++) {
 		if(j == tagc)
 			continue; // don't process the start point
 		if(allsteps.On(j))
@@ -2415,7 +2380,7 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 
 
 void PUZZLE::NestedForcingShort(BFTAG & elims) {
-	for(int i=2;i< puz.col;i+=2){
+	for(int i=2;i< col;i+=2){
 		if(allsteps.Off(i^1) && dn.Is(i,i^1))  // a forcing chain found, find the length
 			elims.Set(i^1); 
 		if(rbase>100){
@@ -2798,7 +2763,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 		BFTAG x = to[ta[it]];
 		if(x.substract(allsteps)) {
 			if(opp)
-				puz.Image(x,"applied std", ta[it]);
+				Image(x,"applied std", ta[it]);
 			allsteps |= x; // and in the total 
 			nested_aig=1;
 		} 
@@ -2968,7 +2933,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 */
 void PUZZLE::NestedForcing(BFTAG & elims) {
 
-	for(int i = 2; i < puz.col; i += 2) {
+	for(int i = 2; i < col; i += 2) {
 		if( dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
 			BFTAG wch = dpn.t[i], bfs; 
 			int era=0;
@@ -3038,7 +3003,7 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 		}
 		if(aig2 || zt.IsEmpty())
 			continue;	// if ok second round for action	
-		for(int i = 3; i < puz.col; i += 2) {
+		for(int i = 3; i < col; i += 2) {
 			if(!zt.On(i))
 				continue;
 			BFTAG bfs;
@@ -3157,7 +3122,7 @@ void PUZZLE::Gen_dpn(USHORT tag)
  BFTAG    * tdp=hdp_base_nested.t;
 
 
- for (int j=2;j< puz.col;j++) 
+ for (int j=2;j< col;j++) 
 	{if(j==tag) continue; // don't process the start point
 	 if(allsteps.On(j)) continue; // that tag is defined
 	 if(allsteps.On(j^1))
@@ -3879,7 +3844,7 @@ void PUZZLE::NestedForcingLevel4(BFTAG & elims) {
 	//    chain4_dpn.Image();
 	    EE.Enl("\n");
 	}
-	for(int i = 2; i < puz.col; i += 2) {
+	for(int i = 2; i < col; i += 2) {
 		BFTAG tw(dn.t[i]);
 		tw &=tw.Inverse();
 		if(tw.IsNotEmpty() || dn.t[i].On(i^1)){
