@@ -345,7 +345,7 @@ int PUZZLE::Recale() {
 		if(T81t[i].v.ncand == 0)
 			return 0;
 	}
-	alt_index.Genere();   
+	alt_index.Genere(T81t);   
 	for(int i = 0; i < 27; i++)
 		for(int j = 0; j < 9; j++)
 			if(alt_index.tchbit.el[i].eld[j].n == 0)

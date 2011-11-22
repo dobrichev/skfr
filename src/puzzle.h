@@ -427,7 +427,7 @@ public:
 	ONE_REGIONS_INDEX tpobit;  // entry region -> position -> digit
 	ONE_REGIONS_INDEX tchbit;  // entry region -> digit -> position
 
-    void Genere();  // update
+    void Genere(CELL * tw);  // update
 };
 
 
@@ -648,7 +648,7 @@ public:
 	inline void Charge(USHORT i,USHORT che) {ig=i;ch=che;}
 	//inline BF81 * GetZ() const;     
 	void Image(FLOG * EE,int no=0) const; // no=1 if false state
-	void Clear();
+	void Clear(CELL * tw);
 };
 
 #define zpln_lim 320
@@ -686,7 +686,7 @@ public:
 
 	//========= TPT1 work within a layer
 	// void SuppMarque(USHORT mm,int direct=0);   
-	void Clear(USHORT c) {zp[c].Clear();}
+	void Clear(USHORT c) ;
 	int ChainPath(int i1,int i2);
 
 	void PrintImply(const USHORT * tp,USHORT np) const;
@@ -1351,6 +1351,10 @@ public:
 	TCANDGO tcandgo;
 	CHAINSTORE tstore;
 
+	CELLS *T81;
+	CELLS *T81C;		 
+	CELL *T81t;
+	CELL *T81tc;		  
 
 
 //	ZGROUPE zgs();
@@ -1601,11 +1605,7 @@ private:
 
 extern OPSUDO Op;
 extern FLOG EE;
-extern CELLS *T81;
-extern CELLS *T81C;		//standard names for main objects of the class
-extern CELL *T81t;
-extern CELL *T81tc;		//and corresponding tables of cells  
-                    // the corresponding tables are located in class PUZZLE
+
 extern CELLS_FIX tp81f;
 extern CELL_FIX *t81f;			//pointer to speed up the process   
 extern DIVF divf;

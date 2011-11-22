@@ -54,11 +54,6 @@ FLOG EE;  //log file as such is one should not be used in multi thread
 
 PUZZLE puz;  // must be at the end one occurence per thread
 
-CELLS *T81;
-CELLS *T81C;		//standard names for main objects of the class
-CELL *T81t;
-CELL *T81tc;		//and corresponding tables of cells  
-                    // the corresponding tables are located in class PUZZLE
 
 
 void setMinMaxC(int mined, int maxed, int minep, int maxep, int miner, int maxer, UINT filt){
