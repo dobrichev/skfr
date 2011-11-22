@@ -40,7 +40,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
             <<<<  CANDIDATE    >>>>>
 			<<<<< INFERENCES   >>>>>>>
             <<<<<< SETS_BUFFER  SET   SETS    >>>>>>>>>>>>>
-
+			<<<<<<<<<< SQUARE_BFTAG >>>>>>>>>>>>>>>
+            <<<<<<<   TCANDGO  >>>>>>>>>>>>>
+            <<<<<<< CHAINSTORE   >>>>>>>>>>
 
 /*              <<<<<<  TCHAIN module   >>>>>>
             handling all potential eliminations through chains
@@ -2606,7 +2608,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 	// first collect tags in loop
 	//if(opx==2) h.dp.Image();
 	BFTAG elims;
-	int npaselim = h.d.SearchEliminations(h.dp, elims);
+	int npaselim = h.d.SearchEliminations(parentpuz,h.dp, elims);
 	if(!npaselim) return; //nothing to find
 	h.d.ExpandAll(h.dp); // 	
 	BFTAG xi;
@@ -3294,4 +3296,296 @@ void SETS::DeriveSet(SET & chx) { // only the "event" can be the target
 			}
 		}// end j
 	}// end IsNotEmpty
+}
+
+/*      <<<<<<<<<< SQUARE_BFTAG >>>>>>>>>>>>>>>>
+
+
+*/
+
+void SQUARE_BFTAG::Parents(USHORT x) {
+	parents.SetAll_0();
+	USHORT tt[640],itt;
+	t[x].String(tt,itt);
+	for(int i=0;i< itt;i++)
+			parents.Set(tt[i]);
+	
+}
+
+/* the key routine expanding pieces of path out of a->b elementary components
+   ExpandAll is the fast mode using in bloc what has already been done  
+   partial mode are found in the BFTAG functions
+   */ 
+
+void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
+	(*this) = from; // be sure to start with the set of primary data
+	BFTAG t1, t2;
+	USHORT p[640], np;
+	for(int i = 2; i < puz.col; i++) {
+		t[i].String(p, np);
+		while(np) {
+			t2 = t[i];
+			for(int j = 0; j < np; j++) {
+				if(p[j] == i)
+					continue;
+				t[i] |= t[p[j]];
+			} // j
+			t1 = t[i]; //all bits
+			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
+			t1.Clear(i);
+			t1.String(p, np);
+		}
+	}
+}// end i   proc
+
+
+void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
+{(*this)=from; // be sure to start with the set of primary data
+ for( int i=2;i< puz.col;i++)
+  {	USHORT p[640], np;
+    t[i].String(p, np);
+    if (!np)
+		continue;   
+	int n=1,pas=0;
+    while(n && (++pas<npas)) {
+	   n=0;
+	   for(int jx=0;jx<np;jx++){ 
+		   int j=p[jx];
+		   if((j-i) && t[i].On(j)) {
+			   BFTAG x(from.t[j]);
+			   if(x.substract(t[i])) {
+				   t[i] |= x;
+				   n++;
+			   }
+		   }
+	   }
+	} // end j  while
+  } 
+}// end i   proc
+
+/* that table is prepared for the derivation of weak links
+   the "from" table is the table of implications
+   */
+void SQUARE_BFTAG::AllParents(const SQUARE_BFTAG & from) {
+	t[0].SetAll_0();
+	for(int i = 1; i < puz.col; i++)
+		t[i] = t[0];
+	for(int i = 2; i < puz.col; i++) {
+		USHORT ind[640], maxInd; //v 1 by MD, 7x speed
+		from.t[i].String(ind, maxInd);
+		for(int j = 0; j < maxInd; j++) {
+			t[ind[j]].Set(i);
+		}
+	}
+}
+
+
+/* select tags having a chance to have the shortest path
+   this is a filter for the contradiction chains of the form
+   x -> ~a  and   ~x -> ~a
+   for each tag set to 1 in "x" 
+     compute the total of steps needed to get it with both starts
+	 keep only tags below  minimal total + n (2) 
+   */
+void SQUARE_BFTAG::Shrink(BFTAG & x,USHORT it)
+{USHORT tt[300],itt,     // tags in table
+        ntt[300],min=200,j,lim,ir; 
+ x.String(tt,itt);  // put tags in table	
+ for(int i=0;i<itt;i++) {
+    j=tt[i];
+    lim=min+1;
+    ir=ExpandToFind(it,j,lim)+ExpandToFind(it^1,j,lim);
+    ntt[i]=ir;
+    if(ir<min) min=ir;
+ }
+ lim=min+1;
+ for(int i=0;i<itt;i++) {
+    if(ntt[i]> lim)
+      x.Clear(tt[i]);
+ }
+}
+/* subroutine for Shrink
+*/
+
+int SQUARE_BFTAG::ExpandToFind(USHORT td,USHORT tf,USHORT lim){
+  BFTAG tagw(t[td]);  // tag to expand
+  int npas=0;
+  while(1){  // endless loop till tf found or no more expansion or min +2 passed
+	if(tagw.On(tf)) return npas;
+    if(npas++>lim) return 100; // 
+         // now expand one more step
+	int n=0; // to check whether something is done
+	USHORT p[640], np;
+    tagw.String(p, np);
+	for(int jx=0;jx<np;jx++){
+		int j=p[jx];
+        BFTAG x(t[j]);
+	    if(x.substract(tagw)) { 
+			tagw |= x; 
+			n++;
+		}
+	}
+   if(!n) return 100;
+  }
+}
+
+/* That process is valid only if no derived weak link has been produced
+   The search finds the lot of shortest eliminations same length
+   return 0 if nothing
+   return the length if elimination(s) have been found
+
+   from is the SQUARE_BFTAG of elementary weak links
+   elims is set to 1 for all tags found in that process
+
+   only "true" state of non valid candidates are expanded
+*/
+
+int SQUARE_BFTAG::SearchEliminations(PUZZLE * parentpuz,SQUARE_BFTAG & from, BFTAG & elims) {
+	int npas=0, aigt=0;
+	elims.SetAll_0();
+	(*this) = from; // be sure to start with the set of primary data
+	while(1) {
+		int aig=1; // to detect an empty pass
+		npas++;
+		for(int i = 2; i < puz.col; i += 2)  // only "true" state
+			if(parentpuz->zpln.candtrue.Off(i >> 1) &&  // candidate not valid
+				t[i].IsNotEmpty()               // should always be
+				)
+			{
+				for(int j = 2; j < puz.col; j++)
+					if((j - i) && t[i].On(j)) {
+						BFTAG x=from.t[j];
+						//x -= t[i];	  
+						//if(x.IsNotEmpty()) {
+						if(x.substract(t[i])) {
+							t[i]|=x;
+							aig=0;
+						}
+					}
+					if(t[i].On(i ^ 1)) { // an elimination is seen
+						elims.Set(i);
+						aigt=1;
+					}
+			}   
+			if(aigt) return npas; // eliminations found
+			if(aig) return 0;     // empty pass
+	}// end while
+}
+
+/*               <<<<<<<   TCANDGO  >>>>>>>>>>>>>
+                 <<<<<<< CHAINSTORE   >>>>>>>>>>
+ storage in nested mode 
+ strongg links
+ nested chains
+*/
+
+
+
+void TCANDGO ::AddStrong(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt) {
+	if(its >= 598)
+		return;
+	ts[its++].Add(k1, k2, bf, cpt);
+	ts[its++].Add(k2, k1, bf, cpt);
+}
+
+
+const CANDGOSTRONG * TCANDGO ::Get(USHORT t1, USHORT t2) const {
+	USHORT c1 = t1 >> 1, c2 = t2 >> 1;
+	for(int i = 1; i < its; i++) {
+		const CANDGOSTRONG * w = &ts[i];
+		if(w->key1 - c1)
+			continue;
+		if(w->key2 - c2)
+			continue;
+		return w;
+	}
+	return 0;
+}
+
+
+/* storage of the nested chains for pring purpose
+  storing is done in a buffer with a double index
+  primary for a chain (start,number=
+  secondary for a nested object: start index, end index
+  */
+  
+
+
+
+//	CHAINSTORE(PUZZLE * parent){parentpuz=parent;}
+
+void CHAINSTORE::Init() {
+	ibuf=0;
+	starts[0] = ends[0] = 0;
+	ise = 1; 
+	s2[0] = 0;
+	e2[0] = 0;
+	ise2 = 1;
+} // 0 is "empty"
+
+
+USHORT CHAINSTORE::AddChain(USHORT * tch, USHORT n) {
+	if(n>40)n=40;//don't store more than 40 not realistic
+	starts[ise] = ibuf;
+
+	if((ibuf + n+2 )< Size_Store)  {
+		for(int i = 0; i < n; i++)
+			buf[ibuf++] = tch[i];
+	}
+	ends[ise] = ibuf;
+	if(ise >= 5000)
+		return ise; // don't pass the limit
+	else
+		return ise++;
+}
+
+
+USHORT CHAINSTORE::AddOne(USHORT * tch, USHORT n) {
+	if(ise2 >= 2000)
+		return 0;
+	s2[ise2] = e2[ise2] = AddChain(tch, n);
+	return ise2++;
+}
+
+
+USHORT CHAINSTORE::AddMul(USHORT d, USHORT f) {
+	if(ise2 >= 2000)
+		return 0;
+	s2[ise2] = d;
+	e2[ise2] = f;
+	return ise2++;
+}
+
+
+
+
+
+void CHAINSTORE::Print(PUZZLE * parentpuz, FLOG * EE,USHORT index) const {
+	if(index>=ise2  || index<1){
+		if(!index)
+			EE->Enl("\n\nchainstore::print  index null not stored");
+		else{
+			EE->E("\n\nchainstore::print invalid entry index=");
+			EE->Enl( index);
+		}
+		return;
+	}
+	int id = s2[index], ie = e2[index];
+	for(int i = id; i <= ie; i++) {
+		const USHORT * tx = &buf[starts[i]];
+		USHORT 	n = ends[i] - starts[i];
+		if(n>50) {
+			EE->Enl("length too high forced to 5");
+			EE->E("index ="); EE->E(index);
+			EE->E( " id="); EE->E(id); 
+			EE->E( " ie="); EE->E(ie); 
+			EE->E( " i="); EE->E(i); 
+
+			EE->E( " ends[i]="); EE->E(ends[i]); 
+			EE->E( " starts[i]="); EE->Enl(starts[i]); 
+			n=5;
+		}
+		if(n > 0)
+			parentpuz->zpln.PrintImply(tx, n);
+	}
 }

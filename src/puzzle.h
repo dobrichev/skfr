@@ -722,16 +722,7 @@ public:
  
 class SQUARE_BFTAG {
 public:  
-static PUZZLE * parentpuz; // temporary 
-static BFTAG done[50]; // already in the path
-static USHORT ich,mode,length,mmfin;
-static PATH path, pathr;
-static USHORT   maxsearch,  // external limitation for path search
-	            maxlength,  // search limit as of the existing rating
-				maxichain,  // ongoing search value
-	            parsediag,  // debugging only
-				parsecount; // length in parsing mode
-static BFCAND tbf_end,tbf_endok;// one for each way
+//static PUZZLE * parentpuz; // temporary 
 
 BFTAG t[BFTAG_BitSize],parents;	
 
@@ -744,20 +735,12 @@ void Init() {
 void ExpandAll(SQUARE_BFTAG & from);
 void ExpandShort(SQUARE_BFTAG & from,int npas);
 void AllParents(const SQUARE_BFTAG & from);
-int SearchEliminations(SQUARE_BFTAG & from,BFTAG & elims);
+int SearchEliminations(PUZZLE * parentpuz,SQUARE_BFTAG & from,BFTAG & elims);
 inline void Set(int i, int m) {t[i].Set(m);};
 inline int Is(int i,int m){return t[i].On(m);};
 inline int IsConflit(int m1, int m2) {return Is(m1,m2^1);}
 inline int IsOu (int m1, int m2) {return Is(m1^1,m2);}
 
-static inline void InitParsing(){maxsearch=maxlength;}
-static inline void SetParsingMini(USHORT x) {
-	if(x<maxlength)
-		maxsearch=x;
-	else maxsearch=maxlength;
-}
-inline void StoreTbf(){tbf_endok=tbf_end;}
-inline void GetBackTbf() {tbf_end=tbf_endok;}
 
 void Parents(USHORT x);
 int ExpandToFind(USHORT td,USHORT tf,USHORT lim);
@@ -767,7 +750,6 @@ void Plus(int m1, int m2) {
 	t[m1].Set(m2);
 }
 
-void Image();
 private:
 };
 
@@ -1277,6 +1259,76 @@ public:
 };
 
 
+/* In nested mode, the track back process is not so easy.
+   To achieve it relatively simply, we use a side table filled in the forward process.
+   for each new strong link found we open a new entry
+   for each new generation  in the forward process, we open a new entry
+   reached thru a direct index
+   but the new entry is done in advance if a side exclusion is found
+   each entry contains
+      a BFTAG containing all tags used to come to a decision
+      the count if the source is a nested rule.
+	  the index in CHAINSTORE to find back the chain at print time
+
+*/
+
+class CANDGOFORWARD { // one entry per step.
+public:
+	BFTAG source;
+	USHORT count, index;
+	void Add(USHORT ind, const BFTAG &bf, USHORT cpt) {
+		index = ind;
+		source = bf;
+		count = cpt;
+	}
+};
+class CANDGOSTRONG { // no need to sort the key, entry is doubled
+public:
+	BFTAG source;
+	USHORT count,key1,key2;
+	void Add(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt) {
+		key1 = k1;
+		key2 = k2;
+		source = bf;
+		count = cpt;
+	}
+};
+
+class TCANDGO {
+public:
+	CANDGOFORWARD tt[5000];
+	CANDGOSTRONG ts[1000];
+	USHORT itt, its;
+	void Init() {
+		itt = its = 1;
+	} // keep 0 as invalid return
+	void AddStrong(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt);
+	const CANDGOSTRONG * Get(USHORT t1, USHORT t2) const ;
+
+};//tcandgo;
+
+/* storage of the nested chains for pring purpose
+  storing is done in a buffer with a double index
+  primary for a chain (start,number=
+  secondary for a nested object: start index, end index
+  */
+  
+class  CHAINSTORE {
+#define Size_Store 80000 
+public:
+	USHORT buf[Size_Store],         
+		ise,
+		s2[2000], e2[2000], ise2;
+	int starts[5000], ends[5000],
+          ibuf;
+
+	void Init() ;
+	USHORT AddChain(USHORT * tch, USHORT n) ;
+	USHORT AddOne(USHORT * tch, USHORT n) ;
+	USHORT AddMul(USHORT d, USHORT f) ;
+	void Print(PUZZLE * parentpue, FLOG * EE,USHORT index) const;
+}; //tstore;
+
 
 
 #define pasmax 70
@@ -1299,6 +1351,8 @@ public:
     INFERENCES zcf;
     SETS_BUFFER zcxb;
 	SETS zcx;
+	TCANDGO tcandgo;
+	CHAINSTORE tstore;
 
 
 
@@ -1501,6 +1555,7 @@ public:
 	void ImageCand(BFCAND & zz ,char * lib) const;
 	void GetCells(BFCAND & zz,BF81 & cells) const;
 	void Image(const BFTAG & zz,char * lib, int mmd) const;
+	void Image(const SQUARE_BFTAG & zz) const;
  	void Elimite(char * lib);
 	void Estop(char * lib);
 
@@ -1542,130 +1597,6 @@ private:
 
 
 
-// file _20a_event.h end
-
-//file _30a_TCANDGO.h start
-
-/* In nested mode, the track back process is not so easy.
-   To achieve it relatively simply, we use a side table filled in the forward process.
-   for each new strong link found we open a new entry
-   for each new generation  in the forward process, we open a new entry
-   reached thru a direct index
-   but the new entry is done in advance if a side exclusion is found
-   each entry contains
-      a BFTAG containing all tags used to come to a decision
-      the count if the source is a nested rule.
-	  the index in CHAINSTORE to find back the chain at print time
-
-*/
-
-class CANDGOFORWARD { // one entry per step.
-public:
-	BFTAG source;
-	USHORT count, index;
-	void Add(USHORT ind, const BFTAG &bf, USHORT cpt) {
-		index = ind;
-		source = bf;
-		count = cpt;
-	}
-};
-class CANDGOSTRONG { // no need to sort the key, entry is doubled
-public:
-	BFTAG source;
-	USHORT count,key1,key2;
-	void Add(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt) {
-		key1 = k1;
-		key2 = k2;
-		source = bf;
-		count = cpt;
-	}
-};
-
-class TCANDGO {
-public:
-	CANDGOFORWARD tt[5000];
-	CANDGOSTRONG ts[1000];
-	USHORT itt, its;
-	void Init() {
-		itt = its = 1;
-	} // keep 0 as invalid return
-	void AddStrong(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt) {
-		if(its >= 598)
-			return;
-		ts[its++].Add(k1, k2, bf, cpt);
-		ts[its++].Add(k2, k1, bf, cpt);
-	}
-	const CANDGOSTRONG * Get(USHORT t1, USHORT t2) const {
-		USHORT c1 = t1 >> 1, c2 = t2 >> 1;
-		for(int i = 1; i < its; i++) {
-			const CANDGOSTRONG * w = &ts[i];
-			if(w->key1 - c1)
-				continue;
-			if(w->key2 - c2)
-				continue;
-			return w;
-		}
-		return 0;
-	} 
-
-};//tcandgo;
-
-/* storage of the nested chains for pring purpose
-  storing is done in a buffer with a double index
-  primary for a chain (start,number=
-  secondary for a nested object: start index, end index
-  */
-  
-class  CHAINSTORE {
-#define Size_Store 80000 
-public:
-	PUZZLE * parentpuz;
-	USHORT buf[Size_Store],         
-		ise,
-		s2[2000], e2[2000], ise2;
-	int starts[5000], ends[5000],
-          ibuf;
-
-	CHAINSTORE(PUZZLE * parent){parentpuz=parent;}
-
-	void Init() {
-		ibuf=0;
-		starts[0] = ends[0] = 0;
-		ise = 1; 
-		s2[0] = 0;
-		e2[0] = 0;
-		ise2 = 1;
-	} // 0 is "empty"
-	USHORT AddChain(USHORT * tch, USHORT n) {
-		if(n>40)n=40;//don't store more than 40 not realistic
-		starts[ise] = ibuf;
-
-		if((ibuf + n+2 )< Size_Store)  {
-			for(int i = 0; i < n; i++)
-				buf[ibuf++] = tch[i];
-		}
-		ends[ise] = ibuf;
-		if(ise >= 5000)
-			return ise; // don't pass the limit
-		else
-			return ise++;
-	}
-	USHORT AddOne(USHORT * tch, USHORT n) {
-		if(ise2 >= 2000)
-			return 0;
-		s2[ise2] = e2[ise2] = AddChain(tch, n);
-		return ise2++;
-	}
-	USHORT AddMul(USHORT d, USHORT f) {
-		if(ise2 >= 2000)
-			return 0;
-		s2[ise2] = d;
-		e2[ise2] = f;
-		return ise2++;
-	}
-	void Print(USHORT index) const;
-}; //tstore;
-
 //file _30a_TCANDGO.h end
 
 // global variables for Puzzle
@@ -1684,8 +1615,4 @@ extern DIVF divf;
 extern ZGROUPE zgs;
 extern PUZZLE puz;
 
-
-
-extern TCANDGO tcandgo;
-extern CHAINSTORE tstore;
 

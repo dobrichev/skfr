@@ -60,8 +60,6 @@ CELL *T81t;
 CELL *T81tc;		//and corresponding tables of cells  
                     // the corresponding tables are located in class PUZZLE
 
-TCANDGO tcandgo;
-CHAINSTORE tstore(&puz);
 
 void setMinMaxC(int mined, int maxed, int minep, int maxep, int miner, int maxer, UINT filt){
 	Op.mined = mined;

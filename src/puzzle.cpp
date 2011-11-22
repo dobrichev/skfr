@@ -195,6 +195,16 @@ void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
 	EE.Enl();
 }
 
+
+
+void PUZZLE::Image(const SQUARE_BFTAG & zz) const{
+	EE.Enl( "SQUARE_BFTAG Image");
+	for(int i=2;i< puz.col;i++)  
+		if(zz.t[i].IsNotEmpty())  
+			Image(zz.t[i]," ",i); 
+}
+
+
 void PUZZLE::Elimite(char * lib)
    {cerr << "stop elimite"<<endl;
 	 stop_rating=1;
@@ -613,7 +623,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 
 	if(0 &&rbase>100 && Op.ot){
 		EE.Enl("full expansion at the start");
-        d_nested.Image();
+        Image(d_nested);
 	}
 
 	// we have now fully expanded tags in d_nested2 or d_nested
@@ -2123,37 +2133,6 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 
 
 
-
-void CHAINSTORE::Print(USHORT index) const {
-	if(index>=ise2  || index<1){
-		if(!index)
-			EE.Enl("\n\nchainstore::print  index null not stored");
-		else{
-			EE.E("\n\nchainstore::print invalid entry index=");
-			EE.Enl( index);
-		}
-		return;
-	}
-	int id = s2[index], ie = e2[index];
-	for(int i = id; i <= ie; i++) {
-		const USHORT * tx = &buf[starts[i]];
-		USHORT 	n = ends[i] - starts[i];
-		if(n>50) {
-			EE.Enl("length too high forced to 5");
-			EE.E("index ="); EE.E(index);
-			EE.E( " id="); EE.E(id); 
-			EE.E( " ie="); EE.E(ie); 
-			EE.E( " i="); EE.E(i); 
-
-			EE.E( " ends[i]="); EE.E(ends[i]); 
-			EE.E( " starts[i]="); EE.Enl(starts[i]); 
-			n=5;
-		}
-		if(n > 0)
-			parentpuz->zpln.PrintImply(tx, n);
-	}
-}
-
 /* first step in the search for nested chains
    fill zcf.h_nest.d.t[tag]  with the full expansion
       in that mode
@@ -2422,7 +2401,7 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 	}
 	if(0) {
 		EE.Enl("image dpn de dpnshort");
-		dpn.Image();
+		Image(dpn);
 	}
 	if(rbase>100){  //level 4 must find  derived weak links
 		// this must be a specific process working on reduced sets;
@@ -3187,7 +3166,7 @@ void PUZZLE::Gen_dpn(USHORT tag)
 	  dpn.t[j] -= allsteps; // reduce the primary weak links
 	 }
   if(0)   {Image(allsteps,"allsteps at gen time",0);
-		   dpn.Image();
+		   Image(dpn);
           }
  if(rbase>100){  //level 4 must find  derived weak links
 	// this must be a specific process working on reduced sets;
@@ -3281,7 +3260,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 									}
 									EE.Enl();
 							 }							 
-							 zcf.h.dp.Image();
+							 Image(zcf.h.dp);
 							 EE.Enl("\n tsets table");
 							 for(int iw=2;iw<640;iw++) 
 								 if(cumsteps[i].On(iw)){
@@ -3357,7 +3336,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						bf |= bfn;  // update the list of tags icluded
 						if(0){///
 							EE.Enl("nested elimination");	
-                            tstore.Print(w.index);
+                            tstore.Print(this,&EE,w.index);
 							Image(bfn,"new tags needed",0);
 							EE.Enl();
 						}
@@ -3427,7 +3406,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						CANDGOFORWARD w = tcandgo.tt[-index];
 						EE.E(" through nested chain(s)  count=");
 						EE.Enl(w.count);
-						tstore.Print(w.index);
+						tstore.Print(this,&EE,w.index);
 					}
 					EE.Enl();
 				}
@@ -3466,182 +3445,6 @@ int PUZZLE::GoBackNested(USHORT tag) {
 void PATH::PrintPathTags(CANDIDATES * zpln) {
 	zpln->PrintImply(pth,ipth);
 }
-
-
-PUZZLE * SQUARE_BFTAG::parentpuz=&puz; // added temporary
-BFTAG SQUARE_BFTAG::done[50]; 
-USHORT  SQUARE_BFTAG::ich, SQUARE_BFTAG::mode, SQUARE_BFTAG::length, SQUARE_BFTAG::mmfin, SQUARE_BFTAG::maxlength;
-PATH   SQUARE_BFTAG::path,SQUARE_BFTAG::pathr;
-USHORT SQUARE_BFTAG::maxichain,SQUARE_BFTAG::maxsearch,SQUARE_BFTAG:: parsediag,SQUARE_BFTAG:: parsecount;
-BFCAND SQUARE_BFTAG::tbf_end,SQUARE_BFTAG::tbf_endok; 
-
-void SQUARE_BFTAG::Parents(USHORT x) {
-	parents.SetAll_0();
-	for(int i=2;i< puz.col;i++)
-		if(t[i].On(x))
-			parents.Set(i);
-}
-
-/* the key routine expanding pieces of path out of a->b elementary components
-   ExpandAll is the fast mode using in bloc what has already been done  
-   partial mode are found in the BFTAG functions
-   */ 
-
-void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
-	(*this) = from; // be sure to start with the set of primary data
-	BFTAG t1, t2;
-	USHORT p[640], np;
-	for(int i = 2; i < puz.col; i++) {
-		t[i].String(p, np);
-		while(np) {
-			t2 = t[i];
-			for(int j = 0; j < np; j++) {
-				if(p[j] == i)
-					continue;
-				t[i] |= t[p[j]];
-			} // j
-			t1 = t[i]; //all bits
-			t1 -= t2; //bits set on this pass = all bits excluding bits set on the previous passes
-			t1.Clear(i);
-			t1.String(p, np);
-		}
-	}
-}// end i   proc
-
-
-void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
-{(*this)=from; // be sure to start with the set of primary data
- for( int i=2;i< puz.col;i++)
-  {if (t[i].IsEmpty())continue;   int n=1,pas=0;
-   while(n && (++pas<npas)) {
-	   n=0;
-	   for(int j=2;j< puz.col;j++)
-		   if((j-i) && t[i].On(j)) {
-			   BFTAG x(from.t[j]);
-			   if(x.substract(t[i])) {
-				   t[i] |= x;
-				   n++;
-			   }
-   }} // end j  while
-  } }// end i   proc
-
-/* that table is prepared for the derivation of weak links
-   the "from" table is the table of implications
-   */
-void SQUARE_BFTAG::AllParents(const SQUARE_BFTAG & from) {
-	t[0].SetAll_0();
-	for(int i = 1; i < puz.col; i++)
-		t[i] = t[0];
-	for(int i = 2; i < puz.col; i++) {
-		//for(int j = 2; j < puz.col; j++) { //v 0 by GP
-		//	if(from.t[i].On(j)) {
-		//		t[j].Set(i);
-		//	}
-		//}
-		USHORT ind[640], maxInd; //v 1 by MD, 7x speed
-		from.t[i].String(ind, maxInd);
-		for(int j = 0; j < maxInd; j++) {
-			t[ind[j]].Set(i);
-		}
-	}
-	// EE.Enl("parents"); Image();
-}
-
-
-/* select tags having a chance to have the shortest path
-   this is a filter for the contradiction chains of the form
-   x -> ~a  and   ~x -> ~a
-   for each tag set to 1 in "x" 
-     compute the total of steps needed to get it with both starts
-	 keep only tags below  minimal total + n (2) 
-   */
-void SQUARE_BFTAG::Shrink(BFTAG & x,USHORT it)
-{USHORT tt[300],itt,     // tags in table
-        ntt[300],min=200,j,lim,ir; 
- x.String(tt,itt);  // put tags in table	
- for(int i=0;i<itt;i++) {
-    j=tt[i];
-    lim=min+1;
-    ir=ExpandToFind(it,j,lim)+ExpandToFind(it^1,j,lim);
-    ntt[i]=ir;
-    if(ir<min) min=ir;
- }
- lim=min+1;
- for(int i=0;i<itt;i++) {
-    if(ntt[i]> lim)
-      x.Clear(tt[i]);
- }
-}
-/* subroutine for Shrink
-*/
-
-int SQUARE_BFTAG::ExpandToFind(USHORT td,USHORT tf,USHORT lim){
-  BFTAG tagw(t[td]);  // tag to expand
-  int npas=0;
-  while(1){  // endless loop till tf found or no more expansion or min +2 passed
-      if(tagw.On(tf)) return npas;
-      if(npas++>lim) return 100; // 
-         // now expand one more step
-      int n=0; // to check whether something is done
-      for(int j=2;j< puz.col;j++)    if( tagw.On(j)) {
-	       BFTAG x(t[j]);
-	       if(x.substract(tagw)) {
-				   tagw |= x;
-				   n++;
-			}
-      }
-  if(!n) return 100;
-
-  }
-}
-
-/* That process is valid only if no derived weak link has been produced
-   The search finds the lot of shortest eliminations same length
-   return 0 if nothing
-   return the length if elimination(s) have been found
-
-   from is the SQUARE_BFTAG of elementary weak links
-   elims is set to 1 for all tags found in that process
-
-   only "true" state of non valid candidates are expanded
-*/
-
-int SQUARE_BFTAG::SearchEliminations(SQUARE_BFTAG & from, BFTAG & elims) {
-	int npas=0, aigt=0;
-	elims.SetAll_0();
-	(*this) = from; // be sure to start with the set of primary data
-	while(1) {
-		int aig=1; // to detect an empty pass
-		npas++;
-		for(int i = 2; i < puz.col; i += 2)  // only "true" state
-			if(parentpuz->zpln.candtrue.Off(i >> 1) &&  // candidate not valid
-				t[i].IsNotEmpty()               // should always be
-				)
-			{
-				for(int j = 2; j < puz.col; j++)
-					if((j - i) && t[i].On(j)) {
-						BFTAG x=from.t[j];
-						//x -= t[i];	  
-						//if(x.IsNotEmpty()) {
-						if(x.substract(t[i])) {
-							t[i]|=x;
-							aig=0;
-						}
-					}
-					if(t[i].On(i ^ 1)) { // an elimination is seen
-						elims.Set(i);
-						aigt=1;
-					}
-			}   
-			if(aigt) return npas; // eliminations found
-			if(aig) return 0;     // empty pass
-	}// end while
-}
-
-
-//<<<<<<<<<<<<<<<<<<<<<<<
-void SQUARE_BFTAG::Image() {EE.Enl( "Image zone tdb");
- for(int i=2;i< puz.col;i++)  if(t[i].IsNotEmpty())  puz.Image(t[i]," ",i);   }
 
 
 
@@ -4253,7 +4056,7 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 				tcandgo.tt[tcandgo.itt++].Add(ii, chain4_bf, tot_count);  
 				if(0){					
 					EE.Enl("multi created");
-					tstore.Print(tcandgo.tt[-tsets[i]].index);
+					tstore.Print(this,&EE,tcandgo.tt[-tsets[i]].index);
 				}
 			}			
 		} // end tag i
