@@ -37,7 +37,6 @@ const char *orig[]={"row ","column ","box "," "};
 const char *lc="ABCDEFGHI";
 const char *orig1="RCB ";
 
-#include "puzzle_ww.cpp"
 #include "puzzle_globals.cpp"
 
 
@@ -1881,7 +1880,6 @@ int PUZZLE::Traite_a() {
 		 return 1;
 	 } 
 
-EE.Enl("ctla6");
 
 	Step(UniqueLoop1);
 	if(rating_ir > 1)
@@ -1906,8 +1904,6 @@ EE.Enl("ctla6");
 		SetEr();
 		return 1;
 	}  //4.9
-
-EE.Enl("ctla7"); ///
 
 	Step(NakedQuad);
 	if(rating_ir > 1)

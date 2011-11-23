@@ -3391,17 +3391,24 @@ void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
 	}
 }// end i   proc
 
+/* that process should be reviewed with rating 85 (and others??)
+   060000080001000700000403000003050200090000030008070500000609000005000100020000060 ED=9.0/1.2/1.2;0.104s
+   that puzzle is rated 8.8 with that code
+   but rated 9.xx if String is outside the while loop
+   to have a progrssive well controled action
+   String should be outside the while loop
+
+*/
+
 
 void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
 {(*this)=from; // be sure to start with the set of primary data
  for( int i=2;i< puz.col;i++)
-  {	USHORT p[640], np;
-    t[i].String(p, np);
-    if (!np)
-		continue;   
-	int n=1,pas=0;
+  {	int n=1,pas=0;
     while(n && (++pas<npas)) {
-	   n=0;
+	  USHORT p[640], np;
+      t[i].String(p, np);
+ 	   n=0;
 	   for(int jx=0;jx<np;jx++){ 
 		   int j=p[jx];
 		   if((j-i) && t[i].On(j)) {
