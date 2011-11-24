@@ -598,9 +598,9 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	// we have now fully expanded tags in d_nested2 or d_nested
 	// we look for potential eliminations
 
-	Rbn_Elims(d_nested2.t);
+	Rbn_Elims(d_nested2.t,1);
 	if(rbn_elimt.IsEmpty())
-		Rbn_Elims(d_nested.t);
+		Rbn_Elims(d_nested.t,2);
 
 	if(rbn_elimt.IsEmpty())
 		return 0;
@@ -674,7 +674,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 			}
 
 			for(int j = 3; j < col; j++) {
-				if(ptg->On(j)) {   ///
+				if(ptg->On(j)) {   
 
 					Rating_Nested( ttt, 2 ,j);
                 if(stop_rating) return 1;// push back error code
@@ -717,7 +717,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
    if d_nested gives results, take it
 */
 
-void PUZZLE::Rbn_Elims(BFTAG * tsquare){
+void PUZZLE::Rbn_Elims( BFTAG * tsquare,int nn){
 	// cases 1 and 2,{ a=>x a=> ~x } { x => ~a and ~x=> ~a}
 	// case 2 includes the so called cell or region eliminations for bi values
 	rbn_d_nested=tsquare;
@@ -773,7 +773,7 @@ void PUZZLE::Rbn_Elims(BFTAG * tsquare){
 	rbn_elimt |= rbn_elims2;
 	rbn_elimt |= rbn_elims3;
 	if(Op.ot && rbn_elimt.IsNotEmpty() ){ 
-		EE.Enl("summary of first phase");
+		EE.E("summary of first phase call nn= ");EE.Enl( nn);
 		EE.E("itch ="); EE.E(rbn_itch);
 		EE.E(" it2 ="); EE.Enl(rbn_it2);
 		Image(rbn_elimt,"elimt potential", 0);
@@ -2120,7 +2120,7 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 
 void PUZZLE::GoNestedTag(USHORT tag) {
 	opp =0; // opdiag;  
-	//if((rbase== 105) && (tag>12 && tag<16) && (tag&1 )) opp=1; else opp=0;
+	//if((rbase== 105) && (couprem==13) && (tag==4) ) opp=1; else opp=0;
 
 	const BFTAG &tt (d_nested.t[tag]); 
     if(opp) {
@@ -2184,6 +2184,7 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 
 		  if(opp) {
 			Image((*step),"step", 0);
+
 		  }
 		   // store in d_nested2 if npas==2
 		  if(npas==2)
@@ -2193,6 +2194,8 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 		  wt&=wt.Inverse();
 		  if(wt.IsNotEmpty()){
 			  d_nested.t[tag] = allsteps;
+			  if(npas<2) 
+				  d_nested2.t[tag] = allsteps;
 			  return;
 		  }
            
@@ -2394,6 +2397,13 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 
 
 void PUZZLE::NestedForcingShort(BFTAG & elims) {
+	if(opp){
+		EE.Enl("entry nested forcing short");
+		Image(allsteps,"allsteps",0);
+		Image(dn);
+		Image(dpn);
+
+	}
 	for(int i=2;i< col;i+=2){
 		if(allsteps.Off(i^1) && dn.Is(i,i^1))  // a forcing chain found, find the length
 			elims.Set(i^1); 
@@ -3313,7 +3323,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						bfn.String(&tret[itret], newCount);// put them in the list "to explain"
 						itret += newCount; // and adjust the count
 						bf |= bfn;  // update the list of tags icluded
-						if(0){///
+						if(0){ 
 							EE.Enl("nested elimination");	
                             tstore.Print(this,&EE,w.index);
 							Image(bfn,"new tags needed",0);
@@ -3602,7 +3612,7 @@ int PUZZLE::CaseNestedLevel4( USHORT tag,USHORT target)  {
 		(*chain4_step) = chain4_allsteps;
 		(*chain4_step)-=(*chain4_cum);  
 		(*chain4_step).String(chain4_tx[chain4_npas],chain4_itx[chain4_npas] );
-        if(opdiag){  ///
+        if(opdiag){   
 		  EE.E(chain4_npas);EE.E("pas ncase lvl4 ");Image((*chain4_step),"step",0);
 		  Image(chain4_allsteps,"chain4_allsteps",0);
 		  Image(allsteps,"allsteps",0);
@@ -3813,7 +3823,7 @@ int PUZZLE::NestedChainGoBack(USHORT tag) {
 		for(int j = itret-1; j >=0; j--)  
 			if(chain4_steps[i].On(tret[j])) 
 				chain4_result[chain4_iresult++] = tret[j]; 
-	if(0   ){ ///
+	if(0   ){  
 	  EE.E("nestedgoback end length"); EE.E(chain4_iresult); 
 	  EE.E(" itret="); EE.Enl(itret);
 	  Image(back4_bfsource,"back4_bf source ",0);
@@ -3852,7 +3862,7 @@ int PUZZLE::NestedChainGoBack(USHORT tag) {
 ///
 
 void PUZZLE::NestedForcingLevel4(BFTAG & elims) {
-	if(0){ ///
+	if(0){  
 	    EE.E("\nentry nested forcing level 4 step="); EE.Enl(npas);
 	    Image(allsteps,"allsteps",0);
 	//    chain4_dpn.Image();
@@ -3879,7 +3889,7 @@ void PUZZLE::NestedForcingLevel4(BFTAG & elims) {
 		tw-=allsteps;
 		tw-=elims;   
 		if(tw.IsNotEmpty())  {
-			if(0){ ///
+			if(0){ 
 				EE.E("dual chain active source  ");zpln.ImageTag(i);
 				Image(tw,"for targets",0);
 				EE.Enl();
@@ -3993,7 +4003,6 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 
 
 			   int ii=2;
-		//	   opdiag=1; ///
                if(dpn.t[j].On(i)){ // make it simple if direct
 				   chain4_iresult=2;
 				   chain4_result[0]=j;
@@ -4002,7 +4011,6 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 			   }
 			   else
 				   ii=CaseNestedLevel4(j,i);
-			//   opdiag=0; ///
 			   if(ii){ // should always be	
 				    chain4_bf|=back4_bfsource;
 				    if(0){

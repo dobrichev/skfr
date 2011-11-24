@@ -3187,13 +3187,21 @@ int SETS::DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & 
 			     tcd[10],nni=0,aig=0;
 		for(int i = 0; i < nno; i++){
 			USHORT j=tcdo[i]<<1;
-			if(allsteps.On(i)){
+			if(allsteps.On(j)){
 				aig=1;  // assigned nothing to do
 				break;
 			}
 			if(allsteps.Off(j^1))
 				tcd[nni++]=j;
 		}
+		if(0 ){
+			EE->E( "final count" );
+			EE->E(nni);
+			EE->E(" for set set"); chx.Image(parentpuz,EE);
+			EE->Enl();
+		}
+
+
 		if(aig || nni<2) 
 			continue; // assigned or equivalent
 		   // now the set has more than 2 valid candidates

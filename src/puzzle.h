@@ -1590,7 +1590,7 @@ public:
 	int Rating_base_90();  // dynamic plus 
 	void InitNested();
 	int Rating_baseNest(USHORT base, int quick);  // nesting  95 forcing chains
-	void Rbn_Elims(BFTAG * tsquare);
+	void Rbn_Elims( BFTAG * tsquare,int nn);
 	int Rating_base_95_Quick();  // quick nesting   
 	void Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target);
 
