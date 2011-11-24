@@ -2598,15 +2598,18 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 						EE.E("chain 2 ");
 						GoBackNested(tgx ^ 1);
 					}
-					tchain.LoadChain(ratch, "chain plus", tag >> 1);
+					tchain.LoadChain(ratch, "chain plus", cand);
 				}// end load chain
-
+              // stop as soon as elimination has been done
+             if(tchain.cycle_elims.On(cand)) break;
 			} // end one source for elimination
 		}// end for i
 		if(0 && !nested_aig) {
 			EE.E("fin aig=0 pour step=");
 			EE.Enl(npas);
 		}
+              // stop as soon as elimination has been done
+     if(tchain.cycle_elims.On(cand)) break;
 	}// end while
 	return 0; //ret_code;
 }
