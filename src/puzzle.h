@@ -39,6 +39,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 extern unsigned long long fsss(const char* in, const unsigned long long maxSolutions, char* out); //fast simple sudoku solver.
 extern const unsigned int cellsInGroup[27][9];
+class CELL_FIX;
+extern CELL_FIX *t81f;			//pointer to speed up the process   
 
 //! Short class to define and handle a 9x9 or 81 char field 
 /**
@@ -88,7 +90,8 @@ public:
 	/** \param ie cell index */
 	void init(USHORT ie)
 	{
-		i8=ie; el=ie/9;
+		i8=ie;
+		el=ie/9;
 		pl=ie-9*el;
 		eb=I81::Boite(el,pl);
 		pb=I81::PosBoite(el,pl);
@@ -115,24 +118,33 @@ public:
 //! Table containing the fix data for the 81 cells
 class CELLS_FIX {  
 public:
-	CELL_FIX t81f[81];
+	CELL_FIX t81f_field[81];
 
 	// constructor making all initialisations 
 	CELLS_FIX() {
 		int i, j; 
 		for(i=0;i<81;i++)		// initialize all data except influence zone
-			t81f[i].init(i);
+			t81f_field[i].init(i);
 		for(i=0;i<81;i++) {		// initialize influence zone
 			BF81 z;  
 			for(j=0;j<81;j++) 
-				if((i-j)&& t81f[i].ObjCommun(&t81f[j]))
+				if((i-j)&& t81f_field[i].ObjCommun(&t81f_field[j]))
 					z.Set(j);
-			t81f[i].z=z;	 
-			t81f[i].Initpi();	// initialize array from bitfield
+			t81f_field[i].z=z;	 
+			t81f_field[i].Initpi();	// initialize array from bitfield
+			//USHORT 
+			//	i8,		///< cell index (0-80)
+			//	el,     ///< row index (0-8)
+			//	pl,     ///< column index (0-8)
+			//	eb,     ///< box index(0-8) 
+			//	pb,     ///< relative position in the box (0-8)
+			//	pi[20]; ///< list of the  20 cells controled by a cell in an array of cell index
+			//char pt[5];	///< printing string like R4C9 with \0
+			//BF81 z;     ///< list of the  20 cells controled by a cell in a bit field
 		}
 	}
 
-	int GetLigCol (USHORT p1,USHORT p2)  // only if is lig or col (UR)
+	static int GetLigCol(USHORT p1,USHORT p2) // only if is lig or col (UR)
 	{
 		if(t81f[p1].el==t81f[p2].el) 
 			return t81f[p1].el;
@@ -1639,10 +1651,6 @@ private:
 extern OPSUDO Op;
 extern FLOG EE;
 
-extern CELLS_FIX tp81f;
-extern CELL_FIX *t81f;			//pointer to speed up the process   
-//extern DIVF divf;
-//extern ZGROUPE zgs;
 extern PUZZLE puz;
 
 

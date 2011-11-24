@@ -239,7 +239,7 @@ int TCHAIN::IsOK(USHORT x) {
 void TWO_REGIONS_INDEX::Genere(CELL * tw) {
 	int i, j;
 	for(i = 0; i < 81; i++) {   // on charge tpobit
-		CELL_FIX w = t81f[i];
+		CELL_FIX &w = t81f[i];
 		CELL_VAR x = tw[i].v;
 		tpobit.el[w.el].eld[w.pl].Genpo(x);
 		tpobit.el[w.pl + 9].eld[w.el].Genpo(x);
@@ -730,7 +730,7 @@ int TPAIRES::UL() {
 		for(int j = id; j < ie - 1; j++) {
 			for(int k = j + 1; k < ie; k++) {
 				USHORT i1 = zpt[j].i8, i2 = zpt[k].i8;
-				CELL_FIX p1 = t81f[i1], p2 = t81f[i2];
+				CELL_FIX &p1 = t81f[i1], &p2 = t81f[i2];
 				if(!(p1.el==p2.el || p1.pl==p2.pl))
 					continue; // start row or col
 				//  EE->E(p1.pt); EE->E(p2.pt);EE->Enl("un depart lig/col");
@@ -836,7 +836,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	BF32 b18;
 	b18.f = 0; // find parity of cells in r/c
 	for(int i = 0; i < ntplus; i++) {
-		CELL_FIX p1 = t81f[tplus[i]];
+		CELL_FIX &p1 = t81f[tplus[i]];
 		b18.f ^= 1 << p1.el;
 		b18.f ^= 1 << (p1.pl + 9);
 	}
@@ -870,7 +870,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	for(int i = 0; i < 27; i++)
 		el_par2_ch[i] = el_par_ch[i];
 	for(int i = 0; i < ntplus; i++) { // change parity for all cells
-		CELL_FIX p1 = t81f[tplus[i]]; 
+		CELL_FIX &p1 = t81f[tplus[i]]; 
 		BF16 wch = parentpuz->T81t[tplus[i]].v.cand - possible;
 		el_par2_ch[p1.el] ^= wch;
 		el_par2_ch[p1.pl+9] ^= wch;
@@ -1303,7 +1303,7 @@ UL_SEARCH::UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,
 //========================= insert a new cell after el_used correct
 void UL_SEARCH::Set(int i8) { // el_used already ok if necessary
 	cells.Set(i8);  
-	CELL_FIX p = t81f[i8];
+	CELL_FIX &p = t81f[i8];
 	last = i8; 
 	CELL_VAR pv = parentpuz->T81tc[i8].v;
 	parity.Inv(p.el);
@@ -1361,7 +1361,7 @@ int UL_SEARCH::Add_Chain(int i8) {
 		return Loop_OK();
 	}
 	Set(i8);              // On met le point en place
-	CELL_FIX f = t81f[i8];
+	CELL_FIX &f = t81f[i8];
 
 	// a défaut une case avec additifs  ligne, puis col, puis bloc en paire
 	// uniquement dans éléments non traités et si pas de double paire
@@ -1389,7 +1389,7 @@ int UL_SEARCH::El_Suite(USHORT ele) {
 			int i8r = cellsInGroup[ele][i];
 			//EE->E("essai i8=");EE->Enl(t81f[i8r].pt);
 			if(ele > 17) { // in a box, only not row col
-				CELL_FIX f = t81f[i8r], f2 = t81f[last];
+				CELL_FIX &f = t81f[i8r], &f2 = t81f[last];
 				if(f.el == f2.el || f.pl == f2.pl)
 					continue;
 			}
@@ -1412,7 +1412,7 @@ int UL_SEARCH::Is_OK_Suite(USHORT i8) {
 		return 1;
 	if(cells.On(i8))
 		return 0; // false loop  
-	CELL_FIX f = t81f[i8]; 
+	CELL_FIX &f = t81f[i8]; 
 	if(elcpt[f.el] > 1 || elcpt[f.pl + 9] > 1 || elcpt[f.eb + 18] > 1)
 		return 0;
 	// for the time being, I see no more exclusion
@@ -1777,7 +1777,7 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 	if(ch2.QC() < 2)
 		return; // non il faudrait aussi accepter 1 commun à revoir
 	// nothing to do if box/row and box/col (already done)
-	CELL_FIX p1 = t81f[cell1], p2=t81f[cell2];
+	CELL_FIX &p1 = t81f[cell1], &p2=t81f[cell2];
 	if(iel > 17 && ((p1.el == p2.el) || (p1.pl == p2.pl)))
 		return;
 	for(int i1 = 0; i1 < 8; i1++) {
@@ -1919,7 +1919,7 @@ void SEARCH_UR::SetParent(PUZZLE * parent , FLOG * xx,
 }
 
 int SEARCH_UR::GetElPlus() {
-	return tp81f.GetLigCol(pp1,pp2);
+	return CELLS_FIX::GetLigCol(pp1,pp2);
 } // assuming nplus=2
 
 int SEARCH_UR::IsDiag() {
@@ -1932,7 +1932,7 @@ int SEARCH_UR::IsDiag() {
 }
 
 int SEARCH_UR::Jumeau(USHORT a,USHORT b,USHORT ch) {
-	USHORT el = tp81f.GetLigCol(a,b);
+	USHORT el = CELLS_FIX::GetLigCol(a,b);
 	return Jum(el, ch);
 }
 

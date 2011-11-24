@@ -391,7 +391,7 @@ int PUZZLE::FaitDirects(int rating) {
 		if(c1 - '0') {     // donc fixée
 			// filter on rating expected
 			int ok = 0;
-			CELL_FIX p = t81f[i];
+			CELL_FIX &p = t81f[i];
 			switch(rating) {
 			case 10:
 				if((DIVF::N_Fixes(gg.pg,p.el) == 8) 
