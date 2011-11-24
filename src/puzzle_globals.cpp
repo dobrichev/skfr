@@ -316,18 +316,19 @@ int SEARCH_LS_FISH::Tiroirs(int nn,int hid,int sing) {     //recherche normale d
 int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked set to accept it
 	int ir=0;
 	if(single) { // will be covered slowly can be any element row, col, box
-		for(int i=0;i<9;i++)  if(wf.Off(i))
-		{USHORT i8=divf.el81[e27][i]; 
-		CELL p=parentpuz->T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
-		BF16 wc=p.v.cand-wi;
-		for(int j=0;j<9;j++) if (wc.On(j) )// a possible hidden digit
-		{BF16 wcd=regindch[e27].eld[j].b-wf; // positions still valid
-		if(wcd.QC()==1)
-		{EE->Enl("ecs assignment");
-		parentpuz -> FaitGoA(i8,j+'1',4);// stop at first assignment
-		ir=1; break;}
-		}// end for j if
-
+		for(int i=0;i<9;i++)  if(wf.Off(i))	{
+			//USHORT i8=divf.el81[e27][i];
+			USHORT i8 = cellsInGroup[e27][i];
+			CELL p=parentpuz->T81t[i8];  if(p.v.typ ) continue;// must be non assigned 
+			BF16 wc=p.v.cand-wi;
+			for(int j=0;j<9;j++)
+				if (wc.On(j) )// a possible hidden digit
+					{BF16 wcd=regindch[e27].eld[j].b-wf; // positions still valid
+					if(wcd.QC()==1)
+					{EE->Enl("ecs assignment");
+					parentpuz -> FaitGoA(i8,j+'1',4);// stop at first assignment
+					ir=1; break;}
+			}// end for j if
 		}// end hidden ls
 		if(!ir) return 0;// no single found
 	}// end if single
@@ -782,13 +783,15 @@ int TPAIRES::BUG() {
 int TPAIRES::Bug3a(int rat) {
 	brat = rat;  // maximum authorized in that step
 	for(int i = 0; i < 27; i++) {
-		if(zplus.EstDans(divf.elz81[i])) {
+		//if(zplus.EstDans(divf.elz81[i])) {
+		if(zplus.EstDans(cellsInHouseBM[i])) {
 			ntpa = nwp = 0;// collect data in that row/col/box
 			candp_or.f = candnp_or.f = nwp = 0;
 			//candp_xor.f = 0;
 			//candnp_xor.f = 0;
 			for(int j = 0; j < 9; j++) {
-				int i8 = divf.el81[i][j];
+				//int i8 = divf.el81[i][j];
+				int i8 = cellsInGroup[i][j];
 				CELL p = parentpuz->T81t[i8];
 				if(zplus.On(i8)) { // wplus has the same order as tplus
 					candnp_or |= p.v.cand;
@@ -1382,7 +1385,8 @@ int UL_SEARCH::El_Suite(USHORT ele) {
 	BF16 wc = puz.alt_index.tchbit.el[ele].eld[c1].b & puz.alt_index.tchbit.el[ele].eld[c2].b;
 	for(int i = 0; i < 9; i++) {
 		if(wc.On(i)) { // cells with both digits
-			int i8r = divf.el81[ele][i];
+			//int i8r = divf.el81[ele][i];
+			int i8r = cellsInGroup[ele][i];
 			//EE->E("essai i8=");EE->Enl(t81f[i8r].pt);
 			if(ele > 17) { // in a box, only not row col
 				CELL_FIX f = t81f[i8r], f2 = t81f[last];
@@ -1733,26 +1737,32 @@ void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EV
 	for(int i = 0; i < 9; i++)
 		if(el1d.b.On(i))
 			if((i - p1) && (i - p2))
-				eva.AddCand(parentpuz,EE,divf.el81[el1][i], ch); 
+				//eva.AddCand(parentpuz,EE,divf.el81[el1][i], ch);
+				eva.AddCand(parentpuz, EE, cellsInGroup[el1][i], ch);
 			else
-				evx.AddCand(parentpuz,EE,divf.el81[el1][i], ch);
+				//evx.AddCand(parentpuz,EE,divf.el81[el1][i], ch);
+				evx.AddCand(parentpuz, EE, cellsInGroup[el1][i], ch);
 	for(int i = 0; i < 9; i++)
 		if(el2d.b.On(i))
 			if((i - p1) && (i - p2))
-				eva.AddCand(parentpuz,EE,divf.el81[el2][i], ch);
+				//eva.AddCand(parentpuz,EE,divf.el81[el2][i], ch);
+				eva.AddCand(parentpuz, EE, cellsInGroup[el2][i], ch);
 			else
-				evx.AddCand(parentpuz,EE,divf.el81[el2][i], ch);
+				//evx.AddCand(parentpuz,EE,divf.el81[el2][i], ch);
+				evx.AddCand(parentpuz, EE, cellsInGroup[el2][i], ch);
 }
 
 void TEVENT::LoadPairs() { // all rows, columns, and boxes  
 	for(int iel = 0; iel < 27; iel++) {
 		// pick up 2 unknown cells in that region
 		for(int i1 = 0; i1 < 8; i1++) {
-			USHORT cell1 = divf.el81[iel][i1];
+			//USHORT cell1 = divf.el81[iel][i1];
+			USHORT cell1 = cellsInGroup[iel][i1];
 			if(parentpuz->T81t[cell1].v.ncand < 2)
 				continue;
 			for(int i2 = i1 + 1; i2 < 9; i2++) {
-				USHORT cell2 = divf.el81[iel][i2];
+				//USHORT cell2 = divf.el81[iel][i2];
+				USHORT cell2 = cellsInGroup[iel][i2];
 				if(parentpuz->T81t[cell2].v.ncand < 2)
 					continue;
 				LoadPairsD(cell1, cell2, iel);
@@ -1814,7 +1824,8 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 
 void TEVENT::PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLOT & hid) {
 	for(int i = 0; i < 9; i++) {
-		int cell = divf.el81[el][i];
+		//int cell = divf.el81[el][i];
+		int cell = cellsInGroup[el][i];
 		if((cell == cell1) || (cell == cell2))
 			continue;
 		CELL_VAR p = parentpuz->T81t[cell].v;
@@ -1837,16 +1848,20 @@ void TEVENT::LoadLock() {
 	for(int iel = 0; iel < 18; iel++) {
 		for(int ib = 18; ib < 27; ib++) {
 			for(int ich = 0; ich < 9; ich++) {
-				BF81 chel = divf.elz81[iel] & puz.c[ich];  // the elem pattern for the ch
+				//BF81 chel = divf.elz81[iel] & puz.c[ich];  // the elem pattern for the ch
+				//BF81 chel = cellsInHouseBM[iel] & puz.c[ich];  // the elem pattern for the ch
+				BF81 chel = puz.c[ich] & cellsInHouseBM[iel];  // the elem pattern for the ch
 				if(chel.IsEmpty())
 					continue; // nothing  
-				BF81 chbcom = chel & divf.elz81[ib]; // common part with the block
+				//BF81 chbcom = chel & divf.elz81[ib]; // common part with the block
+				BF81 chbcom = chel & cellsInHouseBM[ib]; // common part with the block
 				if(chel == chbcom)
 					continue; //  already locked
 				if(chbcom.Count() < 2)
 					continue; // nothing to do I guess
 				chel -= chbcom; // set in row col
-				BF81 chb = (divf.elz81[ib] & puz.c[ich]) - chbcom; // set in box
+				//BF81 chb = (divf.elz81[ib] & puz.c[ich]) - chbcom; // set in box
+				BF81 chb = (puz.c[ich] & cellsInHouseBM[ib]) - chbcom; // set in box
 
 				// check what does SE if evrc,evb,evx all one candidate ?? 
 
@@ -1908,7 +1923,8 @@ int SEARCH_UR::GetElPlus() {
 } // assuming nplus=2
 
 int SEARCH_UR::IsDiag() {
-	if(divf.IsObjet(deux[0],deux[1]))
+	//if(divf.IsObjet(deux[0],deux[1]))
+	if(DIVF::IsObjet(deux[0],deux[1]))
 		diag=0;
 	else
 		diag = 1;
@@ -2025,7 +2041,8 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 	wdp.f = 0;
 	zwel.SetAll_0(); // to prepare clearing of naked sets
 	for(int i = 0; i < 9; i++) {
-		int ppi = divf.el81[el][i];
+		//int ppi = divf.el81[el][i];
+		int ppi = cellsInGroup[el][i];
 		if((ppi == pp1) || (ppi == pp2))
 			continue;
 		CELL_VAR v = parentpuz->T81t[ppi].v;
@@ -2471,7 +2488,8 @@ void  CANDIDATES::RegionLinks(USHORT ich,int biv){
 		if(puz.alt_index.tchbit.el[el].eld[ich].n <2 )
 			continue;
 		for(int i=0;i<9;i++)  {
-			USHORT w=indexc[divf.el81[el][i]+81*ich]; 
+			//USHORT w=indexc[divf.el81[el][i]+81*ich];
+			USHORT w=indexc[cellsInGroup[el][i]+81*ich];
 			if(w) 
 				ptsch[iptsch++]=w;}
 			if(iptsch==2 && biv) {
@@ -2522,14 +2540,15 @@ void CANDIDATES::GenRegionSets()  {
 					  ipts=0;;
 				if(nmch-ncand) 
 					continue;  
-				BF81 zel=divf.elz81[el]&puz.c[ich];  
-				for(int j=1;j<ip;j++){
-					if(zp[j].ch-ich )
+				//BF81 zel=divf.elz81[el]&puz.c[ich];
+				BF81 zel = puz.c[ich] & cellsInHouseBM[el];
+				for(int j = 1; j < ip; j++) {
+					if(zp[j].ch - ich )
 						continue;
-					if(zel.On(zp[j].ig) ) 
-						mch[ipts++]=j; 
+					if(zel.On(zp[j].ig)) 
+						mch[ipts++] = j; 
 				}
-				parentpuz->zcx.ChargeSet(mch,nmch,SET_base);
+				parentpuz->zcx.ChargeSet(mch, nmch, SET_base);
 			}
 		}
 

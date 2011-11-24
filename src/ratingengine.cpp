@@ -43,8 +43,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 CELLS_FIX tp81f;
 CELL_FIX *t81f = tp81f.t81f;	//pointer to speed up the process   
-DIVF divf;
-ZGROUPE zgs;
+//DIVF divf;
+//ZGROUPE zgs;
 
 OPSUDO Op;
 FLOG EE;  //log file as such is one should not be used in multi thread

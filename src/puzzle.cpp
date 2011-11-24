@@ -364,7 +364,8 @@ int PUZZLE::Directs() { //en tete appliquer regle de base
 		for(int j = 0; j < 9; j++) {  // chiffre une place
 			if(alt_index.tchbit.el[i].eld[j].n == 1) {
 				int k = alt_index.tchbit.el[i].eld[j].b.First(),
-					i8 = divf.el81[i][k];
+					//i8 = divf.el81[i][k];
+					i8 = cellsInGroup[i][k];
 				if(!T81t[i8].v.typ)	{
 					FixerAdd(i8,(char)('1' + j), i/9);
 					ir = 1;
@@ -393,9 +394,9 @@ int PUZZLE::FaitDirects(int rating) {
 			CELL_FIX p = t81f[i];
 			switch(rating) {
 			case 10:
-				if((divf.N_Fixes(gg.pg,p.el) == 8) 
-					|| (divf.N_Fixes(gg.pg,p.pl+9) == 8)
-					|| (divf.N_Fixes(gg.pg,p.eb+18) == 8))
+				if((DIVF::N_Fixes(gg.pg,p.el) == 8) 
+					|| (DIVF::N_Fixes(gg.pg,p.pl+9) == 8)
+					|| (DIVF::N_Fixes(gg.pg,p.eb+18) == 8))
 					ok = 1;
 				break;
 			case 12:
@@ -450,7 +451,8 @@ int PUZZLE::ChangeSauf(int elem, BF16 pos, BF16 chiffres) {
 	for(int i = 0; i < 9; i++) {
 		if(pos.On(i))
 			continue;
-		ir += T81t[divf.el81[elem][i]].Change(chiffres,this);
+		//ir += T81t[divf.el81[elem][i]].Change(chiffres, this);
+		ir += T81t[cellsInGroup[elem][i]].Change(chiffres, this);
 	}
 	return ir;
 }
@@ -460,7 +462,8 @@ int PUZZLE::Keep(int elem, BF16 pos, BF16 chiffres) {
 	int ir=0;
 	for(int i=0;i<9;i++) {
 		if(pos.On(i))
-			ir += T81t[divf.el81[elem][i]].Keep(chiffres,this);
+			//ir += T81t[divf.el81[elem][i]].Keep(chiffres, this);
+			ir += T81t[cellsInGroup[elem][i]].Keep(chiffres, this);
 	}
 	return ir;
 }
@@ -478,7 +481,8 @@ int PUZZLE::Keep(int ch1, USHORT p1, USHORT p2) {
 int PUZZLE::NonFixesEl(int el) {
 	int n = 0;
 	for(int i = 0; i < 9; i++)
-		if(gg.pg[divf.el81[el][i]] == '0')
+		//if(gg.pg[divf.el81[el][i]] == '0')
+		if(gg.pg[cellsInGroup[el][i]] == '0')
 			n++;
 	return n;
 }
@@ -2036,22 +2040,31 @@ int PUZZLE::TraiteLocked(int rating) {
 	for(int ich = 0; ich < 9; ich++) {
 		BF81 wf = c[ich], wfel;
 		for(int iel = 18; iel < 27; iel++) {
-			wfel = divf.elz81[iel] & wf;
+			//wfel = divf.elz81[iel] & wf;
+			wfel = wf & cellsInHouseBM[iel];
 			if(wfel.IsEmpty())
 				continue;
-			if(divf.IsAutreObjet(wfel,iel,ialt)) {
-				BF81 wa = wf&divf.elz81[ialt], wex = wa ^ wfel;
+			if(DIVF::IsAutreObjet(wfel,iel,ialt)) {
+				//BF81 wa = wf&divf.elz81[ialt];
+				BF81 wa = wf & cellsInHouseBM[ialt];
+				BF81 wex = wa ^ wfel;
 				if(wex.IsNotEmpty()) {
 					// the search for singles is done only in boxes
 					// intersecting with ialt , so it must be a hidden single
 					int ok = 0;
 					BF81 ww;
 					for(int i = 18; i < 27; i++) { // must be a box
-						if((i-ialt) && (divf.elz81[i] & divf.elz81[ialt]).IsNotEmpty()) {
-							ww = (divf.elz81[i] & c[ich]) - wex;
-							if(ww.Count() == 1) {
-								ok = 1;
-								break;
+						//if((i-ialt) && (divf.elz81[i] & divf.elz81[ialt]).IsNotEmpty()) {
+						if(i != ialt) {
+							ww = cellsInHouseBM[i];
+							ww &= cellsInHouseBM[ialt];
+							if(ww.IsNotEmpty()) {
+								//ww = (divf.elz81[i] & c[ich]) - wex;
+								ww = (c[ich] & cellsInHouseBM[i]) - wex;
+								if(ww.Count() == 1) {
+									ok = 1;
+									break;
+								}
 							}
 						}
 					}
@@ -2076,11 +2089,14 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 	for(int ich = 0; ich < 9; ich++) {
 		BF81 wf = c[ich], wfel;
 		for(int iel = eld; iel < elf; iel++) {
-			wfel = divf.elz81[iel] & wf;
+			//wfel = divf.elz81[iel] & wf;
+			wfel = wf & cellsInHouseBM[iel];
 			if(wfel.IsEmpty())
 				continue;
-			if(divf.IsAutreObjet(wfel,iel,ialt)) {
-				BF81 wa = wf&divf.elz81[ialt], wex = wa ^ wfel;
+			if(DIVF::IsAutreObjet(wfel, iel, ialt)) {
+				//BF81 wa = wf & divf.elz81[ialt];
+				BF81 wa = wf & cellsInHouseBM[ialt];
+				BF81 wex = wa ^ wfel;
 				if(wex.IsNotEmpty()) {
 					messlock(ialt, iel, ich) ;
 					T81->Clear(wex, ich);

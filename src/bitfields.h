@@ -324,10 +324,11 @@ class BF81 {
 	 */
 	//unsigned  int f[3];   // bitfield
 	bm128 ff;
-public:  
+public:
 
     BF81(){SetAll_0();}
     BF81(const BF81 &r) {*this = r;}
+    BF81(const t_128 &r) {this->ff.bitmap128 = r;}
     BF81(int i1) {
 		ff = bitSet[i1];
 		//SetAll_0();

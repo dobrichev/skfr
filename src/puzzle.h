@@ -38,7 +38,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "bitfields.h"			// bitfields are grouped in this file
 
 extern unsigned long long fsss(const char* in, const unsigned long long maxSolutions, char* out); //fast simple sudoku solver.
-
+extern const unsigned int cellsInGroup[27][9];
 
 //! Short class to define and handle a 9x9 or 81 char field 
 /**
@@ -148,43 +148,75 @@ public:
  * This class gives the list of cells for each house as an array of cell index 
  * or as a bitfield
  */
+static const t_128 cellsInHouseBM[27] = { //TODO: find the proper place for all constant tables
+	{0x00000000000001FF,0x0000000000000000}, //0 row1
+	{0x000000000003FE00,0x0000000000000000}, //1
+	{0x0000000007FC0000,0x0000000000000000}, //2
+	{0x0000000FF8000000,0x0000000000000000}, //3
+	{0x00001FF000000000,0x0000000000000000}, //4
+	{0x003FE00000000000,0x0000000000000000}, //5
+	{0x7FC0000000000000,0x0000000000000000}, //6
+	{0x8000000000000000,0x00000000000000FF}, //7
+	{0x0000000000000000,0x000000000001FF00}, //8
+	{0x8040201008040201,0x0000000000000100}, //9 column 1
+	{0x0080402010080402,0x0000000000000201}, //10
+	{0x0100804020100804,0x0000000000000402}, //11
+	{0x0201008040201008,0x0000000000000804}, //12
+	{0x0402010080402010,0x0000000000001008}, //13
+	{0x0804020100804020,0x0000000000002010}, //14
+	{0x1008040201008040,0x0000000000004020}, //15
+	{0x2010080402010080,0x0000000000008040}, //16
+	{0x4020100804020100,0x0000000000010080}, //17
+	{0x00000000001C0E07,0x0000000000000000}, //18 box 1
+	{0x0000000000E07038,0x0000000000000000}, //19
+	{0x00000000070381C0,0x0000000000000000}, //20
+	{0x0000E07038000000,0x0000000000000000}, //21
+	{0x00070381C0000000,0x0000000000000000}, //22
+	{0x00381C0E00000000,0x0000000000000000}, //23
+	{0x81C0000000000000,0x0000000000000703}, //24
+	{0x0E00000000000000,0x000000000000381C}, //25
+	{0x7000000000000000,0x000000000001C0E0}, //26
+};
+
 class DIVF {
 public:
-	USHORT el81[27][9]; ///< House (0-26) to 9 cells (0-80) as array of cell indexes
-	BF81 elz81[27];    ///< House (0-26) to 9 cells (0-80) as a bit field
+	//USHORT el81[27][9]; ///< House (0-26) to 9 cells (0-80) as array of cell indexes
+	//BF81 elz81[27];    ///< House (0-26) to 9 cells (0-80) as a bit field
 
 	//DIVF();   // constructor making initialisations
-	DIVF() {  // constructor making initialisations
-		for(int r = 0; r < 9; r++) {
-			for(int c = 0; c < 9; c++) {	// loop on cells
-				int p = I81::Pos(r, c); // cell index (0-80)
-				el81[r][c] = p;		// cell is in row r
-				el81[c + 9][r] = p;		// cell is in column c
-				int eb = I81::Boite(r, c), pb = I81::PosBoite(r, c); 
-				el81[eb + 18][pb] = p;	// cell is in box eb and position in box pb
-			}
-		}
-		for(int i = 0; i < 27; i++) {	// convert array to bitfield
-			//BF81 z;   
-			//for(int j = 0; j < 9; j++) 
-			//	z.Set(el81[i][j]);  
-			//elz81[i] = z;
-			for(int j = 0; j < 9; j++) 
-				elz81[i].Set(el81[i][j]);  
-		}
-	}
+	//DIVF() {  // constructor making initialisations
+	//	for(int r = 0; r < 9; r++) {
+	//		for(int c = 0; c < 9; c++) {	// loop on cells
+	//			int p = I81::Pos(r, c); // cell index (0-80)
+	//			el81[r][c] = p;		// cell is in row r
+	//			el81[c + 9][r] = p;		// cell is in column c
+	//			int eb = I81::Boite(r, c), pb = I81::PosBoite(r, c); 
+	//			el81[eb + 18][pb] = p;	// cell is in box eb and position in box pb
+	//		}
+	//	}
+	//	//for(int i = 0; i < 27; i++) {	// convert array to bitfield
+	//	//	//BF81 z;   
+	//	//	//for(int j = 0; j < 9; j++) 
+	//	//	//	z.Set(el81[i][j]);  
+	//	//	//elz81[i] = z;
+	//	//	for(int j = 0; j < 9; j++) 
+	//	//		elz81[i].Set(el81[i][j]);  
+	//	//	//printf("{0x%16.16llX,0x%16.16llX} //%i\n", elz81[i].ff.bitmap128.m128i_u64[0], elz81[i].ff.bitmap128.m128i_u64[1], i);
+	//	//}
+	//}
 	
 	//! Are all cells defined by <code>ze</code> in House with index <code>i</code>
 	/** \return 1 if yes, 0 if no */
 	//int IsObjetI (const BF81 & ze, int i) const;
-	int IsObjetI(BF81 const &ze, int i) const {
-		return (ze.EstDans(elz81[i]));
+	static int IsObjetI(BF81 const &ze, int i) {
+		//return (ze.EstDans(elz81[i]));
+		return (ze.EstDans(cellsInHouseBM[i]));
 	}
 
 	//! Is there a house that contains all cells defined by <code>ze</code>
 	/** \return 1 if there is one, 0 if none */
 	//int IsObjet(BF81 &ze) const;
-	int IsObjet(const BF81 &ze) const {
+	static int IsObjet(const BF81 &ze) {
 		for(int i = 0; i < 27; i++)
 			if(IsObjetI(ze, i)) 
 				return 1;  
@@ -193,7 +225,7 @@ public:
 	//! Get index of a box that contains all cells defined by  <code>ze</code>
 	/** \return box index (18-26) or 0 if none */
 	//int IsBox(BF81 &ze) const; 
-	int IsBox(const BF81 &ze) const {
+	static int IsBox(const BF81 &ze) {
 		for(int i = 18; i < 27; i++) 
 			if(IsObjetI(ze, i))
 				return i; 
@@ -206,7 +238,7 @@ public:
 	 * \return 1 if yes, 0 if no
 	 */
 	//int IsObjet(USHORT p1,USHORT p2) const; 
-	int IsObjet(USHORT p1, USHORT p2) const {
+	static int IsObjet(USHORT p1, USHORT p2) {
 		BF81 z(p1, p2);
 		return IsObjet(z);
 	}
@@ -215,7 +247,7 @@ public:
 	///\param objs int reference to return the house index
 	///\return 1 if an other house has been found, 0 if none
 	//int IsAutreObjet(BF81 &ze,int obje, int &objs) const;
-	int IsAutreObjet(const BF81 &ze, int obje, int &objs) const {
+	static int IsAutreObjet(const BF81 &ze, int obje, int &objs) {
 		for(int i = 0; i < 27; i++) {
 			if(i == obje)
 				continue;
@@ -228,10 +260,11 @@ public:
 	}
 	//! Get valued cell count in the house <code>el</code>
 	//int N_Fixes(char * pg,int el) const;
-	int DIVF::N_Fixes(const char * pg, int el) const {
+	static int DIVF::N_Fixes(const char * pg, int el) {
 		int n = 0; 
 		for(int i = 0; i < 9; i++) 
-			if(pg[el81[el][i]] - '0') 
+			//if(pg[el81[el][i]] - '0')
+			if(pg[cellsInGroup[el][i]] - '0')
 				n++;
 		return n;
 	}
@@ -1608,8 +1641,8 @@ extern FLOG EE;
 
 extern CELLS_FIX tp81f;
 extern CELL_FIX *t81f;			//pointer to speed up the process   
-extern DIVF divf;
-extern ZGROUPE zgs;
+//extern DIVF divf;
+//extern ZGROUPE zgs;
 extern PUZZLE puz;
 
 
