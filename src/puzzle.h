@@ -40,7 +40,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 extern unsigned long long fsss(const char* in, const unsigned long long maxSolutions, char* out); //fast simple sudoku solver.
 extern const unsigned int cellsInGroup[27][9];
 class CELL_FIX;
-//extern const CELL_FIX *t81f;			//pointer to speed up the process
 
 //! Short class to define and handle a 9x9 or 81 char field 
 /**
@@ -48,7 +47,6 @@ class CELL_FIX;
  * Empty cell should be coded with '0' to have correct count with 
  * <code>NBlancs</code> and <code>Nfix</code>.
  */
-
 
 // dummy class to have optimized functions for most common index correspondances
 // Boite(i,j) -> box index 0;9 for row i, column j
@@ -60,7 +58,6 @@ public:
 		return ((i << 3) + i + j);
 	}
 
-
 	static inline USHORT Boite(int i,int j)
 	{int jj=j/3; if(i<3) return jj; if(i<6) return (3+jj); else return (6+jj);}
 	static inline USHORT PosBoite(int i,int j) { return 3*(i%3)+j%3;}
@@ -68,7 +65,7 @@ public:
 	// but no use of the 81 cells function authorised 
 
 	static inline USHORT Box54(USHORT x) {USHORT a=3*(x/9),b=x%3; return (a+b);}
-}; //mi81
+};
 
 
 class PUZZLE;
@@ -85,30 +82,6 @@ public:
 		pi[20]; ///< list of the  20 cells controled by a cell in an array of cell index
 	char pt[5];	///< printing string like R4C9 with \0
 	t_128 z;     ///< list of the  20 cells controled by a cell in a bit field
-
-	////! Initialize all member values from the cell index, except control area
-	///** \param ie cell index */
-	//void init(USHORT ie)
-	//{
-	//	i8=ie;
-	//	el=ie/9;
-	//	pl=ie-9*el;
-	//	eb=I81::Boite(el,pl);
-	//	pb=I81::PosBoite(el,pl);
-	//	strcpy_s(pt,5,"r c "); pt[1]=(char)(el+'1'); pt[3]=(char)(pl+'1');
-	//}
-
-	////! Initialize <code>pi</code> array from bitfield <code>z</code>
-	//void Initpi()  
-	//{
-	//	int it=0;
-	//	for (int i=0;i<81;i++) {
-	//		//if(z.On(i))
-	//		BF81 zz = z;
-	//		if(zz.On(i))
-	//			pi[it++]=i;
-	//	}
-	//}  
 
 	//! is the cell <code>p8</code> visible from <code>this</code>
 	int ObjCommun(const CELL_FIX *p8) const {
@@ -207,35 +180,6 @@ class CELLS_FIX {
 public:
 	CELL_FIX t81f_field[81];
 
-	// constructor making all initialisations 
-	//CELLS_FIX() {
-	//	int i, j; 
-	//	for(i=0;i<81;i++)		// initialize all data except influence zone
-	//		t81f_field[i].init(i);
-	//	for(i=0;i<81;i++) {		// initialize influence zone
-	//		BF81 z;
-	//		for(j=0;j<81;j++) 
-	//			if((i-j)&& t81f_field[i].ObjCommun(&t81f_field[j]))
-	//				z.Set(j);
-	//		//t81f_field[i].z = z;	 
-	//		t81f_field[i].z = z.ff.bitmap128;	 
-	//		t81f_field[i].Initpi();	// initialize array from bitfield
-	//		//USHORT 
-	//		//	i8,		///< cell index (0-80)
-	//		//	el,     ///< row index (0-8)
-	//		//	pl,     ///< column index (0-8)
-	//		//	eb,     ///< box index(0-8) 
-	//		//	pb,     ///< relative position in the box (0-8)
-	//		//	pi[20]; ///< list of the  20 cells controled by a cell in an array of cell index
-	//		//char pt[5];	///< printing string like R4C9 with \0
-	//		//BF81 z;     ///< list of the  20 cells controled by a cell in a bit field
-	//		//printf("{%2i, %i, %i, %i, %i, {", t81f_field[i].i8, t81f_field[i].el, t81f_field[i].pl, t81f_field[i].eb, t81f_field[i].pb);
-	//		//for(int n = 0; n < 20; n++)
-	//		//	printf("%2i,", t81f_field[i].pi[n]);
-	//		//printf("},\"%s\",{0x%16.16llX,0x%16.16llX}}, //%i\n", t81f_field[i].pt, t81f_field[i].z.ff.bitmap128.m128i_u64[0], t81f_field[i].z.ff.bitmap128.m128i_u64[1], i);
-	//	}
-	//}
-
 	static int GetLigCol(USHORT p1,USHORT p2) // only if is lig or col (UR)
 	{
 		if(cellsFixedData[p1].el==cellsFixedData[p2].el) 
@@ -284,42 +228,14 @@ static const t_128 cellsInHouseBM[27] = { //TODO: find the proper place for all 
 
 class DIVF {
 public:
-	//USHORT el81[27][9]; ///< House (0-26) to 9 cells (0-80) as array of cell indexes
-	//BF81 elz81[27];    ///< House (0-26) to 9 cells (0-80) as a bit field
-
-	//DIVF();   // constructor making initialisations
-	//DIVF() {  // constructor making initialisations
-	//	for(int r = 0; r < 9; r++) {
-	//		for(int c = 0; c < 9; c++) {	// loop on cells
-	//			int p = I81::Pos(r, c); // cell index (0-80)
-	//			el81[r][c] = p;		// cell is in row r
-	//			el81[c + 9][r] = p;		// cell is in column c
-	//			int eb = I81::Boite(r, c), pb = I81::PosBoite(r, c); 
-	//			el81[eb + 18][pb] = p;	// cell is in box eb and position in box pb
-	//		}
-	//	}
-	//	//for(int i = 0; i < 27; i++) {	// convert array to bitfield
-	//	//	//BF81 z;   
-	//	//	//for(int j = 0; j < 9; j++) 
-	//	//	//	z.Set(el81[i][j]);  
-	//	//	//elz81[i] = z;
-	//	//	for(int j = 0; j < 9; j++) 
-	//	//		elz81[i].Set(el81[i][j]);  
-	//	//	//printf("{0x%16.16llX,0x%16.16llX}, //%i\n", elz81[i].ff.bitmap128.m128i_u64[0], elz81[i].ff.bitmap128.m128i_u64[1], i);
-	//	//}
-	//}
-	
 	//! Are all cells defined by <code>ze</code> in House with index <code>i</code>
 	/** \return 1 if yes, 0 if no */
-	//int IsObjetI (const BF81 & ze, int i) const;
 	static int IsObjetI(BF81 const &ze, int i) {
-		//return (ze.EstDans(elz81[i]));
 		return (ze.EstDans(cellsInHouseBM[i]));
 	}
 
 	//! Is there a house that contains all cells defined by <code>ze</code>
 	/** \return 1 if there is one, 0 if none */
-	//int IsObjet(BF81 &ze) const;
 	static int IsObjet(const BF81 &ze) {
 		for(int i = 0; i < 27; i++)
 			if(IsObjetI(ze, i)) 
@@ -328,7 +244,6 @@ public:
 	}
 	//! Get index of a box that contains all cells defined by  <code>ze</code>
 	/** \return box index (18-26) or 0 if none */
-	//int IsBox(BF81 &ze) const; 
 	static int IsBox(const BF81 &ze) {
 		for(int i = 18; i < 27; i++) 
 			if(IsObjetI(ze, i))
@@ -341,7 +256,6 @@ public:
 	 * \param p2 second cell index
 	 * \return 1 if yes, 0 if no
 	 */
-	//int IsObjet(USHORT p1,USHORT p2) const; 
 	static int IsObjet(USHORT p1, USHORT p2) {
 		BF81 z(p1, p2);
 		return IsObjet(z);
@@ -350,7 +264,6 @@ public:
 	/// than <code>obje</code> house.
 	///\param objs int reference to return the house index
 	///\return 1 if an other house has been found, 0 if none
-	//int IsAutreObjet(BF81 &ze,int obje, int &objs) const;
 	static int IsAutreObjet(const BF81 &ze, int obje, int &objs) {
 		for(int i = 0; i < 27; i++) {
 			if(i == obje)
@@ -363,19 +276,14 @@ public:
 		return 0;
 	}
 	//! Get valued cell count in the house <code>el</code>
-	//int N_Fixes(char * pg,int el) const;
-	static int DIVF::N_Fixes(const char * pg, int el) {
+	static int N_Fixes(const char * pg, int el) {
 		int n = 0; 
 		for(int i = 0; i < 9; i++) 
-			//if(pg[el81[el][i]] - '0')
 			if(pg[cellsInGroup[el][i]] - '0')
 				n++;
 		return n;
 	}
 }; // DIVF
-// DIVF implementation
-
-// _03c_puzzle_fix.h end
 
 class GG {
 public:
@@ -568,8 +476,6 @@ public:
 };
 
 
-
-
 //That class is dedicated to the processing of algorithms building 
 //  a progressive collection of cells
 // looking for locked sets
@@ -577,8 +483,7 @@ public:
 
 // such algorithms are using  recursive routines 
 
-class SEARCH_LS_FISH 
-{
+class SEARCH_LS_FISH {
 public:
 	PUZZLE * parentpuz;
 	FLOG * EE;
@@ -617,9 +522,7 @@ public:
 	int XW(BF16 fd ,int iold,int irang);
 
 	int GroupeObjetsChange(int decalage,int ch);
- }; 
-
-
+}; 
 
 
 // class collecting cell with 2 digits to find XWings and XYZ wings
@@ -664,7 +567,7 @@ public:
 	int CommunTrio(int i, int j);
 	int XYWing(); 
 	int XYZWing();
-	int UL();           // called in SE for type 1 storing others
+	int UL();   // called in SE for type 1 storing others
 	int BUG();  // process all bugs forms
 	int Bug1();
 	int Bug2();
@@ -676,8 +579,6 @@ public:
 	void BugMess(const char * lib) const;
 	void CommunLib(int i, int j, int k, char * lib);
 };
-
-
 
 
 /* the following classes have been designed specifically for SE clone.
@@ -759,13 +660,7 @@ public:
 	int ClearChain(int ichain); // clear candidates
 	int ClearImmediate(USHORT cand);
 
-};// tchain ;
-
-
-
-
-
-
+};
 
 
 #define zgs_lim 200
@@ -774,7 +669,6 @@ public:
 	BF81 z[zgs_lim];
 	ZGROUPE(); 
 };
-
 
 
 class CANDIDATE {
@@ -791,29 +685,27 @@ public:
 #define zpln_lim 320
 class CANDIDATES {
 public:
-	   PUZZLE * parentpuz;
-	   FLOG * EE;
-	   CANDIDATE zp[zpln_lim];
-	   BFCAND candtrue; 
-	   USHORT ip;            // index to zp
-	   USHORT indexc[9*81];  // digits 81 cells -> cand
-	   USHORT ptsch[10],iptsch, // to generate weak links
-		   el;               
+	PUZZLE * parentpuz;
+	FLOG * EE;
+	CANDIDATE zp[zpln_lim];
+	BFCAND candtrue; 
+	USHORT ip;            // index to zp
+	USHORT indexc[9*81];  // digits 81 cells -> cand
+	USHORT ptsch[10],iptsch, // to generate weak links
+		el;               
 
-	   USHORT Getch(int i){return zp[i].ch;};
+	USHORT Getch(int i){return zp[i].ch;};
 
+	void SetParent(PUZZLE * parent,FLOG * fl);
 
-	   void SetParent(PUZZLE * parent,FLOG * fl);
+	void Init();
+	USHORT Charge0();
 
-
-	   void Init();
-	   USHORT Charge0();
-
-	   void CellStrongLinks(); // Y mode
-	   void CellLinks();   // including bivalues  not done in 'X'mode 
-	   void RegionLinks(int biv)  // bivalues  except in Y mode
-	   {for(USHORT ich=0;ich<9;ich++) RegionLinks(ich,biv); 
-	   }
+	void CellStrongLinks(); // Y mode
+	void CellLinks();   // including bivalues  not done in 'X'mode 
+	void RegionLinks(int biv) { // bivalues  except in Y mode
+		for(USHORT ich=0;ich<9;ich++) RegionLinks(ich,biv); 
+	}
 private:
 	void RegionLinks(USHORT ch,int weak);   
 	void WeakLinksD();
@@ -831,9 +723,7 @@ public:
 
 	void Image(int i,int no=0) const {zp[i].Image(EE,no);  }
 	void ImageTag(int i) const {Image(i>>1,i&1);}
-
 };  
-
 
 
 /* the class PATH has been specifically designed for SE clone
@@ -851,38 +741,36 @@ public:
 	}
 
 	void PrintPathTags(CANDIDATES * zpln);
-
 };  
  
 class SQUARE_BFTAG {
 public:  
-//static PUZZLE * parentpuz; // temporary 
+	//static PUZZLE * parentpuz; // temporary 
 
-BFTAG t[BFTAG_BitSize],parents;	
+	BFTAG t[BFTAG_BitSize],parents;	
 
-void Init() {
-	t[0].SetAll_0();
-	for(int i=1;i<BFTAG_BitSize;i++) {
-		t[i]=t[0];
+	void Init() {
+		t[0].SetAll_0();
+		for(int i=1;i<BFTAG_BitSize;i++) {
+			t[i]=t[0];
+		}
 	}
-}
-void ExpandAll(SQUARE_BFTAG & from);
-void ExpandShort(SQUARE_BFTAG & from,int npas);
-void AllParents(const SQUARE_BFTAG & from);
-int SearchEliminations(PUZZLE * parentpuz,SQUARE_BFTAG & from,BFTAG & elims);
-inline void Set(int i, int m) {t[i].Set(m);};
-inline int Is(int i,int m){return t[i].On(m);};
-inline int IsConflit(int m1, int m2) {return Is(m1,m2^1);}
-inline int IsOu (int m1, int m2) {return Is(m1^1,m2);}
+	void ExpandAll(SQUARE_BFTAG & from);
+	void ExpandShort(SQUARE_BFTAG & from,int npas);
+	void AllParents(const SQUARE_BFTAG & from);
+	int SearchEliminations(PUZZLE * parentpuz,SQUARE_BFTAG & from,BFTAG & elims);
+	inline void Set(int i, int m) {t[i].Set(m);};
+	inline int Is(int i,int m){return t[i].On(m);};
+	inline int IsConflit(int m1, int m2) {return Is(m1,m2^1);}
+	inline int IsOu (int m1, int m2) {return Is(m1^1,m2);}
 
+	void Parents(USHORT x);
+	int ExpandToFind(USHORT td,USHORT tf,USHORT lim);
+	void Shrink(BFTAG & x,USHORT it);
 
-void Parents(USHORT x);
-int ExpandToFind(USHORT td,USHORT tf,USHORT lim);
-void Shrink(BFTAG & x,USHORT it);
-
-void Plus(int m1, int m2) {
-	t[m1].Set(m2);
-}
+	void Plus(int m1, int m2) {
+		t[m1].Set(m2);
+	}
 
 private:
 };
@@ -999,14 +887,11 @@ private:
 }; 
 
 
-
-
 /* new design for the "sets" table
    all entries in candidates mode + 'event' if any
    no duplicate check
    limit to size SET_max
 */
-
 
 #define setsbuffer_lim 100000
 class SETS_BUFFER   // buffer for candidates + "events"
@@ -1014,7 +899,6 @@ class SETS_BUFFER   // buffer for candidates + "events"
  PUZZLE * parentpuz;
  FLOG * EE;
  USHORT zs[setsbuffer_lim],izs,izs_one;
-
 
  void SetParent(PUZZLE * parent,FLOG * fl){
 	 parentpuz=parent;
@@ -1026,8 +910,7 @@ class SETS_BUFFER   // buffer for candidates + "events"
  inline void StartNestedOne() {izs=izs_one;}
  void GetSpace(USHORT *(& ps),int n);
  
-}; //zcxb;   
-
+};
 
 
 /* in SE we keep sets in candidate mode (index in CANDIDATES)
@@ -1036,21 +919,22 @@ class SETS_BUFFER   // buffer for candidates + "events"
    SET_base  cell or region list of candidates
    SET_set   event set, last "candidate" is the event 
 */
-enum SET_TYPE{SET_base,SET_set=4};
-class SET
-{public:      
- USHORT *tcd,  // "set" table pointer to TCXI
-        ix,   // index in TSET 
+enum SET_TYPE {
+	SET_base,
+	SET_set = 4
+};
+
+class SET {
+public:      
+	USHORT *tcd,  // "set" table pointer to TCXI
+		ix,   // index in TSET 
 		ncd,   // number of candidates + "event"
 		type; // as of SET_TYPE 
 
- int Prepare (PUZZLE * parentpuz,USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe);
+	int Prepare (PUZZLE * parentpuz,USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe);
 
- void Image(PUZZLE * parentpuz, FLOG * EE) const;
-
- } ;
-
-
+	void Image(PUZZLE * parentpuz, FLOG * EE) const;
+};
 
 
 #define sets_lim 20000
@@ -1099,7 +983,7 @@ public:
 
 	void Image();
 
-}; //zcx ;  
+};
 
 
 /* a small class to prepare data to collect for a new event
@@ -1178,7 +1062,7 @@ public:
 
 	int EventSeenFor(USHORT tagfrom, USHORT tagevent) const;
 	void LoadFin(); // only for debugging purpose
-}; //tevent;
+};
 
 // class defined to handle Unique rectangles and Unique loops
 // the search for URs is started in TCELL , locating potential URs
@@ -1202,8 +1086,6 @@ public:     //on ne traite que deux communs.
 	void SetParent(PUZZLE * parent,FLOG * fl,
 		 CELL * tae, CELL * tre,
 		 REGION_INDEX * tchele);
-
-
 
 	//==================================================
 	// main subroutines RID is the first entry
@@ -1439,7 +1321,7 @@ public:
 	void AddStrong(USHORT k1, USHORT k2, const BFTAG &bf, USHORT cpt);
 	const CANDGOSTRONG * Get(USHORT t1, USHORT t2) const ;
 
-};//tcandgo;
+};
 
 /* storage of the nested chains for pring purpose
   storing is done in a buffer with a double index
@@ -1461,16 +1343,13 @@ public:
 	USHORT AddOne(USHORT * tch, USHORT n) ;
 	USHORT AddMul(USHORT d, USHORT f) ;
 	void Print(PUZZLE * parentpue, FLOG * EE,USHORT index) const;
-}; //tstore;
-
+};
 
 
 #define pasmax 70
 
-class PUZZLE
-{
+class PUZZLE {
 public:
-
     SEARCH_LS_FISH yt;
     TCHAIN tchain;
     TWO_REGIONS_INDEX alt_index; 
@@ -1493,9 +1372,7 @@ public:
 	CELL *T81t;
 	CELL *T81tc;		  
 
-
 //	ZGROUPE zgs();
-
 
     GG gg,          //< copy of the puzzle (normalized form - empty cell '0')
        gsolution;   // final result if valid (one solution)
@@ -1537,7 +1414,7 @@ public:
 	     c_ret;
 
 
-        // data to control the dynamic and nested mode   
+	// data to control the dynamic and nested mode   
 
 	USHORT nested_aig,
 		   rbase;
@@ -1594,10 +1471,9 @@ public:
 
 	PUZZLE();
 	 
-
     /* set of routines previously in opsudo */
 
-		//! filter on ED 
+	//! filter on ED 
 	int is_ed_ep();   // at the start of a new cycle
 	
 	int Is_ed_ep_go();
@@ -1610,9 +1486,6 @@ public:
 
 	void Seterr(int x);  // an error condition has been found
     
-
-
-
 
 
     //void Initial(); 
@@ -1733,16 +1606,7 @@ private:
 	int FaitGo(int i8,char c1,char c2);
 };
 
-
-
-//file _30a_TCANDGO.h end
-
 // global variables for Puzzle
-
-
 extern OPSUDO Op;
 extern FLOG EE;
-
 extern PUZZLE puz;
-
-

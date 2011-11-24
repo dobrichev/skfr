@@ -41,7 +41,6 @@ const char *orig1="RCB ";
 
 
 PUZZLE::PUZZLE() {
-	//un_jeu.SetParent(this,&EE);
 	solution = gsolution.pg;  
 	T81 = &tp8N;
 	T81C = &tp8N_cop;
@@ -61,8 +60,6 @@ PUZZLE::PUZZLE() {
     zcf.SetParent(this,&EE);
     zcxb.SetParent(this,&EE);
     zcx.SetParent(this,&EE);
-
-
 }
 
 /* added here routines preliminary in Bitfields
@@ -128,8 +125,6 @@ void PUZZLE::ImageCand(BFCAND &zz, char *lib) const {
 	EE.Enl();
 }
 
-
-
 //------
 void PUZZLE::GetCells(BFCAND & zz,BF81 &cells) const {
 	for(int i = 1; i < zpln.ip; i++) {
@@ -139,9 +134,6 @@ void PUZZLE::GetCells(BFCAND & zz,BF81 &cells) const {
 	}
 	EE.Enl();
 }
-
-
-
 
 //------
 void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
@@ -160,15 +152,12 @@ void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
 	EE.Enl();
 }
 
-
-
 void PUZZLE::Image(const SQUARE_BFTAG & zz) const{
 	EE.Enl( "SQUARE_BFTAG Image");
 	for(int i=2;i< col;i++)  
 		if(zz.t[i].IsNotEmpty())  
 			Image(zz.t[i]," ",i); 
 }
-
 
 void PUZZLE::Elimite(char * lib)
    {cerr << "stop elimite"<<endl;
@@ -194,59 +183,85 @@ int PUZZLE::is_ed_ep()   // at the start of a new cycle
 		c_ret = Is_ed_ep_go();
 		return c_ret;
 	}
-void PUZZLE::SetEr()   // something found at the last difficulty level  
-	{
-		if((cycle==1)&& difficulty>edmax) edmax=difficulty;
-		if(((!assigned)|| (!epmax))&& difficulty>epmax) epmax=difficulty;
-		if(difficulty>ermax) ermax=difficulty;      
-	}
-void PUZZLE::Seterr(int x){  // an error condition has been found
-ermax=0; epmax=0;edmax=x;
-// add a message to cerr in some debugging cases
-cerr << "rating error  " << x << " cycle" << cycle << " dif" << difficulty << endl;
+void PUZZLE::SetEr() {  // something found at the last difficulty level  
+	if((cycle==1)&& difficulty>edmax) edmax=difficulty;
+	if(((!assigned)|| (!epmax))&& difficulty>epmax) epmax=difficulty;
+	if(difficulty>ermax) ermax=difficulty;      
+}
 
-} 
+void PUZZLE::Seterr(int x) {  // an error condition has been found
+	ermax=0;
+	epmax=0;
+	edmax=x;
+	// add a message to cerr in some debugging cases
+	cerr << "rating error  " << x << " cycle" << cycle << " dif" << difficulty << endl;
+}
 
 // filter at the start of a new cycle
 
-int PUZZLE::Is_ed_ep_go()  // is the ed or  condition fullfilled
-{switch(Op.o1)
-  {case 0: return 0;       // nothing to do
- 
-     // if -d command, other filters ignored  
-   case 1: if((ermax- edmax)>Op.delta)  
-		      {ermax=0;epmax=0;return 1;}  // not diamond
-		   return 0;// continue if still ed
+int PUZZLE::Is_ed_ep_go() {  // is the ed or  condition fullfilled
+	switch(Op.o1) {
+	case 0:
+		return 0;       // nothing to do
+
+		// if -d command, other filters ignored  
+	case 1:
+		if((ermax- edmax)>Op.delta) {
+			ermax = 0;
+			epmax = 0;
+			return 1;
+		}  // not diamond
+		return 0;// continue if still ed
 
 
-     // if -p command, similar results
-   case 2: if(!assigned) return 0;   // -p command
-	       if((ermax- epmax)>Op.delta)
-		        {ermax=0;return 1;} // not pearl
-	       return 0;// continue if still ep
-  }	
-	
-     // now, we have no -d no -p command but at least one filter is on	
-     // give priority to the -n() command
+		// if -p command, similar results
+	case 2:
+		if(!assigned)
+			return 0;   // -p command
+		if((ermax- epmax)>Op.delta)	{
+			ermax = 0;
+			return 1;
+		} // not pearl
+		return 0;// continue if still ep
+	}	
 
-if(Op.filters.On(3) )// -n() command
-	if(ermax >= Op.miner) {ermax=0;return 3;} // finished
-      else if(cycle>Op.edcycles) return 4;
+	// now, we have no -d no -p command but at least one filter is on	
+	// give priority to the -n() command
 
-	  //then all max conditions
-if(edmax>=Op.maxed || epmax>=Op.maxep || ermax>=Op.maxer)
-	     {ermax=0;return 3;} // finished
+	if(Op.filters.On(3))// -n() command
+		if(ermax >= Op.miner) {
+			ermax = 0;
+			return 3;
+		} // finished
+		else if(cycle>Op.edcycles)
+			return 4;
 
-     // and finally min ED and min EP
-if(edmax<=Op.mined)  {ermax=0;return 3;} // finished
-if(assigned && epmax<=Op.minep)  {ermax=0;return 3;} // finished
-if(!Op.os)return 0; // finish with split ok
+	//then all max conditions
+	if(edmax >= Op.maxed || epmax >= Op.maxep || ermax >= Op.maxer) {
+		ermax = 0;
+		return 3;
+	} // finished
 
-     // that sequence should work for any combinaison of filters.
-if((Op.filters.f&7) ==1) return 4; // ed ok for split   	
-if(assigned && ((Op.filters.f&6) ==2))  return 4; // ep ok for split   	
+	// and finally min ED and min EP
+	if(edmax <= Op.mined) {
+		ermax = 0;
+		return 3;
+	} // finished
+	if(assigned && epmax <= Op.minep) {
+		ermax = 0;
+		return 3;
+	} // finished
+	if(!Op.os)
+		return 0; // finish with split ok
 
-return 0;}
+	// that sequence should work for any combinaison of filters.
+	if((Op.filters.f & 7) == 1)
+		return 4; // ed ok for split   	
+	if(assigned && ((Op.filters.f & 6) == 2))
+		return 4; // ep ok for split   	
+
+	return 0;
+}
 
 // the next routine is called at each step of the process
 // the searched rating is stored in "difficulty"
@@ -450,7 +465,6 @@ int PUZZLE::ChangeSauf(int elem, BF16 pos, BF16 chiffres) {
 	for(int i = 0; i < 9; i++) {
 		if(pos.On(i))
 			continue;
-		//ir += T81t[divf.el81[elem][i]].Change(chiffres, this);
 		ir += T81t[cellsInGroup[elem][i]].Change(chiffres, this);
 	}
 	return ir;
@@ -461,7 +475,6 @@ int PUZZLE::Keep(int elem, BF16 pos, BF16 chiffres) {
 	int ir=0;
 	for(int i=0;i<9;i++) {
 		if(pos.On(i))
-			//ir += T81t[divf.el81[elem][i]].Keep(chiffres, this);
 			ir += T81t[cellsInGroup[elem][i]].Keep(chiffres, this);
 	}
 	return ir;
@@ -482,36 +495,10 @@ int PUZZLE::Keep(int ch1, USHORT p1, USHORT p2) {
 int PUZZLE::NonFixesEl(int el) {
 	int n = 0;
 	for(int i = 0; i < 9; i++)
-		//if(gg.pg[divf.el81[el][i]] == '0')
 		if(gg.pg[cellsInGroup[el][i]] == '0')
 			n++;
 	return n;
 }
-
-//--------       verify that the puzzle is correct
-//int PUZZLE::Check() { 
-//	BF16 c[27];	// a 9 bitfield for each house
-//	int i;
-//	for(i = 0; i < 27; i++)
-//		c[i].f = 0;
-//	for(i = 0; i < 81; i++) {
-//		int w = gg.pg[i]; 
-//		CELL_FIX w8 = cellsFixedData[i]; // TO OPTIMIZE use a pointer to avoid copy of CELL _FIX
-//		if((w < '1') || (w > '9'))
-//			continue;	// empty cell
-//		w -= '1';
-//		if(c[w8.el].On(w))
-//			return 0;	// row
-//		c[w8.el].Set(w);
-//		if(c[w8.pl+9].On(w))
-//			return 0;	// column
-//		c[w8.pl+9].Set(w);
-//		if(c[w8.eb+18].On(w))
-//			return 0; // box
-//		c[w8.eb+18].Set(w);
-//	}
-//	return 1;
-//}
 
 int PUZZLE::CheckChange(int i, int ch) {
 	if(stop_rating) return 1;
@@ -531,15 +518,9 @@ void PUZZLE::PointK() {
 	EE.E(couprem );
 }
 
-
-
-
-//former _12a_PUZZLE_ChainesNested.cpp follows
-
 /* comments on the process
 level 2 base 9.5   Forcing chain authorized
 level 3 base 10.0  lev 2 + multiple chains authorized
-
 */
 
 //==============================================
@@ -580,7 +561,6 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	    }
 	}
 
-
 	d_nested=d_nested2=zcf.h_one.d;
 	for(int i = 2; i < col; i++) {
 		 
@@ -606,8 +586,8 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	if(rbn_elimt.IsEmpty())
 		return 0;
 
-	/// here a test to locate discrepancies with final 
-	  // produce a detailed analysis for first case in dual mode 
+	// here a test to locate discrepancies with final 
+	// produce a detailed analysis for first case in dual mode 
 	// test neutral after bug fixed
 	if(0 && rbn_it2) { // some case 2 to apply
 
@@ -650,8 +630,6 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		EE.E(rbn_itch);
 		EE.Enl(); 
 	}
-
-
 
 	if(rbn_elims1.IsNotEmpty()) {  // some case 1 to apply
 		for(int i = 2; i < col; i += 2) {
@@ -782,12 +760,8 @@ void PUZZLE::Rbn_Elims( BFTAG * tsquare,int nn){
 		Image(rbn_elims2,"elims2 potential", 0);
 		Image(rbn_elims3,"elims3 potential", 0);
 	}
-
-
 }
 
-
-//former _12a_PUZZLE_Chaines.cpp follows
 /* main routine to process chains
    entry at a specific basic value for min rating
    process is cancelled as soon as a solution is found with a shorter rating
@@ -825,7 +799,6 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 		zpln.GenRegionSets();  
 	}
 
-
 	switch(base) {
 		case 65:
 		case 70:    // same process for X;Y;XY loops and chains
@@ -852,10 +825,9 @@ void PUZZLE::Chaining(int opt, int level, int base) {
       likely <= next+1 due to the minimum length adjustment 
       except for aligned triplet */
 
-
 int PUZZLE::Rating_end(int next) {
-	   // if some immediate action done, answer yes imediatly)
-	   // nothing to do for filters
+	// if some immediate action done, answer yes imediatly)
+	// nothing to do for filters
 	if(stop_rating) return 1;// push back error as soon as possible
 	if(tchain.elims_done) 		return 1;
 	if(!tchain.IsOK(next))
@@ -867,10 +839,8 @@ int PUZZLE::Rating_end(int next) {
 }
 
 void PUZZLE::TaggingInit() {
-//	zgs.ReInit();   // 81 bits patterns in use 
 	zcf.Init();     // elementary weak links
 	zcx.Init();     // sets (choices) in use
-	// tevent.Init();   // event
 }
 
 // chain call 1=biv 2= cell_bivalue 4=nishio 8dynamic 16=multi_chain
@@ -920,7 +890,6 @@ int PUZZLE::Rating_base_80() {
 	return Rating_end(200);
 } 
 
-
 /* 85 new process
    expand completely the tags, but try to do it to catch the shortest
    first steps are not standard
@@ -929,7 +898,6 @@ int PUZZLE::Rating_base_80() {
    */
 //==============================================
 // 85 is DynamicForcingChain
-
 
 int PUZZLE::Rating_base_85() {
 	if(Op.ot)
@@ -995,8 +963,6 @@ int PUZZLE::Rating_base_90() {
 	return Rating_end(200);
 }
 
-
-
 /* looking for elimination in dynamic mode
    in SE, such eliminations are always worked out of 2 chains
    analyzed from the left to the right.
@@ -1011,14 +977,10 @@ int PUZZLE::Rating_base_90() {
    */
 
 void PUZZLE::ChainPlus() {
-
-
-	int godirect=((rbase +8)<=ermax);
-
-
+	int godirect = ((rbase + 8) <= ermax);
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
 	for(int i = 2; i < col; i += 2) {
-		int icand=i>>1;
+		int icand = i >> 1;
 		if(dynamic_form1.Off(i)){  
 		   BFTAG zw1 = t[i];
 		   zw1 &= (t[i].Inverse()).TrueState();
@@ -1035,16 +997,12 @@ void PUZZLE::ChainPlus() {
 		   else
 			   GoNestedCase1(icand); 
 			}
-
 		}
-
-		
 
 		BFTAG zw2 = t[i];
 		zw2 &= t[i ^ 1];
 		zw2 = zw2.FalseState();
 		zw2-=dynamic_form2[icand]; // less already processed in dynamic search
-
 
 		// if we start from a bi value, SE does not say
 		// ~x but goes immediatly to the bi-value  saving one step.
@@ -1073,11 +1031,11 @@ void PUZZLE::ChainPlus() {
 	if(rbase < 85 || tchain.elims_done)
 		return;
 
-	godirect=((rbase +10)<=ermax);
+	godirect = ((rbase + 10) <= ermax);
 
 	// now check multichains in a similar way but not for nishio
 	int ie;
-	for( ie = 1; ie < zcx.izc; ie++) {
+	for(ie = 1; ie < zcx.izc; ie++) {
 		const SET &chx = zcx.zc[ie];
 		if(chx.type - SET_base)
 			break; // only base sets can be used
@@ -1109,8 +1067,6 @@ void PUZZLE::ChainPlus() {
 				Rating_Nested(ttt,n,j);
 
 	}// end for ie
-
-
 }
 
 //! Search for aligned pair or aligned triplet
@@ -1303,7 +1259,6 @@ int PUZZLE::AlignedPairN() {
 			BF81 basei(i1,i2);
 			const t_128 *zi1 = &cellsFixedData[i1].z; // influence zone of first cell
 			const t_128 *zi2 = &cellsFixedData[i2].z; // influence zone of second cell
-			//BF81 z2f = (*zi1) & (*zi2) & z2; // set of cell with 2 cand in both influence zones
 			BF81 z2f = *zi1;
 			z2f &= *zi2;
 			z2f &= z2; // set of cell with 2 cand in both influence zones
@@ -1402,36 +1357,20 @@ int PUZZLE::AlignedPairN() {
 	return 0;
 }
 
-
-
-
-
-
-
-//former _03c_PUZZLE_traite_base.cpp follows
-
 int PUZZLE::Traite(char * ze) {
-
 	stop_rating = 0;
-	cycle=assigned=c_ret=0;
-	ermax=epmax=edmax=0;
+	cycle = assigned = c_ret = 0;
+	ermax = epmax = edmax = 0;
 
-	   // final location for the normalized puzzle in a global variable
-	for(int i=0;i<81;i++) //get normalised puzzle in puz
-		if(ze[i]-'.') gg.pg[i]=ze[i]; else  gg.pg[i]='0';
+	// final location for the normalized puzzle in a global variable
+	for(int i = 0; i < 81; i++) //get normalised puzzle in puz
+		if(ze[i] - '.')
+			gg.pg[i] = ze[i];
+		else gg.pg[i] = '0';
 
 	// check if the puzzle is correct 
 	//(no duplicate givens in a house)
 	// one solution and only one
-
-	//if ((!Check())     ||
-	//	( un_jeu.Uniqueness(gg,& gsolution)-1)) {
-	//		edmax=1;
-	//		return 0;
-	//}
-
-	//MD: new brute force solver for validation
-	//========
 	char puz_zero_based[81];
 	char solutions[2][81];
 	for(int i = 0; i < 81; i++) {
@@ -1444,9 +1383,8 @@ int PUZZLE::Traite(char * ze) {
 	for(int i = 0; i < 81; i++) {
 		solution[i] = solutions[0][i] + '0';
 	}
-	//========
 
-		/* the solution is stored in an appropriate form 
+	/* the solution is stored in an appropriate form 
 	 * 9 81 bitfield indicating for each digit the positions
 	 * to check later the validity of eliminations
 	 * this is a debugging control
@@ -1570,8 +1508,8 @@ int PUZZLE::Traite(char * ze) {
 			continue;
 		}  //7.5  
 
-		  // at that point, we set to nill dynamic processing done
-		  // this is done once for all the cycle
+		// at that point, we set to nill dynamic processing done
+		// this is done once for all the cycle
 		dynamic_form1.SetAll_0();
 		for(int i=0;i<320;i++){
 			dynamic_form2[i].SetAll_0();
@@ -1712,8 +1650,6 @@ int PUZZLE::Traite_a() {
 		SetEr();
 		return 1;
 	}  //1.7
-
-
 
 	Step(HiddenPair_single);
 	if(rating_ir > 1)
@@ -1891,7 +1827,6 @@ int PUZZLE::Traite_a() {
 		 return 1;
 	 } 
 
-
 	Step(UniqueLoop1);
 	if(rating_ir > 1)
 		return 0;
@@ -2006,7 +1941,6 @@ int PUZZLE::Traite_a() {
 	return 2;
 }
 
-//former _04a_lock.cpp follows
 // part of PUZZLE class methos processing locked candidates in a box, row,col
 
 void messlock(int obj,int obj2,int ch) {
@@ -2047,12 +1981,10 @@ int PUZZLE::TraiteLocked(int rating) {
 	for(int ich = 0; ich < 9; ich++) {
 		BF81 wf = c[ich], wfel;
 		for(int iel = 18; iel < 27; iel++) {
-			//wfel = divf.elz81[iel] & wf;
 			wfel = wf & cellsInHouseBM[iel];
 			if(wfel.IsEmpty())
 				continue;
 			if(DIVF::IsAutreObjet(wfel,iel,ialt)) {
-				//BF81 wa = wf&divf.elz81[ialt];
 				BF81 wa = wf & cellsInHouseBM[ialt];
 				BF81 wex = wa ^ wfel;
 				if(wex.IsNotEmpty()) {
@@ -2061,7 +1993,6 @@ int PUZZLE::TraiteLocked(int rating) {
 					int ok = 0;
 					BF81 ww;
 					for(int i = 18; i < 27; i++) { // must be a box
-						//if((i-ialt) && (divf.elz81[i] & divf.elz81[ialt]).IsNotEmpty()) {
 						if(i != ialt) {
 							ww = cellsInHouseBM[i];
 							ww &= cellsInHouseBM[ialt];
@@ -2096,12 +2027,10 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 	for(int ich = 0; ich < 9; ich++) {
 		BF81 wf = c[ich], wfel;
 		for(int iel = eld; iel < elf; iel++) {
-			//wfel = divf.elz81[iel] & wf;
 			wfel = wf & cellsInHouseBM[iel];
 			if(wfel.IsEmpty())
 				continue;
 			if(DIVF::IsAutreObjet(wfel, iel, ialt)) {
-				//BF81 wa = wf & divf.elz81[ialt];
 				BF81 wa = wf & cellsInHouseBM[ialt];
 				BF81 wex = wa ^ wfel;
 				if(wex.IsNotEmpty()) {
@@ -2115,9 +2044,6 @@ int PUZZLE::TraiteLocked2(int eld, int elf) {
 	}
 	return ir;
 }
-
-
-
 
 /* first step in the search for nested chains
    fill zcf.h_nest.d.t[tag]  with the full expansion
@@ -2222,7 +2148,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 	//const BFTAG &cum_here = *cum;
 	BFTAG * tdpn = dpn.t,  // new set of direct links
 	    * hdpb =hdp_base_nested.t; // to receive new strong links
-
 
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
@@ -2365,7 +2290,6 @@ void PUZZLE::GoNestedWhileShort(USHORT tag) {
 	}
 }
 
-
 /* dpnshort is pecial for level 4 (nested dynamic)
    in that level, derived weak link have to be considered 
      for the remaining valid candidates of the set
@@ -2433,15 +2357,10 @@ void PUZZLE::NestedForcingShort(BFTAG & elims) {
 
 }
 
-
-
-
 /*
-
 Now looking for multi chains eliminations if any
 the bfs must contain all candidates killed by the main assumption
 and the source of all new strong links used
-
 */
 
 void PUZZLE::NestedMultiShort(BFTAG & elims) {
@@ -2490,7 +2409,6 @@ Dynamic search in nested mode for a candidate
    zcf.h.dp follows the dynamic forward process 
      each new link is loaded in the dp table
 */
-
 
 
 int PUZZLE::GoNestedCase1(USHORT cand) {
@@ -2565,8 +2483,6 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 			EE.E(" tbuf.ise2=");EE.Enl( tstore.ise2);
 
 		}
-
-
 
 		// check for a contradiction in that lot 
 		USHORT * tb=tx[npas];
@@ -2648,15 +2564,13 @@ void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 
 	USHORT ctarg = target >> 1;
 
-	     // forget if target already eliminated
+	// forget if target already eliminated
 	if(tchain.cycle_elims.On(ctarg)) return;
 
-	     // filter if target if part of the set
+	// filter if target if part of the set
 	for(int i = 0; i < ntags; i++)
 		if(ttags[i] >> 1 == ctarg)
 			return;	
-
-
 
 	USHORT length = 0;
 	if((ntags==2) && (rbase==85) )length--;
@@ -2677,10 +2591,7 @@ void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 		if(!ratch) break; // stop as soon as possible
 	}
 
-
-
 	int ratch = tchain.GetRating(length, target >> 1);
-
 
 	if(ratch) { // chain is accepted load it (more comments in test mode)
 		if(Op.ot) { 
@@ -2697,7 +2608,6 @@ void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 	        for (int i = 0; i < ntags; i++) {		
 		         GoNestedCase2_3( ttags[i], target);		 
 	        }
-
 		}
 		tchain.LoadChain(ratch, "chain plus through set", target >> 1);
 	}// end if
@@ -2778,14 +2688,11 @@ int PUZZLE::GoNestedCase2_3( USHORT tag, USHORT target) {
 	return 0;
 }
 
-
-//former _30a_candgo_while_nested.cpp follows
 /* while cycle  for GoNested 
    first apply new actions from direct implications and sets
    then check if new strong links appeared
    if new strong links, search for new indirect forcing chain
    if level, check anyway new multi chain eliminations 
-
 */
 void PUZZLE::GoNestedWhile(USHORT tag) {
 	USHORT aignl = 1;
@@ -2799,7 +2706,6 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 			allsteps |= x; // and in the total 
 			nested_aig=1;
 		} 
-        
 	}
 
 	// check now sets
@@ -2910,7 +2816,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 		} // end switch
 	}// end proc
 
-	   // stop if not nested mode or something found
+	// stop if not nested mode or something found
 
 	if((rbase<95) || nested_aig)
 		return;    
@@ -2982,7 +2888,6 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 			       era=1;   // intercept error for debugging	
 			}
 			
-
 			if(era){// never seen so far
 				cerr << "error in multi chains to investigate"<<endl;
 					continue; // just skip it
@@ -3002,8 +2907,6 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 
 	}
 }
-
-
 
 /*
 Now looking for multi chains eliminations if any
@@ -3130,13 +3033,9 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 		          EE.E("  stored as "); EE.Enl(tsets[i]); 
                  }
 			}
-			
 		} // end tag i
 	}// end ie
 }
-
-
-
 
 /*  create a reduced tdb without
     the candidate sutdied
@@ -3201,7 +3100,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 			if(steps[i].On(x)) {
 				aig=0; 
 				if(i) {  // not initial assumption
-	              if(!index){ // this is a direct step
+	              if(!index) { // this is a direct step
 	                 int z=0,ia=i-1;
 
 		             // take a parent already there in priority
@@ -3259,12 +3158,14 @@ int PUZZLE::GoBackNested(USHORT tag) {
 							 }							 
 							 Image(zcf.h.dp);
 							 EE.Enl("\n tsets table");
-							 for(int iw=2;iw<640;iw++) 
-								 if(cumsteps[i].On(iw)){
-                                 zpln.ImageTag(iw); EE.E(" tset ");								    EE.Esp();
-								 EE.Enl(tsets[iw]);
+							 for(int iw=2;iw<640;iw++) {
+								 if(cumsteps[i].On(iw)) {
+									 zpln.ImageTag(iw);
+									 EE.E(" tset ");
+									 EE.Esp();
+									 EE.Enl(tsets[iw]);
 								 }
-
+							 }
 						  }
 					  }
 		           } // end index=0
@@ -3337,7 +3238,6 @@ int PUZZLE::GoBackNested(USHORT tag) {
 							Image(bfn,"new tags needed",0);
 							EE.Enl();
 						}
-						
 					}
 				}
 			i = 100;// force end of process after it has been found
@@ -3437,14 +3337,9 @@ int PUZZLE::GoBackNested(USHORT tag) {
 
 ///
 
-//former (r96) _03b_puzzle_chains.cpp start
-
 void PATH::PrintPathTags(CANDIDATES * zpln) {
-	zpln->PrintImply(pth,ipth);
+	zpln->PrintImply(pth, ipth);
 }
-
-
-
 
 /*  process to find a nested chain in dynamic mode (level 4)
     looking for forcing or contradiction
@@ -3453,13 +3348,11 @@ void PATH::PrintPathTags(CANDIDATES * zpln) {
 
 */
 int PUZZLE::CaseNestedLevel4Case1( USHORT tag )  {
-
 	if(0) {
 		EE.E("\n\nnested level 4 case 1 for tag ");
 		zpln.ImageTag(tag);
 		EE.Enl();
 	}
-
 
 	chain4_to = chain4_dpn.t; // we use the table  for nested
 	for(int i = 0; i < 640; i++)
@@ -3504,7 +3397,6 @@ int PUZZLE::CaseNestedLevel4Case1( USHORT tag )  {
 		return 0;
 		}
 
-		 
 		// stop at the first contradiction reached
 		BFTAG tw(chain4_allsteps);
 		tw &=(tw.Inverse()).TrueState();
@@ -3513,15 +3405,15 @@ int PUZZLE::CaseNestedLevel4Case1( USHORT tag )  {
 		if(!ittw)
 			continue; 
 		 
-		     // now we have a contradicton or a forcing chain
-		     // we don't look for more
+		// now we have a contradicton or a forcing chain
+		// we don't look for more
 
 		if(0){ 
                EE.Enl("contradiction reached step"); EE.Enl( chain4_npas);
 			   Image(tw,"for targets",0);			  
 			}
 		   
-		 // we have to take the shortest forcing or contradiction chain
+		// we have to take the shortest forcing or contradiction chain
 		USHORT totlength=10000;
 	    for(int iw=0;iw<ittw;iw++){
 			USHORT y=ttw[iw]^1; // start with false for forcing chain
@@ -3568,8 +3460,8 @@ int PUZZLE::CaseNestedLevel4Case1( USHORT tag )  {
 		}
 		return (totlength<10000);
 	}// end while
-return 0;}
-
+	return 0;
+}
 
 
 /*  process to find a nested chain in dynamic mode (level 4)
@@ -3587,7 +3479,6 @@ int PUZZLE::CaseNestedLevel4( USHORT tag,USHORT target)  {
 		//Image(allsteps,"allsteps depart",0);
 		EE.Enl();
 	}
-
 
 	chain4_to = chain4_dpn.t; // we use the table  for nested
 	for(int i = 0; i < 640; i++)
@@ -3700,12 +3591,12 @@ void PUZZLE::NestedChainWhile(USHORT tag) {
 		            chain4_tsets[j] = ie;
 		            nested_aig2 = 1;
 				}
-
 			}
 			continue;
 		}
 	
-		if((n - 1) || (!joff))continue;	// if ok second round for action	
+		if((n - 1) || (!joff))
+			continue;	// if ok second round for action	
 		chain4_allsteps.Set(joff);
 		chain4_tsets[joff] = ie;
 		nested_aig2 = 1;

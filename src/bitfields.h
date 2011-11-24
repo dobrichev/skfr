@@ -311,18 +311,11 @@ public:
 
 //! Bitfield 81 positions (one per cell) and usual operations made on that field.
 /** 
- * 81 bits field uses 3 32bits int<br>
  * This class is used primarely to gather positions of a candidate in 
  * the grid<br> Using logical operations enable to identify pairs or 
  * triplet for instance
  */
 class BF81 {
-	//! Split position in 2 index
-	/** To calculate which int in <code>i0</code> and 
-	 * which position in this int in <code>j0</code> for a global position<br>
-	 * <b>WARNING : </b> not thread safe !
-	 */
-	//unsigned  int f[3];   // bitfield
 	bm128 ff;
 public:
 
@@ -331,62 +324,43 @@ public:
     BF81(const t_128 &r) {this->ff.bitmap128 = r;}
     BF81(int i1) {
 		ff = bitSet[i1];
-		//SetAll_0();
-		//Set(i1);
 	}
     BF81(int i1, int i2) {
 		ff = bitSet[i1];
 		ff |= bitSet[i2];
-		//SetAll_0();
-		//Set(i1);
-		//Set(i2);
 	}
 	//!Set all bits to 1
     inline void SetAll_1() {
 		ff = maskLSB[81];
-		//f[0] = f[1] =-1;
-		//f[2]=0x1ffff;
 	}
 	//!Set all bits to 0
     inline void SetAll_0() {
 		ff.clear();
-		//f[0] = f[1] = f[2] = 0;
 	}
 
 	inline int On(int v) const {
 		return ff.isBitSet(v);
-		//return (f[v >> 5] & (1 << (v & 31)));
 	}
 	inline int Off(int v) const {
 		return ff.isBitSet(v) == 0;
-		//return ((f[v >> 5] & (1 << (v & 31))) == 0);
 	}
 	inline void Set(int v) {
 		ff.setBit(v);
-		//f[v >> 5] |= (1 << (v & 31));
 	}
 	//!Clear position <code>v</code>
     inline void Clear(int v) {
 		ff.clearBit(v);
-		//f[v >> 5] &= (~(1 << (v & 31)));
 	}
 	//!Is there any bit On
     inline int IsNotEmpty() const {
 		return ff.isZero() == 0;
-		//return (f[0] || f[1] || f[2]);
 	}
 	//! Is there no bit On
     inline int IsEmpty() const {
 		return ff.isZero();
-		//return ((f[0] | f[1] | f[2]) == 0);
 	}
 
 	BF81 operator | (const BF81 & b) const {
-		//BF81 w;
-		//w.f[0] = f[0] | b.f[0];
-		//w.f[1] = f[1] | b.f[1];
-		//w.f[2] = f[2] | b.f[2];
-		//return w;
 		BF81 w(*this);
 		w |= b;
 		return w;
@@ -394,78 +368,45 @@ public:
 
     void operator |= (const BF81 & b) {
 		ff |= b.ff;
-		//f[0] |= b.f[0];
-		//f[1] |= b.f[1];
-		//f[2] |= b.f[2];
 	}
 
 	BF81 operator & (const BF81 & b) const {
-		//BF81 w;
-		//w.f[0] = f[0] & b.f[0];
-		//w.f[1] = f[1] & b.f[1];
-		//w.f[2] = f[2] & b.f[2];
-		//return w;
 		BF81 w(*this);
 		w.ff &= b.ff;
 		return w;
 	}
 
     void operator &= (const BF81 & b) {
-		//f[0] &= b.f[0];
-		//f[1] &= b.f[1];
-		//f[2] &= b.f[2];
 		ff &= b.ff;
 	}
 
 	BF81 operator ^ (const BF81 & b) const {
-		//BF81 w;
-		//w.f[0] = f[0] ^ b.f[0];
-		//w.f[1] = f[1] ^ b.f[1];
-		//w.f[2] = f[2] ^ b.f[2];
-		//return w;
 		BF81 w(*this);
 		w.ff ^= b.ff;
 		return w;
 	}
 
     void operator ^= (const BF81 & b) {
-		//f[0] ^= b.f[0];
-		//f[1] ^= b.f[1];
-		//f[2] ^= b.f[2];
 		ff ^= b.ff;
 	}
 
 	BF81 operator -(const BF81 & b) const {
-		//BF81 w;
-		//for(int i = 0; i < 3; i++)
-		//	w.f[i] = f[i] ^ (f[i]&b.f[i]);
-		//return w;
 		BF81 w(*this);
 		w.ff -= b.ff;
 		return w;
 	}
 	//! Clear all position that are on in <code>b</code>
     void operator -=(const BF81 & b) {
-		//for(int i = 0; i < 3; i++)
-		//	f[i] ^= (f[i] & b.f[i]);
 		ff -= b.ff;
 	}
 
     int operator ==(const BF81 & b) const {
 		return ff == b.ff;
-		//return ((f[0] == b.f[0]) && (f[1] == b.f[1]) && (f[2] == b.f[2]));
 	}
 
     int EstDans(const BF81 &fe) const {
 		return ff.isSubsetOf(fe.ff);
-		//return (((*this) & fe ) == (*this));
 	}
-
-	//void Clear(const BF81 & z) { //same as -=
-	//	for(int i = 0; i < 3; i++)
-	//		f[i] ^= (f[i] & z.f[i]);
-	//}
-
 
 	//! Find the first position on
 	/** \return found position or 128 if none */
@@ -479,11 +420,6 @@ public:
 	//! Count the on bits
     int Count() {
 		return popcount_128(ff.bitmap128.m128i_m128i);
-		//int n = 0;
-		//for(int i = 0; i < 81; i++)
-		//	if(On(i))
-		//		n++;
-		//return n;
 	}
 	int String(int *r) const {
 		int n = 0;
@@ -535,11 +471,7 @@ public:
 
 //bitfield 320 bits used to store candidates used in a path
 
-//#define BFCAND_size 10
-//#define BFCAND_BitSize 10*32
-
 class BFCAND {
-	//UINT f[BFCAND_size];     // the bit field
 	bm128 ff[3];
 public:
 	BFCAND() {
@@ -557,18 +489,14 @@ public:
 		ff[0].clear();
 		ff[1].clear();
 		ff[2].clear();
-		//for(int i = 0; i < BFCAND_size; i++)
-		//	f[i] = 0;
 	} 
 	inline int On(int v) const {
-		//return (f[v >> 5] & (1 << (v & 31)));
 		return (ff[v >> 7].isBitSet(v & 127));
 	}
 	inline int Off(int v) const {
 		return (On(v) == 0);
 	}
 	inline void Set(int v) {
-		//f[v >> 5] |= (1 << (v & 31));
 		ff[v >> 7].setBit(v & 127);
 	}
 };
@@ -608,12 +536,7 @@ public:
 /// 2 - All method are not thread safe due to the usage of static member as temporary variables BFTAG::io and
 /// BFTAG::jo.
 class BFTAG {
-	//UINT f[BFTAG_size];     // the bit field
 	bm128 ff[5];
-
-	//static const int false32 = 0xaaaaaaaa;  ///<A 32 bits constant with all false state for a candidate
-	//static const int true32 = false32 >> 1;	///<A 32 bits constant with all true state for a candidate
-
 public:
 	enum init {
 		NoInit = 0,
@@ -622,9 +545,6 @@ public:
 		InitFalseState = 3,
 		InitTrueState = 4
 	};
-	//inline BFTAG() {
-	//	SetAll_0();
-	//}
 	BFTAG(const BFTAG &x) {
 		(*this) = x;
 	}
@@ -654,25 +574,18 @@ public:
 	void SetAll_1();
 	///\brief is bit in position <code>v</code> On
 	inline bool On(int v) const {
-		//return (f[v >> 5] & (1 << (v & 31)));
 		return (ff[v >> 7].isBitSet(v & 127));
 	}
-	//inline bool On(int v) const {
-	//	return !Off(v);
-	//}
 	///\brief is bit in position <code>v</code> Off
 	inline bool Off(int v) const {
-		//return ((f[v >> 5] & (1 << (v & 31))) == 0);
 		return (!On(v));
 	}
 	///\brief Set bit in position <code>v</code> to On
 	inline void Set(int v) {
-		//f[v >> 5] |= (1 << (v & 31));
 		ff[v >> 7].setBit(v & 127);
 	}
 	///\brief Clear bit in position <code>v</code> 
 	inline void Clear(int v) {
-		//f[v >> 5] &= (~(1 << (v & 31)));
 		ff[v >> 7].clearBit(v & 127);
 	}
 	BFTAG Inverse() const;
@@ -682,7 +595,6 @@ public:
 	bool operator == (const BFTAG &z2) const;
 	bool substract(const BFTAG &z2); //perform -= and return IsNotEmpty()
 	bool IsNotEmpty() const;
-	//inline bool IsNotEmpty() const {return !IsEmpty();};
 	bool IsEmpty() const;
 	///\brief get on bits count
 	int Count() const;

@@ -28,24 +28,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 // RatingEngine
 
-//#include "_00_hfiles.h"
 #include "flog.h"				// relay for printing only in tests
 #include "opsudo.h"				// storing and managing options
 #include "puzzle.h"				// general class to solve a puzzle
 
 #include "utilities.h"
 #include "ratingengine.h"
-
-// global variables for RatingEngine
-
-
-// puzzle independant variables that should stay global
-
-//static CELLS_FIX tp81f;
-//CELL_FIX *t81f = tp81f.t81f_field;	//pointer to speed up the process
-//const CELL_FIX *t81f = cellsFixedData;
-//DIVF divf;
-//ZGROUPE zgs;
 
 OPSUDO Op;
 FLOG EE;  //log file as such is one should not be used in multi thread
@@ -81,7 +69,7 @@ void setParamC (int o1, int delta, int os, int oq, int ot, int oexclude, int edc
 int CallOpenLog(char * name) {return EE.OpenFL(name);}
 
 // in wait state, something is wrong in that process;
-// replaced by on unique call in  batch start
+// replaced by on unique call in batch start
 
 int setTestModeC (int ot, char * logFileName){
 	static char * actualLogFileName = 0;
@@ -135,4 +123,3 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	return  rc;
 }
 
-//#include "puzzle.cpp"
