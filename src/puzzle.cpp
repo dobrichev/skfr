@@ -73,7 +73,7 @@ void PUZZLE::ImagePoints(BF81 & zz) const {
 	int ns = 0, mode = 0;
 	for(int i = 0; i < 81; i++) {
 		if(zz.On(i)) {
-			strcpy_s(s1, 5, t81f[i].pt);
+			strcpy_s(s1, 5, cellsFixedData[i].pt);
 			switch (mode) {
 				case 0:
 					mode = 1;
@@ -316,8 +316,7 @@ void PUZZLE::cInit(int un) {
 void PUZZLE::cFixer(int ich, int i8) {
 	for(int i = 0; i < 9; i++)
 		c[i].Clear(i8); // pas de candidat ici
-	//c[ich].Clear(t81f[i8].z); //MD: replaced with -=
-	c[ich] -= t81f[i8].z;
+	c[ich] -= cellsFixedData[i8].z;
 }   // ni en zone influence
 
 void PUZZLE::cReport() {    // on charge cand de ztzch
@@ -391,7 +390,7 @@ int PUZZLE::FaitDirects(int rating) {
 		if(c1 - '0') {     // donc fixée
 			// filter on rating expected
 			int ok = 0;
-			CELL_FIX &p = t81f[i];
+			const CELL_FIX &p = cellsFixedData[i];
 			switch(rating) {
 			case 10:
 				if((DIVF::N_Fixes(gg.pg,p.el) == 8) 
@@ -427,7 +426,7 @@ int PUZZLE::FaitDirects(int rating) {
 int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single forced
 	EE.E(++assigned);
 	EE.E(" ");
-	EE.E(t81f[i].pt);
+	EE.E(cellsFixedData[i].pt);
 	EE.E("=");
 	EE.E(c1);
 	EE.E(" ");
@@ -471,9 +470,11 @@ int PUZZLE::Keep(int elem, BF16 pos, BF16 chiffres) {
 
 //------                  ou simple deux points quelconques
 int PUZZLE::Keep(int ch1, USHORT p1, USHORT p2) {
-	BF81 ze = t81f[p1].z & t81f[p2].z & c[ch1];
+	BF81 ze = cellsFixedData[p1].z;
+	ze &= cellsFixedData[p2].z;
+	ze &= c[ch1];
 	if(ze.IsNotEmpty())
-		return T81->Clear(ze,ch1);
+		return T81->Clear(ze, ch1);
 	return 0;
 }
 
@@ -495,7 +496,7 @@ int PUZZLE::NonFixesEl(int el) {
 //		c[i].f = 0;
 //	for(i = 0; i < 81; i++) {
 //		int w = gg.pg[i]; 
-//		CELL_FIX w8 = t81f[i]; // TO OPTIMIZE use a pointer to avoid copy of CELL _FIX
+//		CELL_FIX w8 = cellsFixedData[i]; // TO OPTIMIZE use a pointer to avoid copy of CELL _FIX
 //		if((w < '1') || (w > '9'))
 //			continue;	// empty cell
 //		w -= '1';
@@ -520,7 +521,7 @@ int PUZZLE::CheckChange(int i, int ch) {
 	stop_rating = 1;
 	EE.E("ELIMINATION INVALIDE ");
 	EE.E(ch+1);
-	EE.Enl(t81f[i].pt);
+	EE.Enl(cellsFixedData[i].pt);
 	return 1;
 }
 
@@ -1129,30 +1130,34 @@ int PUZZLE::AlignedTripletN() {
 		if(p.ncand < 2 || p.ncand > 3)
 			continue;
 		z23.Set(i); 
-		zbase |= t81f[i].z;
+		zbase |= cellsFixedData[i].z;
 	}
 	zbase &= zactif; // possible base cells reduced to cells that have no value
 	// loop on any combination of 2 potential base cells
 	for(int i1 = 0; i1 < 80; i1++) {
 		if(!zbase.On(i1))
 			continue;
-		// if((z23 & t81f[i1].z).Count()>=3) // optimisation non concluante 
+		// if((z23 & cellsFixedData[i1].z).Count()>=3) // optimisation non concluante 
 		// il faudrait optimiser Count (qui balaye le tableau de bits !)
 		for(int i2 = i1 + 1; i2 < 81; i2++) {
 			if(!zbase.On(i2))
 				continue;
-			// if((z23 & t81f[i2].z).Count()>=3) // optimisation non concluante 
+			// if((z23 & cellsFixedData[i2].z).Count()>=3) // optimisation non concluante 
 			// il faudrait optimiser Count
-			BF81 basei(i1,i2), // first 2 base cells
-				*zi1=&t81f[i1].z, 
-				*zi2=&t81f[i2].z,
-				zi1andi2=(*zi1) & (*zi2);
+			BF81 basei(i1, i2); // first 2 base cells
+			const t_128 *zi1 = &cellsFixedData[i1].z;
+			const t_128 *zi2 = &cellsFixedData[i2].z;
+			BF81 zi1andi2 = (*zi1);
+			zi1andi2 &= (*zi2);
 			if(zi1andi2.Count() < 2)
 				continue; // must be same band
 			// we need to add an other base cell + 2 excludig cells that are visible
 			// by the 3 base cells => the 3 base cells must share a same band
 			// this condition is not used by serate
-			BF81 zi1ori2 = ((*zi1) | (*zi2)) - basei; // excluding already there
+			//BF81 zi1ori2 = ((*zi1) | (*zi2)) - basei; // excluding already there
+			BF81 zi1ori2 = *zi1;
+			zi1ori2 |= *zi2;
+			zi1ori2 -= basei; // excluding already there
 			BF81 z23ori1i2 = z23 & zi1ori2; // seen by at least one
 			// z23ori1i2 is the "twinarea of serate"
 			if(z23ori1i2.IsEmpty())
@@ -1164,7 +1169,7 @@ int PUZZLE::AlignedTripletN() {
 					debuga = 1;
 				BF81 basei3 = basei;
 				basei3.Set(i3);	// set of 3 base cells
-				BF81 z23f = (zi1andi2 & t81f[i3].z & z23) - basei3; // TODO verify but ' - basei3' is de trop
+				BF81 z23f = (zi1andi2 & cellsFixedData[i3].z & z23) - basei3; // TODO verify but ' - basei3' is de trop
 				if(z23f.Count() < 2)
 					continue; // we need at least 2 potential excluding cells
 				int z23fIndex[81];
@@ -1251,13 +1256,13 @@ int PUZZLE::AlignedTripletN() {
 						if(Op.ot) {
 							EE.E(" aligned triplet exclusion for ");
 							EE.E(icand+1);
-							EE.E(t81f[iCell[ice2]].pt);
+							EE.E(cellsFixedData[iCell[ice2]].pt);
 							EE.E(" using base cells ");
-							EE.E(t81f[i1].pt);
+							EE.E(cellsFixedData[i1].pt);
 							EE.E(" , ");
-							EE.E(t81f[i2].pt);
+							EE.E(cellsFixedData[i2].pt);
 							EE.E(" and ");
-							EE.E(t81f[i3].pt);
+							EE.E(cellsFixedData[i3].pt);
 							EE.E(" ; ");
 							EE.Enl();
 							EE.E(" using excluding cells ...");
@@ -1285,7 +1290,7 @@ int PUZZLE::AlignedPairN() {
 		if(p.ncand - 2)
 			continue; // only cell with 2 candidates
 		z2.Set(i81);			// put cell to set
-		zbase |= t81f[i81].z;	// or of cells controled by these cells
+		zbase |= cellsFixedData[i81].z;	// or of cells controled by these cells
 	}
 	zbase &= zactif;		// keep only cells that have not yet a value
 	for(int i1 = 0; i1 < 80; i1++) {
@@ -1295,11 +1300,13 @@ int PUZZLE::AlignedPairN() {
 			if(!zbase.On(i2))
 				continue;
 			// a couple of cells  that see at minimum one bivalue cell
-			BF81 
-				basei(i1,i2),
-				*zi1=&t81f[i1].z, // influence zone of first cell
-				*zi2=&t81f[i2].z, // influence zone of second cell
-				z2f=(*zi1) & (*zi2) & z2; // set of cell with 2 cand in both influence zones
+			BF81 basei(i1,i2);
+			const t_128 *zi1 = &cellsFixedData[i1].z; // influence zone of first cell
+			const t_128 *zi2 = &cellsFixedData[i2].z; // influence zone of second cell
+			//BF81 z2f = (*zi1) & (*zi2) & z2; // set of cell with 2 cand in both influence zones
+			BF81 z2f = *zi1;
+			z2f &= *zi2;
+			z2f &= z2; // set of cell with 2 cand in both influence zones
 			if(z2f.Count() < 2)
 				continue;  
 			// z2f is the set of excluding cells of serate
@@ -1372,17 +1379,17 @@ int PUZZLE::AlignedPairN() {
 				if(Op.ot) {
 					EE.E(" aligned pair exclusion for ");
 					EE.E(ch+1);
-					EE.E(t81f[cell8].pt);
+					EE.E(cellsFixedData[cell8].pt);
 					EE.E(" using base cells ");
-					EE.E(t81f[i1].pt);
+					EE.E(cellsFixedData[i1].pt);
 					EE.E(" and ");
-					EE.E(t81f[i2].pt);
+					EE.E(cellsFixedData[i2].pt);
 					EE.E(" ; ");
 					EE.Enl();
 					EE.E(" using excluding cells ");
 					for(int i = 0; i < 81; i++) {
 						if(z2f.On(i)) {
-							EE.E(t81f[i].pt);
+							EE.E(cellsFixedData[i].pt);
 							EE.E(" ; ");
 						}
 					}
@@ -2184,7 +2191,6 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 
 		  if(opp) {
 			Image((*step),"step", 0);
-
 		  }
 		   // store in d_nested2 if npas==2
 		  if(npas==2)
@@ -2402,7 +2408,6 @@ void PUZZLE::NestedForcingShort(BFTAG & elims) {
 		Image(allsteps,"allsteps",0);
 		Image(dn);
 		Image(dpn);
-
 	}
 	for(int i=2;i< col;i+=2){
 		if(allsteps.Off(i^1) && dn.Is(i,i^1))  // a forcing chain found, find the length

@@ -239,7 +239,7 @@ int TCHAIN::IsOK(USHORT x) {
 void TWO_REGIONS_INDEX::Genere(CELL * tw) {
 	int i, j;
 	for(i = 0; i < 81; i++) {   // on charge tpobit
-		CELL_FIX &w = t81f[i];
+		const CELL_FIX &w = cellsFixedData[i];
 		CELL_VAR x = tw[i].v;
 		tpobit.el[w.el].eld[w.pl].Genpo(x);
 		tpobit.el[w.pl + 9].eld[w.el].Genpo(x);
@@ -523,7 +523,7 @@ void CELLS::SetParent(PUZZLE * parent,FLOG * fl){
 void CELLS::init() {
 	for(int i = 0; i < 81; i++) {
 		t81[i].v.Init();
-		t81[i].f = &t81f[i];
+		t81[i].f = &cellsFixedData[i];
 	}
 }
 void CELLS::Fixer(int ch, int i8, UCHAR typ) {
@@ -730,7 +730,7 @@ int TPAIRES::UL() {
 		for(int j = id; j < ie - 1; j++) {
 			for(int k = j + 1; k < ie; k++) {
 				USHORT i1 = zpt[j].i8, i2 = zpt[k].i8;
-				CELL_FIX &p1 = t81f[i1], &p2 = t81f[i2];
+				const CELL_FIX &p1 = cellsFixedData[i1], &p2 = cellsFixedData[i2];
 				if(!(p1.el==p2.el || p1.pl==p2.pl))
 					continue; // start row or col
 				//  EE->E(p1.pt); EE->E(p2.pt);EE->Enl("un depart lig/col");
@@ -836,7 +836,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	BF32 b18;
 	b18.f = 0; // find parity of cells in r/c
 	for(int i = 0; i < ntplus; i++) {
-		CELL_FIX &p1 = t81f[tplus[i]];
+		const CELL_FIX &p1 = cellsFixedData[tplus[i]];
 		b18.f ^= 1 << p1.el;
 		b18.f ^= 1 << (p1.pl + 9);
 	}
@@ -870,7 +870,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	for(int i = 0; i < 27; i++)
 		el_par2_ch[i] = el_par_ch[i];
 	for(int i = 0; i < ntplus; i++) { // change parity for all cells
-		CELL_FIX &p1 = t81f[tplus[i]]; 
+		const CELL_FIX &p1 = cellsFixedData[tplus[i]]; 
 		BF16 wch = parentpuz->T81t[tplus[i]].v.cand - possible;
 		el_par2_ch[p1.el] ^= wch;
 		el_par2_ch[p1.pl+9] ^= wch;
@@ -957,7 +957,7 @@ int TPAIRES::Bug3(int el) {
 		pp = &parentpuz->T81t[tplus[i]]; 
 		wcx = pp->v.cand & wpar;
 		annul = pp->v.cand - wcx;
-		EE->E(t81f[tplus[i]].pt);
+		EE->E(cellsFixedData[tplus[i]].pt);
 		EE->Esp();
 		EE->E(" wpar");
 		EE->E(wpar.String());
@@ -1118,7 +1118,7 @@ int TPAIRES::Bug3_4_Nacked(int el) {
 			elx = pp->f->pl + 9; 
 		wcx = pp->v.cand & el_par_ch[elx];
 		annul = pp->v.cand - wcx;
-		//EE->E(t81f[tplus[i]].pt); EE->E(" el=");EE->E(elx+1);
+		//EE->E(cellsFixedData[tplus[i]].pt); EE->E(" el=");EE->E(elx+1);
 		//EE->E(" wc=");EE->Enl(wcx.String());
 		if((wcx.QC() - 2))
 			return 0;
@@ -1149,8 +1149,10 @@ int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs
 					continue;
 				// on a un XYWing  potentiel
 				int ich = w1.First(); // le chiffre 
-				BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z,
-					z2 = z1 & puz.c[ich];  // z2 est à supprimer
+				//BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z,
+				BF81 z1 = cellsFixedData[zp[i].i8].z;
+				z1 &= cellsFixedData[zp[j].i8].z;
+				BF81 z2 = z1 & puz.c[ich];  // z2 est à supprimer
 				if(z2.IsNotEmpty()) {
 					if(Op.ot)
 						CommunLib(i, j, zp[k].i8, "->XY WING pivot= ");
@@ -1181,8 +1183,11 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 				if(!CommunTrio(k, j)) continue;
 				// on a un XYZWing  potentiel
 				int ich = w1.First(); // le chiffre
-				BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z & t81f[k].z,
-					z2 = z1 & puz.c[ich];  // z2 est à supprimer
+				//BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z & t81f[k].z;
+				BF81 z1 = cellsFixedData[zp[i].i8].z;
+				z1 &= cellsFixedData[zp[j].i8].z;
+				z1 &= cellsFixedData[k].z;
+				BF81 z2 = z1 & puz.c[ich];  // z2 est à supprimer
 				if(z2.IsNotEmpty()) {
 					if(Op.ot)
 						CommunLib(i, j, k, "->XYZ WING pivot= ");
@@ -1199,15 +1204,15 @@ void TPAIRES::CommunLib(int i, int j, int k, char * lib) {
 	if(!Op.ot)
 		return;
 	EE->E(lib);
-	EE->E(t81f[k].pt);
+	EE->E(cellsFixedData[k].pt);
 	EE->E(" ");
 	EE->E(parentpuz->T81t[k].scand);	 
 	EE->E(" (1)=");
-	EE->E(t81f[zp[i].i8].pt);
+	EE->E(cellsFixedData[zp[i].i8].pt);
 	EE->E(" ");
 	EE->E(parentpuz->T81t[zp[i].i8].scand);
 	EE->E(" (2)=");
-	EE->E(t81f[zp[j].i8].pt);
+	EE->E(cellsFixedData[zp[j].i8].pt);
 	EE->E(" ");
 	EE->Enl(parentpuz->T81t[zp[j].i8].scand);	
 }
@@ -1303,7 +1308,7 @@ UL_SEARCH::UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,
 //========================= insert a new cell after el_used correct
 void UL_SEARCH::Set(int i8) { // el_used already ok if necessary
 	cells.Set(i8);  
-	CELL_FIX &p = t81f[i8];
+	const CELL_FIX &p = cellsFixedData[i8];
 	last = i8; 
 	CELL_VAR pv = parentpuz->T81tc[i8].v;
 	parity.Inv(p.el);
@@ -1354,14 +1359,14 @@ int UL_SEARCH::Add_Chain(int i8) {
 	if(line_count > 20)
 		return 0; // securite
 	if(cells.On(i8)) { // terminé on élimine URs et fausses boucles
-		//EE->E("UL end ");EE->E(t81f[i8].pt);EE->Esp();cells.ImagePoints();EE->Enl();
+		//EE->E("UL end ");EE->E(cellsFixedData[i8].pt);EE->Esp();cells.ImagePoints();EE->Enl();
 		if(line_count < 5 || (i8 - tcount[0]))
 			return 0;  
 		tcount[line_count++] = i8;
 		return Loop_OK();
 	}
 	Set(i8);              // On met le point en place
-	CELL_FIX &f = t81f[i8];
+	const CELL_FIX &f = cellsFixedData[i8];
 
 	// a défaut une case avec additifs  ligne, puis col, puis bloc en paire
 	// uniquement dans éléments non traités et si pas de double paire
@@ -1387,9 +1392,9 @@ int UL_SEARCH::El_Suite(USHORT ele) {
 		if(wc.On(i)) { // cells with both digits
 			//int i8r = divf.el81[ele][i];
 			int i8r = cellsInGroup[ele][i];
-			//EE->E("essai i8=");EE->Enl(t81f[i8r].pt);
+			//EE->E("essai i8=");EE->Enl(cellsFixedData[i8r].pt);
 			if(ele > 17) { // in a box, only not row col
-				CELL_FIX &f = t81f[i8r], &f2 = t81f[last];
+				const CELL_FIX &f = cellsFixedData[i8r], &f2 = cellsFixedData[last];
 				if(f.el == f2.el || f.pl == f2.pl)
 					continue;
 			}
@@ -1412,7 +1417,7 @@ int UL_SEARCH::Is_OK_Suite(USHORT i8) {
 		return 1;
 	if(cells.On(i8))
 		return 0; // false loop  
-	CELL_FIX &f = t81f[i8]; 
+	const CELL_FIX &f = cellsFixedData[i8]; 
 	if(elcpt[f.el] > 1 || elcpt[f.pl + 9] > 1 || elcpt[f.eb + 18] > 1)
 		return 0;
 	// for the time being, I see no more exclusion
@@ -1449,7 +1454,7 @@ int UL_SEARCH::Loop_OK(int action) {
 		BF81 zi;
 		zi.SetAll_1();
 		for(int i = 0; i < nadds; i++)
-			zi &= t81f[adds[i]].z;
+			zi &= cellsFixedData[adds[i]].z;
 		if(parentpuz->T81->Clear(zi, (cht - chd).First())) {
 			UL_Mess(" one digit in excess", 1);
 			return 1;
@@ -1458,7 +1463,7 @@ int UL_SEARCH::Loop_OK(int action) {
 
 	// action 1, launching the process common to UR/UL
 	if(nadds == 2) { // type 2;3;4 must be same object 
-		if(!(t81f[adds[0]].ObjCommun(&t81f[adds[1]])))
+		if(!(cellsFixedData[adds[0]].ObjCommun(&cellsFixedData[adds[1]])))
 			return 0;	
 		int ir = parentpuz->ur.StartECbi(adds[0], adds[1], chd, action);
 		if(ir == 1)
@@ -1486,7 +1491,7 @@ void UL_SEARCH::UL_Mess(char * lib,int pr) { // et flag des "faits"
 	EE->E(puz.difficulty);
 	for(int i = 0; i < line_count; i++) {
 		EE->Esp();
-		EE->E(t81f[tcount[i]].pt);
+		EE->E(cellsFixedData[tcount[i]].pt);
 	}
 	EE->Enl();
 	if(pr) {
@@ -1777,7 +1782,7 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 	if(ch2.QC() < 2)
 		return; // non il faudrait aussi accepter 1 commun à revoir
 	// nothing to do if box/row and box/col (already done)
-	CELL_FIX &p1 = t81f[cell1], &p2=t81f[cell2];
+	const CELL_FIX &p1 = cellsFixedData[cell1], &p2=cellsFixedData[cell2];
 	if(iel > 17 && ((p1.el == p2.el) || (p1.pl == p2.pl)))
 		return;
 	for(int i1 = 0; i1 < 8; i1++) {
@@ -1986,8 +1991,8 @@ int SEARCH_UR::T2(USHORT action) {
 		if(ir1 == 1)
 			return 1;
 	}
-	int eb = t81f[pp1].eb;
-	if(eb == t81f[pp2].eb)
+	int eb = cellsFixedData[pp1].eb;
+	if(eb == cellsFixedData[pp2].eb)
 		ir2 = T2_el(eb + 18, action);
 	if(ir2 == 1)
 		return 1;
@@ -2007,9 +2012,9 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 		EE->E(" action=");
 		EE->E(action);
 		EE->E(" pp1=");
-		EE->E(t81f[pp1].pt);
+		EE->E(cellsFixedData[pp1].pt);
 		EE->E(" pp2=");
-		EE->Enl(t81f[pp2].pt);
+		EE->Enl(cellsFixedData[pp2].pt);
 	}
 	if(action == 1) { //   this is a "basis"  
 		if(Jum(el, chc1)) {
@@ -2330,13 +2335,13 @@ int SEARCH_UR::RID3() {
 	zw.SetAll_1();
 
 	if(tr[ia].v.ncand == 3)
-		zw &= t81f[ia].z;
+		zw &= cellsFixedData[ia].z;
 	if(tr[ib].v.ncand == 3)
-		zw &= t81f[ib].z;
+		zw &= cellsFixedData[ib].z;
 	if(tr[ic].v.ncand == 3)
-		zw &= t81f[ic].z;
+		zw &= cellsFixedData[ic].z;
 	if(tr[id].v.ncand == 3)
-		zw &= t81f[id].z;
+		zw &= cellsFixedData[id].z;
 
 	zw &= puz.c[ch1];
 
@@ -2372,7 +2377,7 @@ void CANDIDATE::Image(FLOG * EE,int no) const {
 	if(no)
 		EE->E("~");
 	EE->E(ch+1);
-	EE->E(t81f[ig].pt); 
+	EE->E(cellsFixedData[ig].pt); 
 }
 
 void CANDIDATES::SetParent(PUZZLE * parent,FLOG * fl){
@@ -2511,7 +2516,7 @@ void  CANDIDATES::WeakLinksD(){
 				  ig2=zp[p2].ig;
 	        // don't generate twice if box/row or box/column 
 			if(el>17 &&   // it is a box
-				(t81f[ig1].el==t81f[ig2].el  ||  t81f[ig1].pl==t81f[ig2].pl ) )
+				(cellsFixedData[ig1].el==cellsFixedData[ig2].el  ||  cellsFixedData[ig1].pl==cellsFixedData[ig2].pl ) )
 				continue;
 			parentpuz->zcf.LoadBase(p1,p2)    ;  
 		}  
@@ -3200,8 +3205,6 @@ int SETS::DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & 
 			EE->E(" for set set"); chx.Image(parentpuz,EE);
 			EE->Enl();
 		}
-
-
 		if(aig || nni<2) 
 			continue; // assigned or equivalent
 		   // now the set has more than 2 valid candidates

@@ -41,8 +41,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // puzzle independant variables that should stay global
 
-static CELLS_FIX tp81f;
-CELL_FIX *t81f = tp81f.t81f_field;	//pointer to speed up the process   
+//static CELLS_FIX tp81f;
+//CELL_FIX *t81f = tp81f.t81f_field;	//pointer to speed up the process
+//const CELL_FIX *t81f = cellsFixedData;
 //DIVF divf;
 //ZGROUPE zgs;
 
