@@ -125,3 +125,10 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 	return  rc;
 }
 
+void ratePuzzlesC(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir) {
+#pragma omp parallel for schedule(dynamic, 1)
+	for(int i = 0; i < nPuzzles; i++) {
+		ir[i] = ratePuzzleC(&ze[i * 82], &er[i], &ep[i], &ed[i], &aig[i]);
+	}
+}
+

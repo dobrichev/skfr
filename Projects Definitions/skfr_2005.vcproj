@@ -45,6 +45,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SKFR_MD_DLL_EXPORTS"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -61,12 +62,15 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions=""
 				LinkIncremental="2"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="1"
 				StackReserveSize="4000000"
+				StackCommitSize="4000000"
+				LargeAddressAware="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -119,7 +123,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions=""
+				AdditionalOptions="/Qopenmp-link:static "
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -129,6 +133,7 @@
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
 				RuntimeTypeInfo="false"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -146,11 +151,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions=""
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				StackReserveSize="4000000"
+				StackCommitSize="4000000"
+				LargeAddressAware="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="0"

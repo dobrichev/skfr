@@ -31,4 +31,7 @@ int ratePuzzleC(char *ze, int *er, int *ep, int *ed, int *aig);
 void setMinMaxC(int mined, int maxed, int minep, int maxep, int miner, int maxer, UINT filt);
 void setParamC (int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles);
 int setTestModeC (int ot, char *logFileName);
+
+void ratePuzzlesC(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir); //parallel rating
+
 int PrintOptionsOpsudo();
