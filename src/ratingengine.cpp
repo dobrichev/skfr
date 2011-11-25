@@ -41,7 +41,7 @@ FLOG EE;  //log file as such is one should not be used in multi thread
 
 // puzzle dependant variables to move
 
-PUZZLE puz;  // must be at the end one occurence per thread
+//PUZZLE puz;  // must be at the end one occurence per thread
 
 
 
@@ -114,8 +114,10 @@ int setTestModeC (int ot, char * logFileName){
  */
 int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 {
+	PUZZLE puz; //instantiate a puzzle
+	puz.options = Op; //clone the options
 	// do standard processing
-	int rc = puz.Traite( ze );
+	int rc = puz.Traite(ze);
 	*er = puz.ermax;
 	*ep = puz.epmax;
 	*ed = puz.edmax;

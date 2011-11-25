@@ -66,6 +66,7 @@
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="1"
+				StackReserveSize="4000000"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -118,6 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions=""
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -148,6 +150,7 @@
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
+				StackReserveSize="4000000"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="0"

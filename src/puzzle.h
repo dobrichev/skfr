@@ -40,6 +40,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 extern unsigned long long fsss(const char* in, const unsigned long long maxSolutions, char* out); //fast simple sudoku solver.
 extern const unsigned int cellsInGroup[27][9];
 class CELL_FIX;
+class PUZZLE;
 
 //! Short class to define and handle a 9x9 or 81 char field 
 /**
@@ -67,8 +68,6 @@ public:
 	static inline USHORT Box54(USHORT x) {USHORT a=3*(x/9),b=x%3; return (a+b);}
 };
 
-
-class PUZZLE;
 
 //!Small class containing the permanent data for a cell
 class CELL_FIX {
@@ -382,18 +381,18 @@ public:
    const CELL_FIX * f; 
    CELL_VAR v;
    void Init(){v.Init();}     // at the start
-   int Change  (int ch,PUZZLE * ppuz) ;      // clear one candate
-   int Changex (int ch) ;      // clear one candate  obsolete to clean
-   int Change (BF16 cb9,PUZZLE * ppuz) ;   // clear candidates 
-   int Changey (BF16 cb9) ;   // clear candidates   obsolete to clean
-   int Keepy (BF16 cb9) ;       // clear candidates others than
-   int Keepy(int ch1,int ch2); // clear candidates others than
-   int Keep (BF16 cb9,PUZZLE * ppuz) ;       // clear candidates others than
+   int Change(int ch,PUZZLE * ppuz);      // clear one candate
+   int Changex(PUZZLE &puz, int ch);      // clear one candate  obsolete to clean
+   int Change(BF16 cb9, PUZZLE * ppuz);   // clear candidates 
+   int Changey(PUZZLE &puz, BF16 cb9);   // clear candidates   obsolete to clean
+   int Keepy(PUZZLE &puz, BF16 cb9) ;       // clear candidates others than
+   int Keepy(PUZZLE &puz, int ch1, int ch2); // clear candidates others than
+   int Keep(BF16 cb9,PUZZLE * ppuz);       // clear candidates others than
    int Keep(int ch1,int ch2,PUZZLE * ppuz); // clear candidates others than
    int ObjCommun(CELL * p8) {
 	   return f->ObjCommun(p8->f);
    }   // same row, column or box
-   void Fixer(UCHAR type,UCHAR ch) ; // force digit as valid in the solution
+   void Fixer(UCHAR type,UCHAR ch); // force digit as valid in the solution
    char * strcol() {
 	   return scand;
    } // no tagging in print
@@ -679,7 +678,7 @@ public:
 	inline void Charge(USHORT i,USHORT che) {ig=i;ch=che;}
 	//inline BF81 * GetZ() const;     
 	void Image(FLOG * EE,int no=0) const; // no=1 if false state
-	void Clear(CELL * tw);
+	void Clear(PUZZLE &puz, CELL * tw);
 };
 
 #define zpln_lim 320
@@ -755,9 +754,9 @@ public:
 			t[i]=t[0];
 		}
 	}
-	void ExpandAll(SQUARE_BFTAG & from);
-	void ExpandShort(SQUARE_BFTAG & from,int npas);
-	void AllParents(const SQUARE_BFTAG & from);
+	void ExpandAll(const PUZZLE &puz, SQUARE_BFTAG & from);
+	void ExpandShort(const PUZZLE &puz, SQUARE_BFTAG & from,int npas);
+	void AllParents(const PUZZLE &puz, const SQUARE_BFTAG & from);
 	int SearchEliminations(PUZZLE * parentpuz,SQUARE_BFTAG & from,BFTAG & elims);
 	inline void Set(int i, int m) {t[i].Set(m);};
 	inline int Is(int i,int m){return t[i].On(m);};
@@ -850,12 +849,12 @@ public:
 		isbival.SetAll_0();
 	} 
 	void ExpandAll() {
-		h.d.ExpandAll(h.dp);
+		h.d.ExpandAll(*parentpuz, h.dp);
 	}
 
 	int DeriveCycle(int nd, int nf, int ns, int npas = 0);
 	void ExpandShort(int npas) {
-		h.d.ExpandShort(h.dp, npas);
+		h.d.ExpandShort(*parentpuz, h.dp, npas);
 	}
 	void LoadBase(USHORT cd1, USHORT cd2);
 	void LoadBivalue(USHORT cd1, USHORT cd2);
@@ -1350,6 +1349,7 @@ public:
 
 class PUZZLE {
 public:
+	OPSUDO options;
     SEARCH_LS_FISH yt;
     TCHAIN tchain;
     TWO_REGIONS_INDEX alt_index; 
@@ -1600,13 +1600,9 @@ public:
 	void NestedMultiLevel4(BFTAG & elims);
 	void NestedMultiShortLevel4(BFTAG & elims);
 
-
-
 private:
 	int FaitGo(int i8,char c1,char c2);
 };
 
 // global variables for Puzzle
-extern OPSUDO Op;
 extern FLOG EE;
-extern PUZZLE puz;

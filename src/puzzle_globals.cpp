@@ -149,15 +149,15 @@ void TCHAIN::SetMaxLength(int bw) {
 */
 
 int TCHAIN::ClearChain(int ichain) { // clear candidates
- if(Op.ot) {EE->E("clean for UREM=");EE->Enl(chains[ichain].urem);}
- CANDIDATE cw = parentpuz->zpln.zp[chains[ichain].cand];
- return parentpuz->T81t[cw.ig].Change(cw.ch, parentpuz);
+	if(parentpuz->options.ot) {EE->E("clean for UREM=");EE->Enl(chains[ichain].urem);}
+	CANDIDATE cw = parentpuz->zpln.zp[chains[ichain].cand];
+	return parentpuz->T81t[cw.ig].Change(cw.ch, parentpuz);
 }
 
 int TCHAIN::ClearImmediate(USHORT cand){ // clear candidates
 	if(cycle_elims.On(cand))
 		return 0;
-	if(Op.ot) {
+	if(parentpuz->options.ot) {
 		EE->Enl("immediate elimination through chain for candidate ");
 		parentpuz->zpln.Image(cand);
 		EE->Enl();
@@ -226,7 +226,7 @@ void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand) {
 		return;
 	}
 	if(ichain >= 30) return;
-	if(Op.ot) {
+	if(parentpuz->options.ot) {
 		EE->Enl();parentpuz->PointK(); EE->Esp(); EE->Enl(lib);
 		EE->E(" load tchain rating=");EE->E(rat);
 		EE->E(" elimination of ");parentpuz->zpln.Image(cand);
@@ -356,7 +356,7 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 		if (!parentpuz ->Keep(e27,wf,wi) &&(!ir))return 0;
 	}
 
-	if(!Op.ot) return 1; 
+	if(!parentpuz->options.ot) return 1; 
 	// describe the LS even if no more eliminations after an assignment
 
 	char *gt[]={"LS2 ","LS3 ","LS4 ","LS5 " };
@@ -453,7 +453,7 @@ int CELL::Change(int ch,PUZZLE * ppuz) {
 
 // obsolete to clean later
 
-int CELL::Changex(int ch) {
+int CELL::Changex(PUZZLE &puz, int ch) {
 	if(v.cand.Off(ch))
 		return 0;
 	if(puz.CheckChange(f->i8, ch))
@@ -474,15 +474,15 @@ int CELL::Change (BF16 cb9,PUZZLE * ppuz) {    // clear candidates
 
 // obsolete to clean later
 
-int CELL::Changey (BF16 cb9) {    // clear candidates 
+int CELL::Changey (PUZZLE &puz, BF16 cb9) {    // clear candidates 
 	   int ir=0;
 	   for(int i=0; i < 9; i++) 
 		   if(cb9.On(i))
-			   ir += Changex(i);
+			   ir += Changex(puz, i);
 	   return ir;
    }
 
-int CELL::Keep (BF16 cb9,PUZZLE * ppuz) {       // clear candidates others than
+int CELL::Keep (BF16 cb9, PUZZLE * ppuz) {       // clear candidates others than
 	   int ir=0;
 	   for(int i = 0; i < 9; i++) {
 		   if(v.cand.On(i) && !cb9.On(i)) {
@@ -504,22 +504,22 @@ int CELL::Keep(int ch1,int ch2,PUZZLE * ppuz) { // clear candidates others than
 	   return ir;
    }
 
-int CELL::Keepy (BF16 cb9) {       // clear candidates others than
+int CELL::Keepy(PUZZLE &puz, BF16 cb9) {       // clear candidates others than
 	   int ir=0;
 	   for(int i = 0; i < 9; i++) {
 		   if(v.cand.On(i) && !cb9.On(i)) {
-			   Changex(i);
+			   Changex(puz, i);
 			   ir=1;
 		   }
 	   }
 	   return ir;
    }
 
-int CELL::Keepy(int ch1,int ch2) { // clear candidates others than
+int CELL::Keepy(PUZZLE &puz, int ch1,int ch2) { // clear candidates others than
 	   int ir = 0;
 	   for(int i = 0; i < 9; i++) {
 		   if(v.cand.On(i) && (i - ch1) && (i - ch2)) {
-			   Changex(i);
+			   Changex(puz, i);
 			   ir = 1;
 		   }
 	   }
@@ -606,7 +606,7 @@ if(z1.On(i)&&(!t81[i].v.typ)&&t81[i].v.cand.On(ic)) z2.Set(i);  }
 */
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 void CELLS::Candidats() {
-	if(!Op.ot)
+	if(!parentpuz->options.ot)
 		return; 
 	int i, j, l, lcol[9], tcol = 0;
 	char * pw;       //lcol  largeur maxi colonne
@@ -830,7 +830,7 @@ int TPAIRES::Bug1() {
 		w = p.v.cand - wc;
 	if(wc.QC() - 2)
 		return 0; //must be 2 to reach parity
-	parentpuz->T81t[i8].Keepy(w); // eliminate the others
+	parentpuz->T81t[i8].Keepy(*parentpuz, w); // eliminate the others
 	BugMess(" 1");
 	return 1;
 }
@@ -893,10 +893,10 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	int ir = 0, ch = possible.First(); 
 	for(int i = 0; i < 81; i++)
 		if(zw.On(i))
-			ir += parentpuz->T81t[i].Changex(ch);
+			ir += parentpuz->T81t[i].Changex(*parentpuz, ch);
 	if(ir) {
 		BugMess("2 same digit");
-		puz.SetDif(57);
+		parentpuz->SetDif(57);
 	}
 	return ir;
 }
@@ -904,7 +904,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 void TPAIRES::BugMess(const char * lib) const {
 	EE->E("Bug type ");
 	EE->Enl(lib);
-	if(Op.ot)
+	if(parentpuz->options.ot)
 		parentpuz->T81C->Candidats();
 }
 
@@ -994,7 +994,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 						ir += parentpuz->T81t[tpa[j]].Change(welim,parentpuz);
 				if(ir) {
 					BugMess("type 3/4 naked pair");
-					puz.SetDif(58);
+					parentpuz->SetDif(58);
 					return 1;
 				}
 			}
@@ -1012,7 +1012,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 						ir += parentpuz->T81t[tpa[j]].Change(ww,parentpuz);
 				if(ir) {
 					BugMess("type 3/4 naked triplet");
-					puz.SetDif(59);
+					parentpuz->SetDif(59);
 					return 1;
 				}
 			}
@@ -1031,7 +1031,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 							ir += parentpuz->T81t[tpa[j]].Change(ww,parentpuz);
 					if(ir) {
 						BugMess("type 3/4 naked quad");
-						puz.SetDif(60);
+						parentpuz->SetDif(60);
 						return 1;
 					}
 				}
@@ -1053,7 +1053,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 								ir += parentpuz->T81t[tpa[j]].Change(ww,parentpuz);
 						if(ir) {
 							BugMess("type 3/4 naked (5)");
-							puz.SetDif(61);
+							parentpuz->SetDif(61);
 							return 1;
 						}
 					}
@@ -1101,10 +1101,10 @@ int TPAIRES::Bug_lock(int el) {
 	if((wc1.QC() - 2) || (wc2.QC() - 2))
 		return 0;	 
 
-	parentpuz->T81t[tplus[0]].Keepy(wce1 | clock);
-	parentpuz->T81t[tplus[1]].Keepy(wce2 | clock);
+	parentpuz->T81t[tplus[0]].Keepy(*parentpuz, wce1 | clock);
+	parentpuz->T81t[tplus[1]].Keepy(*parentpuz, wce2 | clock);
 	BugMess("3/4 a digit locked");
-	puz.SetDif(57);
+	parentpuz->SetDif(57);
 	return 1;
 }
 
@@ -1156,9 +1156,9 @@ int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs
 				//BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z,
 				BF81 z1 = cellsFixedData[zp[i].i8].z;
 				z1 &= cellsFixedData[zp[j].i8].z;
-				BF81 z2 = z1 & puz.c[ich];  // z2 est à supprimer
+				BF81 z2 = z1 & parentpuz->c[ich];  // z2 est à supprimer
 				if(z2.IsNotEmpty()) {
-					if(Op.ot)
+					if(parentpuz->options.ot)
 						CommunLib(i, j, zp[k].i8, "->XY WING pivot= ");
 					parentpuz->T81->Clear(z2, ich);
 					return 1;
@@ -1191,9 +1191,9 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 				BF81 z1 = cellsFixedData[zp[i].i8].z;
 				z1 &= cellsFixedData[zp[j].i8].z;
 				z1 &= cellsFixedData[k].z;
-				BF81 z2 = z1 & puz.c[ich];  // z2 est à supprimer
+				BF81 z2 = z1 & parentpuz->c[ich];  // z2 est à supprimer
 				if(z2.IsNotEmpty()) {
-					if(Op.ot)
+					if(parentpuz->options.ot)
 						CommunLib(i, j, k, "->XYZ WING pivot= ");
 					parentpuz->T81->Clear(z2, ich);
 					return 1;
@@ -1205,7 +1205,7 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 }
 
 void TPAIRES::CommunLib(int i, int j, int k, char * lib) {
-	if(!Op.ot)
+	if(!parentpuz->options.ot)
 		return;
 	EE->E(lib);
 	EE->E(cellsFixedData[k].pt);
@@ -1386,7 +1386,7 @@ int UL_SEARCH::El_Suite(USHORT ele) {
 	if(el_used.On(ele))
 		return 0;
 	//EE->E("suite el=");EE->Enl(ele+1);
-	BF16 wc = puz.alt_index.tchbit.el[ele].eld[c1].b & puz.alt_index.tchbit.el[ele].eld[c2].b;
+	BF16 wc = parentpuz->alt_index.tchbit.el[ele].eld[c1].b & parentpuz->alt_index.tchbit.el[ele].eld[c2].b;
 	for(int i = 0; i < 9; i++) {
 		if(wc.On(i)) { // cells with both digits
 			int i8r = cellsInGroup[ele][i];
@@ -1441,7 +1441,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	// les deux ci-dessous sortent en 4.6 et 4.7; voir l'origine de l'écart (nb de pas???)
 	if(action == 1 && nadds < 2) { //one cell with adds rating 4.6 revérifié, c'est bien 4.6
 		USHORT iu = adds[0];
-		if(parentpuz->T81t[iu].Changey(chd)) {
+		if(parentpuz->T81t[iu].Changey(*parentpuz, chd)) {
 			UL_Mess("one cell with extra digits ", 1);
 			return 1;
 		}
@@ -1486,7 +1486,7 @@ void UL_SEARCH::UL_Mess(char * lib,int pr) { // et flag des "faits"
 	EE->E(" count=");
 	EE->E(line_count - 1);
 	EE->E(" rating=");
-	EE->E(puz.difficulty);
+	EE->E(parentpuz->difficulty);
 	for(int i = 0; i < line_count; i++) {
 		EE->Esp();
 		EE->E(cellsFixedData[tcount[i]].pt);
@@ -1588,7 +1588,7 @@ int EVENT::IsPattern (USHORT cand) const {
 
 
 void EVENT::Image(PUZZLE * parentpuz,FLOG * EE) const {
-	if(!Op.ot)
+	if(!parentpuz->options.ot)
 		return;
 	EE->E(" event image tag=");
 	EE->E(tag);
@@ -1602,7 +1602,7 @@ void EVENT::Image(PUZZLE * parentpuz,FLOG * EE) const {
 }
 void EVENT::ImageShort(PUZZLE * parentpuz,FLOG * EE) const {
 	char * tlib[]={"pointing rc","pointing b","naked pair","hidden pair","Xwingr","Xwingc"};
-	if(!Op.ot)
+	if(!parentpuz->options.ot)
 		return;
 	EE->E("\t event   ");
 	EE->E(tlib[type]); 
@@ -1615,9 +1615,10 @@ void EVENT::ImageShort(PUZZLE * parentpuz,FLOG * EE) const {
 }
                //================================
 
-void TEVENT::SetParent(PUZZLE * parent,FLOG * fl)
-{parentpuz=parent; 
-EE=fl;}
+void TEVENT::SetParent(PUZZLE * parent,FLOG * fl) {
+	parentpuz = parent; 
+	EE = fl;
+}
 
 /* we have found the 2 sets (EVENLOT) linked to the event
    create the entry in the table TEVENT
@@ -1646,7 +1647,7 @@ void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT
 	// if only one in the set, go to gen and return
 	if(eva.itcd == 1) {
 		USHORT cw = eva.tcd[0]; 
-		if(0 && Op.ot) {
+		if(0 && parentpuz->options.ot) {
 			EE->E("gen direct event type=");
 			EE->E(evt);
 			EE->Esp(); 
@@ -1654,7 +1655,7 @@ void TEVENT::EventBuild(EVENT_TYPE evt, EVENTLOT & eva, EVENTLOT & evb, EVENTLOT
 			evb.Image(parentpuz,EE);
 			EE->Enl();
 		}
-		evb.GenForTag(parentpuz,EE,(cw << 1) ^ 1, wl_ev_direct);
+		evb.GenForTag(parentpuz, EE,(cw << 1) ^ 1, wl_ev_direct);
 		return;
 	}
 	if(eva.itcd > chx_max)
@@ -1736,7 +1737,7 @@ void TEVENT::LoadXW() {
 /* we have identified an XW pattern
    generate if any the set or the direct event weak links  */
 void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT & eva, EVENTLOT & evx) {
-	REGION_CELL el1d = puz.alt_index.tchbit.el[el1].eld[ch], el2d = puz.alt_index.tchbit.el[el2].eld[ch];
+	REGION_CELL el1d = parentpuz->alt_index.tchbit.el[el1].eld[ch], el2d = parentpuz->alt_index.tchbit.el[el2].eld[ch];
 	for(int i = 0; i < 9; i++)
 		if(el1d.b.On(i))
 			if((i - p1) && (i - p2))
@@ -1844,7 +1845,7 @@ void TEVENT::LoadLock() {
 	for(int iel = 0; iel < 18; iel++) {
 		for(int ib = 18; ib < 27; ib++) {
 			for(int ich = 0; ich < 9; ich++) {
-				BF81 chel = puz.c[ich] & cellsInHouseBM[iel];  // the elem pattern for the ch
+				BF81 chel = parentpuz->c[ich] & cellsInHouseBM[iel];  // the elem pattern for the ch
 				if(chel.IsEmpty())
 					continue; // nothing  
 				BF81 chbcom = chel & cellsInHouseBM[ib]; // common part with the block
@@ -1853,7 +1854,7 @@ void TEVENT::LoadLock() {
 				if(chbcom.Count() < 2)
 					continue; // nothing to do I guess
 				chel -= chbcom; // set in row col
-				BF81 chb = (puz.c[ich] & cellsInHouseBM[ib]) - chbcom; // set in box
+				BF81 chb = (parentpuz->c[ich] & cellsInHouseBM[ib]) - chbcom; // set in box
 
 				// check what does SE if evrc,evb,evx all one candidate ?? 
 
@@ -1871,7 +1872,7 @@ void TEVENT::LoadLock() {
  status of table after having loaded events
  */
 void TEVENT::LoadFin() {
-	if(!Op.ot)
+	if(!parentpuz->options.ot)
 		return;
 
 	EE->E("check after having loaded events nb events=");
@@ -1935,7 +1936,7 @@ void SEARCH_UR::ImageRI(char * lib,USHORT a) {
 }
 
 void SEARCH_UR::ImageRI(char * lib) {
-	if(!Op.ot) return;
+	if(!parentpuz->options.ot) return;
 	EE->E( "->UR" );
 	EE->E(lib);
 	ImageRI(" P1=", ia);
@@ -2004,7 +2005,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 	}
 	if(action == 1) { //   this is a "basis"  
 		if(Jum(el, chc1)) {
-			int ir1 = parentpuz->T81t[pp1].Changex(chc2) + parentpuz->T81t[pp2].Changex(chc2);
+			int ir1 = parentpuz->T81t[pp1].Changex(*parentpuz, chc2) + parentpuz->T81t[pp2].Changex(*parentpuz, chc2);
 			if(ir1) {
 				EE->E("UR/UL bivalue ");
 				EE->Enl(chc1+1);
@@ -2012,7 +2013,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 			}
 		}
 		else if(Jum(el,chc2)) {
-			int ir1 = parentpuz->T81t[pp1].Changex(chc1) + parentpuz->T81t[pp2].Changex(chc1);
+			int ir1 = parentpuz->T81t[pp1].Changex(*parentpuz, chc1) + parentpuz->T81t[pp2].Changex(*parentpuz, chc1);
 			if(ir1) {
 				EE->E("UR/UL bivalue ");
 				EE->Enl(chc2 + 1);
@@ -2070,7 +2071,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 		return 2; // store it if not basic
 	//  hidden pair 
 	if(nth < 2 && (action == 2)) {  //  hidden pair if active
-		if(parentpuz->T81t[th[0]].Keepy(wc)) {
+		if(parentpuz->T81t[th[0]].Keepy(*parentpuz, wc)) {
 			EE->Enl("UR/UL hidden pair");
 			return 1;
 		}
@@ -2101,7 +2102,7 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len) {
 		if(whh.QC()-(nth+1)) return 0;
 		//go for the a hidden set if active
 		int ir1=0;
-		for(int i=0;i<nth;i++)  ir1+=parentpuz->T81t[th[i]].Keepy(whh); 
+		for(int i=0;i<nth;i++)  ir1+=parentpuz->T81t[th[i]].Keepy(*parentpuz, whh); 
 		if(ir1) { EE->E("UR/UL hls whh="); EE->Enl(whh.String());
 		EE->Enl("UR/UL hidden locked set"); return 1;}	
 	}
@@ -2114,8 +2115,8 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len) {
 			for(int j=0;j<nnh;j++) if(j-i) wb|=parentpuz->T81t[tnh[j]].v.cand;
 			wx=wa-wb-wr; // must not be an extra digit included in the UR
 			if(wx.QC()==4) // we got it
-			{int ir1=0; ir1+=parentpuz->T81t[tnh[i]].Keepy(wx);
-			for(int k=0;k<nth;k++)  ir1+=parentpuz->T81t[th[k]].Keepy(wx); 
+			{int ir1=0; ir1+=parentpuz->T81t[tnh[i]].Keepy(*parentpuz, wx);
+			for(int k=0;k<nth;k++)  ir1+=parentpuz->T81t[th[k]].Keepy(*parentpuz, wx); 
 			if(ir1) { EE->E("UR/UL hls wx="); EE->Enl(wx.String());
 			EE->Enl("UR/UL hidden locked set"); return 1;}	
 			}
@@ -2197,7 +2198,7 @@ if(nnh>=nautres && (len==nnh))
  {BF16 wdx; int ir=0;
   for (int i=0;i<nnh;i++) wdx|=parentpuz->T81t[tnh[i]].v.cand;
   if(nnh==(wdx.QC()-1) && ((wdx&wr).f == wr.f) ) 
-    { for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(wdx  );
+    { for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(*parentpuz, wdx);
       if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
     } 
  }
@@ -2210,8 +2211,8 @@ if(nnh>=nautres && (len==(nnh-1)))
   if((wdx&wr).f-wr.f) continue;
   if(nnh==wdx.QC()) 
     { BF81 zwel1=zwel; 
-      for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(wdx  );
-	  ir+=parentpuz->T81t[tnh[j]].Changey(wdx  );
+      for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(*parentpuz, wdx);
+	  ir+=parentpuz->T81t[tnh[j]].Changey(*parentpuz, wdx);
       if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
     } 
   }
@@ -2226,8 +2227,8 @@ if(nnh>=(nautres+1) && (len==(nnh-2)))
    if((wdx&wr).f-wr.f) continue;
    if(nnh==wdx.QC()+1) 
     { BF81 zwel1=zwel; 
-      for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(wdx  );
-	  ir+=parentpuz->T81t[tnh[j]].Changey(wdx  ); ir+=parentpuz->T81t[tnh[k]].Changey(wdx  );
+      for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(*parentpuz, wdx);
+	  ir+=parentpuz->T81t[tnh[j]].Changey(*parentpuz, wdx); ir+=parentpuz->T81t[tnh[k]].Changey(*parentpuz, wdx);
       if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
     } 
   }
@@ -2269,7 +2270,7 @@ int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
 	ib = I81::Pos(i1, c2);
 	ic = I81::Pos(i2, c1);
 	id = I81::Pos(i2, c2);
-	char * gr = puz.gg.pg;
+	char * gr = parentpuz->gg.pg;
 	if((gr[ia] - '0') || (gr[ib] - '0') || (gr[ic] - '0') || (gr[id] - '0'))
 		return 0;
 
@@ -2277,7 +2278,7 @@ int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
 		return 0;
 	CalcDeux();   
 	if(ndeux == 3) {
-		ta[pp1].Changey(wc);
+		ta[pp1].Changey(*parentpuz, wc);
 		ImageRI("1");
 		return 1;
 	}// type 1
@@ -2291,7 +2292,7 @@ int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
 
 	// if one digit active, do it now 4.5
 	if(nautres == 1) { // un chiffre en lig/col  ou diagonal
-		if(puz.Keep(ch1, pp1, pp2)) {
+		if(parentpuz->Keep(ch1, pp1, pp2)) {
 			ImageRI(" one digit active");
 			return 1;
 		}
@@ -2330,7 +2331,7 @@ int SEARCH_UR::RID3() {
 	if(tr[id].v.ncand == 3)
 		zw &= cellsFixedData[id].z;
 
-	zw &= puz.c[ch1];
+	zw &= parentpuz->c[ch1];
 
 	if(zw.IsNotEmpty()) {
 		ImageRI(" UR one digit active");	
@@ -2353,8 +2354,8 @@ int SEARCH_UR::RID3() {
 */
 
 
-void CANDIDATE::Clear(CELL * tw){
-	tw[ig].Changex(ch); 
+void CANDIDATE::Clear(PUZZLE &puz, CELL * tw){
+	tw[ig].Changex(puz, ch);
 }
 
 void CANDIDATE::Image(FLOG * EE,int no) const {
@@ -2366,12 +2367,12 @@ void CANDIDATE::Image(FLOG * EE,int no) const {
 }
 
 void CANDIDATES::SetParent(PUZZLE * parent,FLOG * fl){
-	parentpuz=parent;
-	EE=fl;
+	parentpuz = parent;
+	EE = fl;
 }
 	
 void CANDIDATES::Clear(USHORT c) 	{
-		zp[c].Clear(parentpuz->T81t);
+		zp[c].Clear(*parentpuz, parentpuz->T81t);
 	}
 
 
@@ -2395,12 +2396,12 @@ void CANDIDATES::Init() {
 		for(UCHAR j = 0; j < 9; j++)
 			if(chs.On(j)) {
 				zp[0].Charge(i, j); 
-				if(puz.solution[i] == (j + '1'))
+				if(parentpuz->solution[i] == (j + '1'))
 					candtrue.Set(ip);
 				indexc[81 * j + i] = Charge0();
 			}
 	}
-	puz.col=2*ip;
+	parentpuz->col = 2 * ip;
 }
 
 
@@ -2475,7 +2476,7 @@ void  CANDIDATES::CellLinks()
 void  CANDIDATES::RegionLinks(USHORT ich,int biv){
 	for (el=0;el<27;el++) { 
 		iptsch=0;  
-		if(puz.alt_index.tchbit.el[el].eld[ich].n <2 )
+		if(parentpuz->alt_index.tchbit.el[el].eld[ich].n <2 )
 			continue;
 		for(int i=0;i<9;i++)  {
 			//USHORT w=indexc[divf.el81[el][i]+81*ich];
@@ -2526,12 +2527,12 @@ void CANDIDATES::GenRegionSets()  {
 		for (int elx=0,el=18;elx<27;elx++,el++){
 			if(el==27) el=0;
 			for( int ich=0;ich<9;ich++) {
-				USHORT nmch=puz.alt_index.tchbit.el[el].eld[ich].n,
-					  ipts=0;;
+				USHORT nmch = parentpuz->alt_index.tchbit.el[el].eld[ich].n,
+					  ipts = 0;
 				if(nmch-ncand) 
 					continue;  
 				//BF81 zel=divf.elz81[el]&puz.c[ich];
-				BF81 zel = puz.c[ich] & cellsInHouseBM[el];
+				BF81 zel = parentpuz->c[ich] & cellsInHouseBM[el];
 				for(int j = 1; j < ip; j++) {
 					if(zp[j].ch - ich )
 						continue;
@@ -2545,7 +2546,7 @@ void CANDIDATES::GenRegionSets()  {
 }
 
 
-void  CANDIDATES::GenCellsSets(){
+void CANDIDATES::GenCellsSets(){
 	for(USHORT i=0;i<81;i++)  {
 		USHORT n= parentpuz->T81t[i].v.ncand; 
 		if(n<3 || n>chx_max) 
@@ -2562,8 +2563,8 @@ void  CANDIDATES::GenCellsSets(){
 
 
 
-void  CANDIDATES::PrintImply(const USHORT * tp,USHORT np) const {
-	if(!Op.ot)
+void CANDIDATES::PrintImply(const USHORT * tp,USHORT np) const {
+	if(!parentpuz->options.ot)
 		return;
 	EE->Echem();
 	for(int i = 0; i < np; i++) {
@@ -2575,8 +2576,8 @@ void  CANDIDATES::PrintImply(const USHORT * tp,USHORT np) const {
 	EE->Enl();
 }
 
-void  CANDIDATES::PrintListe(USHORT * tp,USHORT np,int modetag) const{
-	if(!Op.ot) 
+void CANDIDATES::PrintListe(USHORT * tp,USHORT np,int modetag) const{
+	if(!parentpuz->options.ot) 
 		return; 
 	EE->E("candidats");
 	for(int i=0;i<np;i++)  {
@@ -2608,9 +2609,9 @@ int INFERENCES::DeriveCycle(int nd, int nf, int ns, int npas) {
 	parentpuz->zcx.Derive(nd, nf, ns);
 	if(!load_done) return 0;
 	if(!npas)
-		h.d.ExpandAll(h.dp);
+		h.d.ExpandAll(*parentpuz, h.dp);
 	else
-		h.d.ExpandShort(h.dp, npas);
+		h.d.ExpandShort(*parentpuz, h.dp, npas);
 	return 1;
 }
 
@@ -2672,7 +2673,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 	BFTAG elims;
 	int npaselim = h.d.SearchEliminations(parentpuz,h.dp, elims);
 	if(!npaselim) return; //nothing to find
-	h.d.ExpandAll(h.dp); // 	
+	h.d.ExpandAll(*parentpuz, h.dp); // 	
 	BFTAG xi;
 	xb.SetAll_0();
 	xi.SetAll_0();// collect tags in loop ok and "to eliminate in true state"
@@ -2684,7 +2685,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 	}
 	if(xi.IsEmpty())
 		return;  
-	if(0 && Op.ot) { 
+	if(0 && parentpuz->options.ot) { 
 		parentpuz->Image(xi,"candidates potential  eliminations", 0);
 	}
 
@@ -2692,7 +2693,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 	for(int i = 2; i < parentpuz->col; i += 2) {
 		if(!xi.On(i))
 			continue;
-		if(0 && Op.ot) {
+		if(0 && parentpuz->options.ot) {
 			EE->E("\n\nanalyzing ");
 			parentpuz->zpln.ImageTag(i);
 			EE->Enl();
@@ -2702,7 +2703,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 		{
 			BFTAG wch = h.dp.t[i];
 			int npasch = wch.SearchChain(h.dp.t, i, i ^ 1);
-			if(0 && Op.ot) {
+			if(0 && parentpuz->options.ot) {
 				EE->E(" npasch= ");
 				EE->Enl(npasch);
 			}
@@ -2710,7 +2711,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 				continue; // should never happen
 			int ratch = parentpuz->tchain.GetRatingBase((opx == 3) ? 70 : 66, npasch + 1, i >> 1);
 			if(ratch) { // chain is accepted load it (more comments in test mode)
-				if(Op.ot) {
+				if(parentpuz->options.ot) {
 					ExplainPath(wch, i, i^1, npasch + 2, i ^ 1);
 				}
 				parentpuz->tchain.LoadChain(ratch, "chain", i >> 1);	
@@ -2719,7 +2720,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 		//--------------------------- now look for a loop 
 		BFTAG w = h.dp.t[i];
 		w &= xb; 
-		if(0 && Op.ot)
+		if(0 && parentpuz->options.ot)
 			parentpuz->Image(w,"loop contacts",i);
 		if(w.Count() < 2)
 			continue; // must have contact with 2 candidates ( false state )
@@ -2750,7 +2751,7 @@ void INFERENCES::Aic_Cycle(int opx) {  // only nice loops and solve them
 					int rat = parentpuz->tchain.GetRatingBase((opx == 3) ? 70 : 65, npascycle + 1, i >> 1);
 					if(!rat)
 						continue;// chain is accepted load it (more comments in test mode)
-					if(Op.ot) {
+					if(parentpuz->options.ot) {
 						ExplainPath(wstart, t1, t1, npascycle + 2, t2);
 					}
 					parentpuz->tchain.LoadChain(rat, "cycle", i >> 1); 
@@ -2853,7 +2854,7 @@ void INFERENCES::Aic_YcycleD(USHORT t1,USHORT t2, const BFTAG &loop,USHORT cand)
 	if(!rat)
 		return;
 	// chain is accepted load it and in test mode, find more comments
-	if(Op.ot) {
+	if(parentpuz->options.ot) {
 		EE->Enl("Y cycle out of the region");
 		resf.PrintPathTags(&parentpuz->zpln);
 	}
@@ -2902,7 +2903,7 @@ USHORT t2=t2x^1,t1=0; // new target is  "on"
  int rat=parentpuz->tchain.GetRatingBase(65,lg,cand);
  if(!rat) return;
      // chain is accepted load it and in test mode, find more comments
- if(Op.ot){EE->Enl("Y cycle out of the region");
+ if(parentpuz->options.ot){EE->Enl("Y cycle out of the region");
            resf.PrintPathTags(&parentpuz->zpln);   }
 	     //  ExplainPath(resf,t1,t1,lg+2,t2);  }
  parentpuz->tchain.LoadChain(rat,"Y cycle",cand); 
@@ -3002,12 +3003,12 @@ int INFERENCES::Fast_Aic_Chain() {
 	parentpuz->TaggingInit();
 	parentpuz->zpln.CellLinks();
 	parentpuz->zpln.RegionLinks(1); 	         
-	h.d.ExpandAll(h.dp); // 	
+	h.d.ExpandAll(*parentpuz, h.dp); // 	
 	for(int i = 2; i < parentpuz->col; i += 2)
 		if(h.d.Is(i, i ^ 1)) {
 			parentpuz->zpln.Clear(i >> 1); 	// just clear it if not test mode
 			ir++;
-			if(0 && Op.ot) {
+			if(0 && parentpuz->options.ot) {
 				EE->E("clear ");
 				parentpuz->zpln.ImageTag(i);
 				EE->Enl();
@@ -3039,7 +3040,7 @@ void SETS_BUFFER::GetSpace(USHORT *(& ps),int n) {
 }
 
 void SET::Image(PUZZLE * parentpuz, FLOG * EE) const {  // liste of candidates in the set
-	if(!Op.ot)
+	if(!parentpuz->options.ot)
 		return;
 	EE->E(type);
 	EE->E(" set: ");
@@ -3087,14 +3088,24 @@ void SETS::Image() {
 }
 
 
-int SETS::ChargeSet (USHORT * mi,USHORT nmi,SET_TYPE ty)
-{if(nmi<2||puz.stop_rating) return 0;
- if(ty &&  nmi>(chx_max+1) ) return 0;
- if(!zc[0].Prepare(parentpuz,mi,nmi,ty,izc)) return 0;
-if(izc<sets_lim) {zc[izc++]=zc[0];  
-                 if(nmi>nmmax)nmmax=nmi;  
-				 if(nmi<nmmin)nmmin=nmi; return 1;}
-parentpuz->Elimite("ZCX");return 0;}
+int SETS::ChargeSet (USHORT * mi,USHORT nmi,SET_TYPE ty) {
+	if(nmi < 2 || parentpuz->stop_rating)
+		return 0;
+	if(ty &&  nmi > (chx_max + 1))
+		return 0;
+	if(!zc[0].Prepare(parentpuz, mi, nmi, ty, izc))
+		return 0;
+	if(izc < sets_lim) {
+		zc[izc++] = zc[0];  
+		if(nmi > nmmax)
+			nmmax = nmi;  
+		if(nmi < nmmin)
+			nmmin = nmi;
+		return 1;
+	}
+	parentpuz->Elimite("ZCX");
+	return 0;
+}
 
 //int SETS::CopySet (int i)
 //{if(izc<sets_lim) {zc[izc++]=zc[i];  return 1;}
@@ -3111,15 +3122,16 @@ int SETS::Interdit_Base80() {
 	for(int  i=0;i<n;i++)  tbt &= t[tcd[i]<<1];
 
 	if(tbt.IsNotEmpty()) // candidate(s) to clear found
-	{if(Op.ot&& 1){EE->E(" eliminations found in multi chain mode pour ");
+	{if(parentpuz->options.ot && 1){EE->E(" eliminations found in multi chain mode pour ");
 	zc[ie].Image(parentpuz,EE);EE->Enl();} 
 
-	for(int  j=3;j< puz.col;j+=2)if(tbt.On(j)) // all tags assigned
+	for(int j = 3; j < parentpuz->col; j += 2)
+		if(tbt.On(j)) // all tags assigned
 	{int tot_length=0; USHORT jj=j^1;// skip from assigned to eliminated
-	if(Op.ot && 0){EE->E(" Set killing "); parentpuz->zpln.ImageTag(jj); EE->Enl(); }
-	if(puz.ermax>85+n-3) // gofast if already far above
+	if(parentpuz->options.ot && 0){EE->E(" Set killing "); parentpuz->zpln.ImageTag(jj); EE->Enl(); }
+	if(parentpuz->ermax>85+n-3) // gofast if already far above
 	{parentpuz->zpln.Clear(jj>>1); ir++;
-	if(Op.ot){EE->E(" Set fast killing "); parentpuz->zpln.ImageTag(jj); EE->Enl();}
+	if(parentpuz->options.ot){EE->E(" Set fast killing "); parentpuz->zpln.ImageTag(jj); EE->Enl();}
 	continue;}
 	for(int i2=0;i2<n;i2++)  
 	{   BFTAG wch=parentpuz->zcf.h.dp.t[jj]; 
@@ -3130,11 +3142,11 @@ int SETS::Interdit_Base80() {
 	if(!npasch) EE->Enl(" 0 partial length "); // debugging message
 	tot_length+=npasch+2;
 	}
-	int ratch=puz.tchain.GetRatingBase(80,tot_length,jj>>1);
+	int ratch=parentpuz->tchain.GetRatingBase(80,tot_length,jj>>1);
 	if(ratch) // chain is accepted load it (more comments in test mode)
 	{// in test mode  give the details for the chains
 		// in that case, do it again and print
-		if(Op.ot)for(int i2=0;i2<n;i2++) 
+		if(parentpuz->options.ot)for(int i2=0;i2<n;i2++) 
 		{  BFTAG wch=parentpuz->zcf.h.dp.t[jj]; 
 		USHORT end=(tcd[i2]<<1)^1;
 		if(wch.On(end))// this is a direct
@@ -3145,7 +3157,7 @@ int SETS::Interdit_Base80() {
 		wch.TrackBack(parentpuz->zcf.h.dp.t,jj,end,tt,itt,end);
 		parentpuz->zpln.PrintImply(tt,itt);
 		}
-		puz.tchain.LoadChain(ratch,"chain",jj>>1);	
+		parentpuz->tchain.LoadChain(ratch,"chain",jj>>1);	
 	}
 	} // end  for j
 	} // end if
@@ -3164,8 +3176,8 @@ int SETS::DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & 
 	if(0)
 	     parentpuz->Image(allsteps,"start derive allsteps",0); ///
 
-	dn.ExpandAll(dpn);
-	allparents.AllParents(dn);
+	dn.ExpandAll(*parentpuz, dpn);
+	allparents.AllParents(*parentpuz, dn);
 
 	int ret_code=0;
 	t = dn.t;
@@ -3256,7 +3268,7 @@ void SETS::Derive(int min,int max,int maxs) {
 		maxs = nmmax;
 	int maxt = (max > maxs) ? max : maxs;
 
-	if(Op.ot && 0) {
+	if(parentpuz->options.ot && 0) {
 		EE->E("debut Derive izc= ");
 		EE->E(izc);
 		EE->E("  direct= ");
@@ -3271,11 +3283,11 @@ void SETS::Derive(int min,int max,int maxs) {
 
 	if(direct) {
 		t = parentpuz->zcf.h.dp.t;
-		allparents.AllParents(parentpuz->zcf.h.dp);
+		allparents.AllParents(*parentpuz, parentpuz->zcf.h.dp);
 	}
 	else {
 		t = parentpuz->zcf.h.d.t;
-		allparents.AllParents(parentpuz->zcf.h.d);
+		allparents.AllParents(*parentpuz, parentpuz->zcf.h.d);
 	}// usually direct=0
 	for(int ie = 1; ie < izc; ie++) {
 		int nnm = zc[ie].ncd;   
@@ -3348,13 +3360,13 @@ void SETS::DeriveSet(SET & chx) { // only the "event" can be the target
 		tcft &= tce[i];
 
 	if(tcft.IsNotEmpty()) { // event established for any 'true' in tcft
-		for(USHORT j = 2; j < puz.col; j++) {
+		for(USHORT j = 2; j < parentpuz->col; j++) {
 			if(tcft.On(j)) {
-				if(puz.tevent.EventSeenFor(j, tcd[nni])) { 
-						if(!Op.ot) {// this just for diag
-					       EE->E("diag choix");
-					       chx.Image(parentpuz,EE);
-						}
+				if(parentpuz->tevent.EventSeenFor(j, tcd[nni])) { 
+					if(!parentpuz->options.ot) {// this just for diag
+						EE->E("diag choix");
+						chx.Image(parentpuz, EE);
+					}
 				}
 			}
 		}// end j
@@ -3380,7 +3392,7 @@ void SQUARE_BFTAG::Parents(USHORT x) {
    partial mode are found in the BFTAG functions
    */ 
 
-void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
+void SQUARE_BFTAG::ExpandAll(const PUZZLE &puz, SQUARE_BFTAG & from) {
 	(*this) = from; // be sure to start with the set of primary data
 	BFTAG t1, t2;
 	USHORT p[640], np;
@@ -3411,7 +3423,7 @@ void SQUARE_BFTAG::ExpandAll(SQUARE_BFTAG & from) {
 */
 
 
-void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
+void SQUARE_BFTAG::ExpandShort(const PUZZLE &puz, SQUARE_BFTAG & from ,int npas)
 {(*this)=from; // be sure to start with the set of primary data
  for( int i=2;i< puz.col;i++)
   {	int n=1,pas=0;
@@ -3436,7 +3448,7 @@ void SQUARE_BFTAG::ExpandShort(SQUARE_BFTAG & from ,int npas)
 /* that table is prepared for the derivation of weak links
    the "from" table is the table of implications
    */
-void SQUARE_BFTAG::AllParents(const SQUARE_BFTAG & from) {
+void SQUARE_BFTAG::AllParents(const PUZZLE &puz, const SQUARE_BFTAG & from) {
 	t[0].SetAll_0();
 	for(int i = 1; i < puz.col; i++)
 		t[i] = t[0];
@@ -3517,12 +3529,12 @@ int SQUARE_BFTAG::SearchEliminations(PUZZLE * parentpuz,SQUARE_BFTAG & from, BFT
 	while(1) {
 		int aig=1; // to detect an empty pass
 		npas++;
-		for(int i = 2; i < puz.col; i += 2)  // only "true" state
+		for(int i = 2; i < parentpuz->col; i += 2)  // only "true" state
 			if(parentpuz->zpln.candtrue.Off(i >> 1) &&  // candidate not valid
 				t[i].IsNotEmpty()               // should always be
 				)
 			{
-				for(int j = 2; j < puz.col; j++)
+				for(int j = 2; j < parentpuz->col; j++)
 					if((j - i) && t[i].On(j)) {
 						BFTAG x=from.t[j];
 						if(x.substract(t[i])) {
