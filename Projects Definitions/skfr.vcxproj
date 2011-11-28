@@ -90,6 +90,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
       <FixedBaseAddress>false</FixedBaseAddress>
+      <StackReserveSize>4000000</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -102,7 +103,7 @@
     <ClCompile Include="..\src\utilities.cpp" />
     <ClCompile Include="..\src\puzzle.cpp" />
     <ClCompile Include="..\src\fsss.cpp" />
- </ItemGroup>
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\_00_hfiles.h" />
     <ClInclude Include="..\src\t_128.h" />

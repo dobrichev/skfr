@@ -3200,17 +3200,18 @@ int SETS::DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & 
 			EE->E( "final count" );
 			EE->E(nni);
 			EE->E(" for set set"); chx.Image(parentpuz,EE);
-			EE->Enl();
+			EE->E( " aig =" );
+			EE->Enl(aig);
 		}
 		if(aig || nni<2) 
 			continue; // assigned or equivalent
-		   // now the set has more than 2 valid candidates
-
+		   // now the set has more than 1 valid candidates
 		BFTAG tcf2, tcf2f, bfset;  
-		tcf2.SetAll_1();
 		// bfset is the set itself in bf form for the exclusion of the set itself
 		for(int i = 0; i < nni; i++)
 			bfset.Set(tcd[i] );
+
+		tcf2.SetAll_1();
 		for(int i = 0; i < nni; i++) {
 			tce[i] = allparents.t[(tcd[i]) ^ 1];
 			tce[i] -= bfset;
@@ -3633,6 +3634,67 @@ USHORT CHAINSTORE::AddMul(USHORT d, USHORT f) {
 	return ise2++;
 }
 
+/* called by GoBackNested to count only once 
+   chains already used
+
+   chain(s) pointed by index are in use
+   look to see if they are already thers.
+   if yes return 0,
+   if not, store them and return 1; 
+*/
+int CHAINSTORE::Use(CHAINSTORE & store_source,USHORT index){
+	if(index>=store_source.ise2  || index<1){
+		return 2;  // default is count it
+	}
+	int id = store_source.s2[index], ie = store_source.e2[index],
+		 nchains=ie-id+1;
+	if(nchains<=0) // default is count
+		return 3; 
+	  // loop on stored chains with that count
+	for(int myindex = 1; myindex <= ise; myindex++) {
+		int myid = s2[myindex], myie = e2[myindex],
+			mynchains=myie-myid+1;
+		if(mynchains-nchains)
+			continue;
+		// now compare the individual paths 
+		int aigok=1;
+		for(int i = id,myi=myid ; i <= ie; i++,myi++) {
+			const USHORT * tx = &store_source.buf[store_source.starts[i]];
+			const USHORT * mytx = &buf[starts[myi]];
+
+			USHORT 	n = store_source.ends[i] - store_source.starts[i];
+			USHORT 	myn = ends[myi] - starts[myi];
+			if(n<=0) 
+				return 4; // set default return 1 if anomaly
+			if(n -myn) {
+				aigok=0; 
+			}
+			else{
+				for(int j=0;j<n;j++){
+					if(tx[j]-mytx[j]){
+						aigok=0;
+						break;
+					}
+				}
+			}
+			if(!aigok)
+				break;
+		}
+		if(aigok)
+			return 0;
+	}
+	// nothing matches, store it and return 1;
+	int idn,ien;
+	for(int i = id; i <= ie; i++) {
+		USHORT * tx = &store_source.buf[store_source.starts[i]];
+		USHORT 	n = store_source.ends[i] - store_source.starts[i];		
+		ien=AddChain(tx,n);
+		if(i==id)
+			idn=ien;
+	}
+	AddMul(idn,ien);
+	return 100+ise2;
+}
 
 
 
@@ -3666,3 +3728,4 @@ void CHAINSTORE::Print(PUZZLE * parentpuz, FLOG * EE,USHORT index) const {
 			parentpuz->zpln.PrintImply(tx, n);
 	}
 }
+

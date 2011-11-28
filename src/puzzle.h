@@ -177,7 +177,7 @@ const CELL_FIX cellsFixedData[81] = {
 
 class CELLS_FIX {  
 public:
-	CELL_FIX t81f_field[81];
+//	CELL_FIX t81f_field[81];
 
 	static int GetLigCol(USHORT p1,USHORT p2) // only if is lig or col (UR)
 	{
@@ -1341,6 +1341,7 @@ public:
 	USHORT AddChain(USHORT * tch, USHORT n) ;
 	USHORT AddOne(USHORT * tch, USHORT n) ;
 	USHORT AddMul(USHORT d, USHORT f) ;
+	int Use(CHAINSTORE & store_source,USHORT index);
 	void Print(PUZZLE * parentpue, FLOG * EE,USHORT index) const;
 };
 
@@ -1365,7 +1366,7 @@ public:
     SETS_BUFFER zcxb;
 	SETS zcx;
 	TCANDGO tcandgo;
-	CHAINSTORE tstore;
+	CHAINSTORE tstore,tstore_final;
 
 	CELLS *T81;
 	CELLS *T81C;		 
@@ -1429,8 +1430,10 @@ public:
 	BFTAG  *cum  ,* step; 
 	USHORT *ta,ita;//,*tb,itb;
 	SQUARE_BFTAG dpn,dn, // in nested mode, dynamic set of primary links
+		   dpn_old, // at level 4 each preliminary cycle must be the start for the next
 		   d_nested, // end of preliminary search in nested mode
 		   d_nested2, // same as above after 2 steps
+		   d_nested8,// same after 8 steps
 	       hdp_base_nested;  // hdp_base plus nested strong links
 	
 	      // added here control for only one search
