@@ -611,83 +611,45 @@ if(cons)
 }
 
 //! Evaluation loop of puzzle and print the result for each puzzle
-void Batch_Go() {
-	const int chunkSize = 100;
-	int nPuzzles = 0;
-	int tER[chunkSize], tEP[chunkSize], tED[chunkSize], tAIG[chunkSize], tIR[chunkSize];
-	char tZE[chunkSize][82];
-	long tstart=GetTimeMillis();// for the overall elapsed time
-	//char ze[82];
-	//foutput.Setzpuz(ze);		// prepare to output the puzzle string
-	while(1) {
-		//read a chunk
-		while(nPuzzles < chunkSize && finput.GetPuzzle(tZE[nPuzzles])) {
-			nPuzzles++;
-		}
-		//rate the chunk
-		ratePuzzlesC(nPuzzles, tZE[0], tER, tEP, tED, tAIG, tIR);
-		//output chunk ratings
-		for(int i = 0; i < nPuzzles; i++) {
-			foutput.Setzpuz(tZE[i]);		// prepare to output the puzzle string
-			if(Op.os) {   // split option
-				if(tIR[i] < 4)
-					se_refus << tZE[i] << endl;
-				else
-					foutput << tZE[i] << endl;
-			}
-			else {  
-				if(tAIG[i])
-					tER[i] = 0;
-				bool refus = (tER[i] < 10) || (tER[i] > 120);
-				if(refus) {
-					se_refus.PrintErEpEd(tER[i], tEP[i], tED[i]);
-					se_refus << endl;
-				}
-				else {
-					foutput.PrintErEpEd(tER[i], tEP[i], tED[i]);
-					foutput<<endl;
-				}
-			}
-		}
-		if(nPuzzles < chunkSize)
-			break;	//loop exit condition
-		nPuzzles = 0; //empty the chunk
-		//{
-		//	long tpuz_start=GetTimeMillis(); // for puzzle elapsed time
-		//	int er, ep, ed, aig;
+void Batch_Go()
+{	long tstart=GetTimeMillis();// for the overall elapsed time
+	char ze[82];
+	foutput.Setzpuz(ze);		// prepare to output the puzzle string
+	while(finput.GetPuzzle(ze)) 
+	{
+		long tpuz_start=GetTimeMillis(); // for puzzle elapsed time
+		int er, ep, ed, aig;
 
-		//	int ir=ratePuzzleC(ze, & er, & ep, & ed, & aig); 
-		//	if(Op.os)    // split option
-		//	{
-		//		if(ir<4) se_refus<< ze 
-		//	//		<< " " << Op.ermax << " " << Op.epmax<< " " << Op.edmax
-		//			<< endl; 
-		//		else  foutput << ze 
-		//	//		<< " " << Op.ermax << " " << Op.epmax<< " " << Op.edmax 
-		//			<<endl; 
-		//	}
-		//	else
-		//	{  
-		//		if(aig)er=0;
-		//		bool refus = (er<10) || (er>120);
-		//		if(refus)se_refus.PrintErEpEd(er,ep,ed);
-		//		else  foutput.PrintErEpEd(er,ep,ed);
-		//		if(Op.ptime && !refus ) 
-		//		{
-		//			long tpuz_end=GetTimeMillis();
-		//			PrintTime(tpuz_start, tpuz_end, 0);
-		//		}
-		//		if(refus) se_refus << endl;
-		//		else  foutput<<endl;
-		//	}
-		//}
-	} //chunk loop
+		int ir=ratePuzzleC(ze, & er, & ep, & ed, & aig); 
+		if(Op.os)    // split option
+        {
+			if(ir<4) se_refus<< ze 
+		//		<< " " << Op.ermax << " " << Op.epmax<< " " << Op.edmax
+				<< endl; 
+			else  foutput << ze 
+		//		<< " " << Op.ermax << " " << Op.epmax<< " " << Op.edmax 
+				<<endl; 
+		}
+		else
+		{  
+			if(aig)er=0;
+			bool refus = (er<10) || (er>120);
+			if(refus)se_refus.PrintErEpEd(er,ep,ed);
+			else  foutput.PrintErEpEd(er,ep,ed);
+			if(Op.ptime && !refus ) 
+			{
+				long tpuz_end=GetTimeMillis();
+				PrintTime(tpuz_start, tpuz_end, 0);
+			}
+			if(refus) se_refus << endl;
+			else  foutput<<endl;
+		}
+	}
 	// print global elapsed time
 	long tend=GetTimeMillis();
 	PrintTime(tstart,tend,1); // foutput<<endl;
 }
 
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<main file
 int main(int argc, char *argv[]) {
 	if(Batch_Start(argc, argv)) 
 		Batch_Go();
