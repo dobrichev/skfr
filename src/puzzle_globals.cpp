@@ -3603,7 +3603,7 @@ void CHAINSTORE::Init() {
 
 
 USHORT CHAINSTORE::AddChain(USHORT * tch, USHORT n) {
-	if(n>40)n=40;//don't store more than 40 not realistic
+	if(n>70)n=70;//don't store more than 70 not realistic
 	starts[ise] = ibuf;
 
 	if((ibuf + n+2 )< Size_Store)  {
@@ -3651,7 +3651,7 @@ int CHAINSTORE::Use(CHAINSTORE & store_source,USHORT index){
 	if(nchains<=0) // default is count
 		return 3; 
 	  // loop on stored chains with that count
-	for(int myindex = 1; myindex <= ise; myindex++) {
+	for(int myindex = 1; myindex <= ise2; myindex++) {
 		int myid = s2[myindex], myie = e2[myindex],
 			mynchains=myie-myid+1;
 		if(mynchains-nchains)

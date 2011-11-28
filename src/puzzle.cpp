@@ -763,7 +763,7 @@ void PUZZLE::Rbn_Elims( BFTAG * tsquare,int nn){
 		EE.E("summary of first phase call nn= ");EE.Enl( nn);
 		EE.E("itch ="); EE.E(rbn_itch);
 		EE.E(" it2 ="); EE.Enl(rbn_it2);
-		Image(rbn_elimt,"elimt potential", 0);
+		//Image(rbn_elimt,"elimt potential", 0);
 		Image(rbn_elims1.Inverse(),"elims1 potential", 0);
 		Image(rbn_elims2,"elims2 potential", 0);
 		Image(rbn_elims3,"elims3 potential", 0);
@@ -2534,12 +2534,13 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 					continue; // should not be
 				int ratch = tchain.GetRating(l1 + l2, tag >> 1);
 				if(ratch) { // chain is accepted load it (more comments in test mode)
-					if(options.ot) { // this can be complex and will be developped later
+					if(options.ot && ratch<120) { //don't develop if >119 never seen used
 				        tstore_final.Init(); // start with an empty table of chains used
 						nested_print_option=1;
 						EE.E("\n\nchain plus killing ");
 						zpln.Image(tag >> 1);
-						EE.Enl();	     
+						EE.E(" computed length = ");
+						EE.Enl(l1+l2);	     
 						EE.E("chain 1 ");
 						GoBackNested(tgx);
 						EE.E("chain 2 ");
@@ -3263,7 +3264,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						int ir=tstore_final.Use(tstore,w.index);
 						if(ir){
 							nestedlength += w.count;
-							if( 0){
+							if(0){///nested_print_option && options.ot && couprem==7){
 								EE.E("counted as new ir=");EE.Enl( ir);	
 								tstore.Print(this,&EE,w.index);
 								if(ir>100){
@@ -3272,7 +3273,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 							}
 						}
 						else {
-							if(0){
+							if(0){///nested_print_option && options.ot&& couprem==7){
 								EE.Enl("counted for 0");	
 								tstore.Print(this,&EE,w.index);
 							}
@@ -3283,7 +3284,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						bfn.String(&tret[itret], newCount);// put them in the list "to explain"
 						itret += newCount; // and adjust the count
 						bf |= bfn;  // update the list of tags icluded
-						if(0){ 
+						if(nested_print_option && options.ot&& couprem==7){ 
 							EE.Enl("nested elimination");	
                             tstore.Print(this,&EE,w.index);
 							Image(bfn,"new tags needed",0);
