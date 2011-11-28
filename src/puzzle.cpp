@@ -567,12 +567,6 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		GoNestedTag(i);
 	}   
 
-	if(1 && couprem==12){
-		EE.Enl("full expansion at the start");
-        Image(d_nested.t[8],"full",8);
-		EE.Enl("reduced expansion at the start");
-        Image(d_nested2.t[8],"niv2",8);
-	}
 
 	// we have now fully expanded tags in d_nested2 or d_nested
 	// we look for potential eliminations
@@ -642,6 +636,8 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		}
 	}
 
+	if(tchain.elims_done) return 1; ///
+
 	if(rbn_it2) { // some case 2 to apply
 		for(int i = 0; i < rbn_it2; i++) {
 			BFTAG * ptg = & rbn_elimst2[i];
@@ -667,9 +663,13 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 
 	if(rbn_itch) { // some case 3 through sets to apply
 		for(int i = 0; i < rbn_itch; i++) {
+
+			if(tchain.elims_done) return 1; ///
+
+
 			BFTAG * ptg = & rbn_tchte[i];
 			SET chx = zcx.zc[rbn_tch[i]];
-			if(rbase>100 && options.ot && i<2) {
+			if(0) {
 				EE.E("action itch pour i =");
 				EE.E(i);
 				EE.E(" set=");
