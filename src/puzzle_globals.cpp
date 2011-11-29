@@ -3713,7 +3713,7 @@ void CHAINSTORE::Print(PUZZLE * parentpuz, FLOG * EE,USHORT index) const {
 	for(int i = id; i <= ie; i++) {
 		const USHORT * tx = &buf[starts[i]];
 		USHORT 	n = ends[i] - starts[i];
-		if(n>50) {
+		if(n>70) {
 			EE->Enl("length too high forced to 5");
 			EE->E("index ="); EE->E(index);
 			EE->E( " id="); EE->E(id); 

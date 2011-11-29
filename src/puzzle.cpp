@@ -3467,7 +3467,7 @@ int PUZZLE::CaseNestedLevel4Case1( USHORT tag )  {
 			USHORT y=ttw[iw]^1; // start with false for forcing chain
 			USHORT itt=NestedChainGoBack(y),
 				   *tt=chain4_result;
-			if(!itt) continue; // should always be ok
+			if(itt<2) continue; // should always be ok if 1, target already false, don't do
 			chain4_bf=back4_bfsource;
 
 			y^=1;// now y is true and can be the tag
