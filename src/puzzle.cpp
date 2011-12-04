@@ -567,6 +567,11 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		GoNestedTag(i);
 	}   
 
+	if(0){
+		EE.E("end phase 1");
+		Image( d_nested );
+	}
+
 
 	// we have now fully expanded tags in d_nested2 or d_nested
 	// we look for potential eliminations
@@ -2095,8 +2100,9 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 	allsteps = cumsteps[0] = steps[0];  
 	nested_aig = 1;
 //	int maxpas = 30;  // should be enough in that mode
-	int maxpas = 12;  // should be enough in that mode
-
+	int maxpas = 12;  // should be enough at level 4
+	if(rbase<105) maxpas+=10; // more at level 3
+	if(rbase<100) maxpas+=10; // and still more at level 2
 	//--------------------- loop  forward
 	while(nested_aig && npas++ <= maxpas) {
 		if(opp) {
@@ -2323,11 +2329,6 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 			dpn.t[j] |= dpn_old.t[j];
 		dpn.t[j] -= allsteps; // reduce the primary weak links
 	}
-	if(0) {  
-		Image(allsteps,"allsteps",0);
-		EE.Enl("image dpn de dpnshort");
-		Image(dpn);
-	}
 	if(rbase>100){  //level 4 must find  derived weak links
 		// this must be a specific process working on reduced sets;
 		// only one step of derivation is made 
@@ -2339,6 +2340,13 @@ void PUZZLE::Gen_dpnShort(USHORT tag) { // create the reduced set of tags check 
 		dpn_old=dpn;
  	}
 	dn.ExpandAll(*this, dpn);
+	if(0) {  
+		Image(allsteps,"allsteps",0);
+		EE.Enl("image dpn de dpnshort");
+		Image(dpn);
+		EE.Enl("image dp de dpshort");
+		Image(dpn);
+	}
 
 }
 
