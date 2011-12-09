@@ -1578,14 +1578,12 @@ void EVENT::Load(USHORT tage, EVENT_TYPE evt, const EVENTLOT & evb, const EVENTL
 		tcand[i] = evx.tcd[i];
 }
 
-
 int EVENT::IsPattern (USHORT cand) const {
 	for(int i = 0; i < ntcand; i++)
 		if(cand == tcand[i])
 			return 1;
 		return 0;
 }
-
 
 void EVENT::Image(PUZZLE * parentpuz,FLOG * EE) const {
 	if(!parentpuz->options.ot)
@@ -1600,6 +1598,7 @@ void EVENT::Image(PUZZLE * parentpuz,FLOG * EE) const {
 	} 
 	evl.Image(parentpuz,EE);
 }
+
 void EVENT::ImageShort(PUZZLE * parentpuz,FLOG * EE) const {
 	char * tlib[]={"pointing rc","pointing b","naked pair","hidden pair","Xwingr","Xwingc"};
 	if(!parentpuz->options.ot)

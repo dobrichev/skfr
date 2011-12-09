@@ -169,7 +169,6 @@ void PUZZLE::Elimite(char * lib)
 	EE.Enl2();
 }
 
-
 void PUZZLE::Estop(char * lib) {
 	stop_rating=1;
 	if(!options.ot)
@@ -183,6 +182,7 @@ int PUZZLE::is_ed_ep() {  // at the start of a new cycle
 	c_ret = Is_ed_ep_go();
 	return c_ret;
 }
+
 void PUZZLE::SetEr() {  // something found at the last difficulty level  
 	if((cycle==1)&& difficulty>edmax) edmax=difficulty;
 	if(((!assigned)|| (!epmax))&& difficulty>epmax) epmax=difficulty;
@@ -304,7 +304,6 @@ void PUZZLE::Step(SolvingTechnique dif) {   // analyse what to do at that level
 	*/
 }
 
-
 void PUZZLE::Copie_T_c() {
 	tp8N_cop = tp8N;
 	for(int i = 0; i < 9; i++)
@@ -346,7 +345,6 @@ void PUZZLE::cReport() {    // on charge cand de ztzch
 		p8->v.ncand = p8->v.cand.CountEtString(p8->scand);
 	}
 }
-
 
 int PUZZLE::Recale() {
 	//cReport();
@@ -537,8 +535,6 @@ void PUZZLE::InitNested() { // common part before starting nested processing
 	zcxb.LockNestedOne();
 	//zcf.h_one.d.Image();
 }
-
-/// en cours travail
 
 int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	tchain.SetMaxLength(base);
@@ -824,7 +820,13 @@ void PUZZLE::Chaining(int opt, int level, int base) {
             zcf.DeriveCycle(3, 9, 0,3);
 	        ChainPlus();
             if(tchain.IsOK(77)) break;   // most often very short
-         	while(zcf.DeriveCycle(3, 9, 0))
+
+			// must have here a step with full expansion
+			zcf.h.d.ExpandAll((*this), zcf.h.dp);
+			if(tchain.IsOK(78))      //filter  short paths
+				break;
+ 
+			while(zcf.DeriveCycle(3, 9, 0))
       	    	;// and full expansion
 	        ChainPlus();
 
@@ -837,11 +839,13 @@ void PUZZLE::Chaining(int opt, int level, int base) {
    /* next is the next rating to be searched.
       the search is over if a <= rating has been found.
       likely <= next+1 due to the minimum length adjustment 
-      except for aligned triplet */
+      except for aligned triplet 
+	   // if some immediate action done, answer yes imediatly)
+	   // nothing to do for filters
+	  
+	  */
 
 int PUZZLE::Rating_end(int next) {
-	// if some immediate action done, answer yes imediatly)
-	// nothing to do for filters
 	if(stop_rating) return 1;// push back error as soon as possible
 	if(tchain.elims_done) 		return 1;
 	if(!tchain.IsOK(next))
@@ -931,9 +935,14 @@ int PUZZLE::Rating_base_85() {
 	ChainPlus();
 	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
+	// must have here a step with full expansion
+    zcf.h.d.ExpandAll((*this), zcf.h.dp);
+	if(tchain.IsOK(92))      //filter  short paths
+        return Rating_end(200);
 
 	while(zcf.DeriveCycle(3, 9, 0))
 		;// and full expansion
+
 	ChainPlus();
 	return Rating_end(200);
 }
@@ -971,6 +980,11 @@ int PUZZLE::Rating_base_90() {
         return Rating_end(200);
 	if(options.ot)
 		EE.Enl("rating  dynamic forcing chains plus empty after 2 cycles");
+	// must have here a step with full expansion
+    zcf.h.d.ExpandAll((*this), zcf.h.dp);
+	if(tchain.IsOK(96))      //filter  short paths
+        return Rating_end(200);
+
 	while(zcf.DeriveCycle(3, 9, 7))
 		;
 	ChainPlus();
