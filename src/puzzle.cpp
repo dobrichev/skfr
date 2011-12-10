@@ -967,6 +967,7 @@ int PUZZLE::Rating_base_90() {
 	rbase = 90;
 	zcf.h.dp = zcf.hdp_base; // restore the index in zcf  
 	tevent.LoadAll();
+
 	zcf.hdp_dynamic = zcf.h.dp; // store it for next steps
 
 	zcf.h.d.ExpandShort(*this, zcf.h.dp, 2);
@@ -985,9 +986,10 @@ int PUZZLE::Rating_base_90() {
 	if(tchain.IsOK(96))      //filter  short paths
         return Rating_end(200);
 
-	while(zcf.DeriveCycle(3, 9, 7))
+	while(zcf.DeriveCycle(3, 9, 10)) // no limit in set size
 		;
 	ChainPlus();
+
 	return Rating_end(200);
 }
 

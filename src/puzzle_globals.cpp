@@ -1802,22 +1802,32 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 			}
 			// build the set for hidden pair in el and generate the event
 			PairHidSet(cell1, cell2, iel, com, hid1);
-			if(nack.itcd <= chx_max)
-				EventBuild(evpairnacked, nack, hid1, evx);
+
 			if(hid1.itcd <= chx_max)
 				EventBuild(evpairhidden, hid1, nack, evx);
-
-			// if el is row col and same box, do it as well for the box
-			if(iel > 17 || (p1.eb - p2.eb))
+			    // unless same box, finish with the naked pai
+			if(iel > 17 || (p1.eb - p2.eb)){
+				if(nack.itcd <= chx_max)
+					EventBuild(evpairnacked, nack, hid1, evx);
 				continue;
+			}
+				// i same box, do hidden in the box and naked for both
+
 			PairHidSet(cell1, cell2, p2.eb + 18, com, hid2);
-			if(nack.itcd <= chx_max)
-				EventBuild(evpairnacked, nack, hid2, evx);
 			if(hid2.itcd <= chx_max)
 				EventBuild(evpairhidden, hid2, nack, evx);
+			if(nack.itcd <= chx_max){
+				  // do it for both hid1 and hid2
+				for(int ia=0;ia<hid2.itcd;ia++)
+					if(hid1.itcd<30)
+						hid1.tcd[hid1.itcd++]=hid2.tcd[ia];
+				EventBuild(evpairnacked, nack, hid1, evx);
+			}
+
 		}
 	}
 }
+
 
 void TEVENT::PairHidSet(USHORT cell1, USHORT cell2, USHORT el, BF16 com, EVENTLOT & hid) {
 	for(int i = 0; i < 9; i++) {
@@ -3050,8 +3060,10 @@ void SET::Image(PUZZLE * parentpuz, FLOG * EE) const {  // liste of candidates i
 		parentpuz->zpln.Image(tcd[i]);
 		EE->Esp();
 	}
-	if(type)
+	if(type){
 		EE->E(tcd[lim]);
+		parentpuz->tevent.t[tcd[lim]-event_vi].ImageShort(parentpuz,EE);
+	}
 }
 
 int SET::Prepare (PUZZLE * parentpuz,USHORT * mi,USHORT nmi,SET_TYPE ty,USHORT ixe) {
@@ -3078,8 +3090,10 @@ void SETS::Init() {
 }
 
 void SETS::Image() {
-	EE->E("\nimage fichier choix izc=");
-	EE->Enl(izc);
+	EE->E("\nsets Image izc=");
+	EE->E(izc);
+	EE->E(" buffer used=");
+	EE->Enl((int)parentpuz->zcxb.izs );
 	for(int i = 1; i < izc; i++) {
 		zc[i].Image(parentpuz,EE);
 		EE->Enl();
@@ -3260,6 +3274,7 @@ int SETS::DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & 
 }
 
 void SETS::Derive(int min,int max,int maxs) {
+	maxs; // adjust to add the event pointer
 	if(max > nmmax)
 		max = nmmax;
 	if(min < nmmin)
@@ -3297,7 +3312,7 @@ void SETS::Derive(int min,int max,int maxs) {
 				DeriveBase(zc[ie]);
 			break;
 		case SET_set:
-			if(nnm <= maxs)
+			if(nnm <= (maxs+1))  // +1 for the event pointer
 				DeriveSet(zc[ie]);
 			break;	
 		}   

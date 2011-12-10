@@ -897,7 +897,8 @@ class SETS_BUFFER   // buffer for candidates + "events"
 {public: 
  PUZZLE * parentpuz;
  FLOG * EE;
- USHORT zs[setsbuffer_lim],izs,izs_one;
+ USHORT zs[setsbuffer_lim];
+ UINT izs,izs_one;
 
  void SetParent(PUZZLE * parent,FLOG * fl){
 	 parentpuz=parent;
@@ -1010,8 +1011,8 @@ public:
 enum EVENT_TYPE {
 	evlockrc,
 	evlockbox,
-	evpairhidden,
 	evpairnacked,
+	evpairhidden,
 	evxwrow,
 	evxwcol
 };
