@@ -56,9 +56,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "skfrtype.h"
 using namespace std;
 
-// wait state added by mladen
-//#include "ratingengine.h"
-
+#ifndef _OPENMP
 class FLOG : private ofstream  //no direct access to ofstream  
 {
 	USHORT 
@@ -131,3 +129,32 @@ public:
 //		Enl2();E(lib);Enl2(); //puz.stop_rating=1;
 //	}
 };
+#else
+class FLOG  //dummy interface implementation
+{
+	USHORT 
+		//! indicates if file is open 0=not open, 1=open
+		pron, 
+		
+		//! indicates if file doesn't need to be closed 1=no need, 0
+		endf; //TODO problem of status
+public:
+	FLOG() {}
+	int OpenFL(char * nam) {return 0;}
+	void CloseFL() {}
+
+	inline void E(char c) {}
+	inline void E(const char* c) {}
+	inline void E(int x) {}
+	inline void Enl() {}
+	inline void Esp() {}
+	inline void Echem() {}
+	inline void Etir() {}
+	inline void Esl() {}
+	inline void Ewl() {}
+	inline void Enl(char c)	{}
+	inline void Enl(const char* c) {}
+	inline void Enl(int x) {}
+	inline void Enl2() {}
+};
+#endif
