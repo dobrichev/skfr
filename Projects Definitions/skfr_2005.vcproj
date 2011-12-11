@@ -241,11 +241,43 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\src\bitfields.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\flog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\opsudo.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\puzzle.h"
 				>
 			</File>
 			<File
+				RelativePath="..\src\ratEnum.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\ratingengine.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\skfrtype.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\t_128.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\utilities.h"
 				>
 			</File>
 		</Filter>
