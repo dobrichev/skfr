@@ -611,8 +611,51 @@ if(cons)
 }
 
 //! Evaluation loop of puzzle and print the result for each puzzle
-void Batch_Go()
-{	long tstart=GetTimeMillis();// for the overall elapsed time
+#ifdef _OPENMP
+void batchGoParallel() { //currently unused
+	const int maxChunkSize = 100;
+	const int chunkSize = maxChunkSize; //one might want to control the actual chunk size via parameter
+	int nPuzzles = 0;
+	int tER[maxChunkSize], tEP[maxChunkSize], tED[maxChunkSize], tAIG[maxChunkSize], tIR[maxChunkSize];
+	char tZE[maxChunkSize][82];
+	while(1) {
+		//read a chunk
+		while(nPuzzles < chunkSize && finput.GetPuzzle(tZE[nPuzzles])) {
+			nPuzzles++;
+		}
+		//rate the chunk
+		ratePuzzlesC(nPuzzles, tZE[0], tER, tEP, tED, tAIG, tIR);
+		//output chunk ratings
+		for(int i = 0; i < nPuzzles; i++) {
+			foutput.Setzpuz(tZE[i]);		// prepare to output the puzzle string
+			if(Op.os) {   // split option
+				if(tIR[i] < 4)
+					se_refus << tZE[i] << endl;
+				else
+					foutput << tZE[i] << endl;
+			}
+			else {
+				if(tAIG[i])
+					tER[i] = 0;
+				bool refus = (tER[i] < 10) || (tER[i] > 120);
+				if(refus) {
+					se_refus.PrintErEpEd(tER[i], tEP[i], tED[i]);
+					se_refus << endl;
+				}
+				else {
+					foutput.PrintErEpEd(tER[i], tEP[i], tED[i]);
+					foutput<<endl;
+				}
+			}
+		}
+		if(nPuzzles < chunkSize)
+			break;	//loop exit condition
+		nPuzzles = 0; //empty the chunk
+	} //chunk loop
+}
+#endif
+
+void batchGoSequential() {
 	char ze[82];
 	foutput.Setzpuz(ze);		// prepare to output the puzzle string
 	while(finput.GetPuzzle(ze)) 
@@ -645,11 +688,21 @@ void Batch_Go()
 			else  foutput<<endl;
 		}
 	}
+}
+void Batch_Go() {
+	long tstart=GetTimeMillis();// for the overall elapsed time
+
+#ifdef _OPENMP
+	//TODO: check for parameters incompatible to parallel mode and exit if any
+	batchGoParallel();
+#else
+	batchGoSequential();
+#endif
+
 	// print global elapsed time
 	long tend=GetTimeMillis();
-	PrintTime(tstart,tend,1); // foutput<<endl;
+	PrintTime(tstart,tend,1);
 }
-
 int main(int argc, char *argv[]) {
 	if(Batch_Start(argc, argv)) 
 		Batch_Go();

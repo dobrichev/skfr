@@ -126,7 +126,9 @@ int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 }
 
 void ratePuzzlesC(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir) {
+#ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
+#endif
 	for(int i = 0; i < nPuzzles; i++) {
 		ir[i] = ratePuzzleC(&ze[i * 82], &er[i], &ep[i], &ed[i], &aig[i]);
 	}
