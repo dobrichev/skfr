@@ -44,8 +44,12 @@ long GetTimeMillis() {
 char * stpcpy(char * d, char * o)
 {strcpy_s(d,strlen(o)+2,o); return (d+strlen(d));}
 
-char * Blancs(int n,int pastrait)
- {static char wt[]="___________________ ",
-              wn[]="                    ";
-              if(pastrait)return &wn[20-n]; else return &wt[20-n];}
+char const * Blancs(int n,int pastrait) {
+	const char wt[] = "___________________ ";
+	const char wn[] = "                    ";
+	if(pastrait)
+		return &wn[20 - n];
+	else
+		return &wt[20 - n];
+}
 

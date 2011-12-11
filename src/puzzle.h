@@ -1099,13 +1099,13 @@ public:     //on ne traite que deux communs.
 	int IsDiag();
 	int Setw() {
 		wc = tr[ia].v.cand & tr[ib].v.cand & tr[ic].v.cand & tr[id].v.cand;   
-		nwc = wc.QC();
+		nwc = wc.bitCount();
 		return nwc;
 	}
 	int Setwou() {
 		wou = tr[ia].v.cand | tr[ib].v.cand | tr[ic].v.cand | tr[id].v.cand;
 		wr = wou ^ wc;
-		nautres = wr.QC();
+		nautres = wr.bitCount();
 		return nautres;
 	}
 
@@ -1159,7 +1159,7 @@ public:     //on ne traite que deux communs.
 		com.Clear(chc1);
 		chc2 = com.First();
 		wr = (ta[p1].v.cand | ta[p2].v.cand) - wc;
-		nautres = wr.QC();
+		nautres = wr.bitCount();
 		return T2(action);
 	}
 

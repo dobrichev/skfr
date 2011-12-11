@@ -45,60 +45,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #pragma once
 #include "skfrtype.h"
 #include "t_128.h"
+extern const int BitCount[512];
 
-/* bit field functions to improve performances
-   cpt gives the count of bit set to "1"
-   First gives the place of the first bit
-*/
-/*
-class BF_CONVERT
-{
-public:
-	int tn[256];
-
-	BF_CONVERT() 
-	{
-		for(int i=0;i<256;i++)
-        {
-			int n=0; 
-			for(int j=0;j<8;j++) 
-				if(i&(1<<j)) n++;
-                tn[i]=n;
-		}
-	}
-	
-	inline int cpt(char x){return tn[x];}
-
-	inline int cpt(USHORT x) {return ( tn[x&255]+ tn[x>>8]);}
-	
-	inline int cpt(UINT x)
-	{
-		return ( tn[x&255]+ tn[(x>>8) & 255]
-	                     + tn[(x>>16) & 255]+ tn[x>>24]);}
-	int cpt(UINT * tx,int nx)
-	{
-		int n=0;
-		for(int i=0;i<nx;i++)
-			n+=cpt(tx[i]); 
-		return n;
-	}
-
-	int First(UINT * tx,int nx)
-    {
-		int n=0; 
-		for(int i=0;i<nx;i++) 
-			if(!tx[i]) n+=32; 
-		else
-		{
-			UINT x=tx[i];
-			for(int j=0;j<32;j++)
-				if(x & (1<<j))
-					return (n+j);
-		}
-		return -1;
-	} // -1 is bit field null
-};
-*/
 
 /* class BIT16 can be used in any case one need a 16 bits field, 
       for example to store options.
@@ -220,18 +168,22 @@ public:
 	}
 	// optimisable avec un tableau de 512 bytes
 	//! get count of on bits
-	USHORT QC() {
-		USHORT n = 0;
-		for(int i = 0 ; i < 9; i++) {
-			if(On(i))
-				n++;
-		}
-		return n;
+	//USHORT QC() {
+	int bitCount() {
+		//USHORT n = 0;
+		//for(int i = 0 ; i < 9; i++) {
+		//	if(On(i))
+		//		n++;
+		//}
+		//return n;
+		if(f & 0xFE00)
+			return BitCount[f & 0xFF] + BitCount[f >> 8];
+		return BitCount[f];
 	}
 	// optimisable avec un tableau de 512 bytes
 	//! is it a pair of position
 	int paire() {
-		return (QC() == 2);
+		return (bitCount() == 2);
 	}     
 	//! get count of on bits and a string of their positions 1-9
 	USHORT CountEtString(char *s) {
@@ -248,6 +200,7 @@ public:
 	 * The string contains letters A-I or figures 1-9.
 	 * \param lettre if 0 use letter A-I, if 1 use figures 1-9
 	 */
+#pragma message ("BF16::String(int) is not thread-safe")
 	char * String(int lettre = 0) {
 		static char ws[10];
 		int n = 0;

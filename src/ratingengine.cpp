@@ -71,6 +71,7 @@ int CallOpenLog(char * name) {return EE.OpenFL(name);}
 // in wait state, something is wrong in that process;
 // replaced by on unique call in batch start
 
+#pragma message ("setTestModeC(int, char *) is not thread-safe")
 int setTestModeC (int ot, char * logFileName){
 	static char * actualLogFileName = 0;
 

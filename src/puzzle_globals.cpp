@@ -294,7 +294,7 @@ int SEARCH_LS_FISH::Tiroir(BF16 fd,int iold,int irang) { // on progresse sur ind
 		if(eld[i].n<2 ||eld[i].n>rangv) continue;
 		if( non.On(i))continue; //pour pseudo
 		BF16 wx=eld[i].b|fd; 
-		int nx=wx.QC();
+		int nx=wx.bitCount();
 		if (nx >rangv) continue;
 		if(irang==(rangc-2))
 		{wf=wx;wi.Set(i);
@@ -339,7 +339,7 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 			for(int j=0;j<9;j++)
 				if (wc.On(j) )// a possible hidden digit
 					{BF16 wcd=regindch[e27].eld[j].b-wf; // positions still valid
-					if(wcd.QC()==1)
+					if(wcd.bitCount()==1)
 					{EE->Enl("ecs assignment");
 					parentpuz -> FaitGoA(i8,j+'1',4);// stop at first assignment
 					ir=1; break;}
@@ -381,7 +381,7 @@ int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
   { int nn=eld[ch].n;
 	 if(nn<2 ||nn>rangv) continue;
     BF16 wfu=regxw[i].eld[ch].b|fd; 
-	int nx=wfu.QC();
+	int nx=wfu.bitCount();
 	if (nx >rangv) continue;
     if(irang==(rangv-2)){ if(nx - rangv)continue;
                          wf=wfu; wi.Set(i);return 1; }
@@ -828,7 +828,7 @@ int TPAIRES::Bug1() {
 	CELL p = parentpuz->T81t[i8];
 	BF16 wc = p.v.cand & el_par_ch[p.f->el],
 		w = p.v.cand - wc;
-	if(wc.QC() - 2)
+	if(wc.bitCount() - 2)
 		return 0; //must be 2 to reach parity
 	parentpuz->T81t[i8].Keepy(*parentpuz, w); // eliminate the others
 	BugMess(" 1");
@@ -872,7 +872,7 @@ int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
 	}
 	if(zw.IsEmpty())
 		return 0;// must have a comon control on some cells
-	if(possible.QC() - 1)
+	if(possible.bitCount() - 1)
 		return 0; // must be one common digit
 	// last check, parity ok everywhere
 	for(int i = 0; i < 27; i++)
@@ -947,7 +947,7 @@ int TPAIRES::Bug3(int el) {
 		wcx = pp->v.cand & el_par_ch[elx];
 		annul = pp->v.cand - wcx;
 		wpar ^= wcx;  // to adjust parity for the last if needed
-		if((wcx.QC() - 2))
+		if((wcx.bitCount() - 2))
 			return 0;
 		welim |= annul;
 	}	 
@@ -970,7 +970,7 @@ int TPAIRES::Bug3(int el) {
 		EE->E(wpar.String());
 		EE->E(" wcx");
 		EE->Enl(wcx.String());
-		if((wcx.QC() - 2))
+		if((wcx.bitCount() - 2))
 			return 0;
 		welim |= annul;
 	}	 
@@ -982,7 +982,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 	//we look now for  "naked locked sets"
 	EE->E("recherche  bug3_4 Nacked ok to go welim= ");
 	EE->Enl(welim.String());
-	int nelim = welim.QC(); // look for naked in increasing order
+	int nelim = welim.bitCount(); // look for naked in increasing order
 	if(nelim < 2 || nelim > 5)
 		return 0;
 	if(brat == 58 && nelim < 3) { //then search for naked 2
@@ -1004,7 +1004,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 		for(int i1 = 0; i1 < ntpa - 1; i1++) {
 			for(int i2 = i1 + 1; i2 < ntpa; i2++) {
 				BF16 ww = welim | parentpuz->T81t[tpa[i1]].v.cand | parentpuz->T81t[tpa[i2]].v.cand;
-				if(ww.QC() - 3)
+				if(ww.bitCount() - 3)
 					continue; // if not we got it
 				int ir = 0;
 				for(int j = 0; j < ntpa; j++)
@@ -1023,7 +1023,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 			for(int i2 = i1 + 1; i2 < ntpa - 1; i2++) {
 				for(int i3 = i2 + 1; i3 < ntpa; i3++) {
 					BF16 ww = welim | parentpuz->T81t[tpa[i1]].v.cand | parentpuz->T81t[tpa[i2]].v.cand | parentpuz->T81t[tpa[i3]].v.cand;
-					if(ww.QC() - 4)
+					if(ww.bitCount() - 4)
 						continue; // if not we got it
 					int ir = 0;
 					for(int j = 0; j < ntpa; j++)
@@ -1045,7 +1045,7 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 					for(int i4 = i3 + 1; i4 < ntpa; i4++) {
 						BF16 ww = welim | parentpuz->T81t[tpa[i1]].v.cand | parentpuz->T81t[tpa[i2]].v.cand
 							| parentpuz->T81t[tpa[i3]].v.cand | parentpuz->T81t[tpa[i4]].v.cand;
-						if(ww.QC() - 5)
+						if(ww.bitCount() - 5)
 							continue; // if not we got it
 						int ir = 0;
 						for(int j = 0; j < ntpa; j++)
@@ -1098,7 +1098,7 @@ int TPAIRES::Bug_lock(int el) {
 	EE->Enl(wc2.String());
 
 	if(wce2.f-wce1.f) return 0; // must be the same digit
-	if((wc1.QC() - 2) || (wc2.QC() - 2))
+	if((wc1.bitCount() - 2) || (wc2.bitCount() - 2))
 		return 0;	 
 
 	parentpuz->T81t[tplus[0]].Keepy(*parentpuz, wce1 | clock);
@@ -1126,7 +1126,7 @@ int TPAIRES::Bug3_4_Nacked(int el) {
 		annul = pp->v.cand - wcx;
 		//EE->E(cellsFixedData[tplus[i]].pt); EE->E(" el=");EE->E(elx+1);
 		//EE->E(" wc=");EE->Enl(wcx.String());
-		if((wcx.QC() - 2))
+		if((wcx.bitCount() - 2))
 			return 0;
 		welim |= annul;
 	}	
@@ -1141,7 +1141,7 @@ int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs
 			if(CommunPaires(i, j))
 				continue;
 			BF16 w = zp[i].pa|zp[j].pa;
-			if(w.QC() - 3)
+			if(w.bitCount() - 3)
 				continue;
 			BF16 w1 = (zp[i].pa&zp[j].pa), w2=w1 ^ w;  // les deux non communs
 			for(int k = 0; k < ip; k++) {
@@ -1177,7 +1177,7 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 			if(CommunPaires(i, j))
 				continue;
 			BF16 w = zp[i].pa|zp[j].pa;
-			if(w.QC() - 3)
+			if(w.bitCount() - 3)
 				continue;
 			BF16 w1 = (zp[i].pa&zp[j].pa);  // le chiffre
 			for(int k = 0; k < 81; k++) {
@@ -1317,7 +1317,7 @@ void UL_SEARCH::Set(int i8) { // el_used already ok if necessary
 	elcpt[p.pl + 9]++;
 	elcpt[p.eb + 18]++;
 	cht |= pv.cand;
-	int nc = pv.cand.QC(); 
+	int nc = pv.cand.bitCount(); 
 	if(nc > 2)
 		adds[nadds++] = i8;
 	// EE->E("UL lc=");EE->E(line_count);EE->Esp();EE->Enl(p.pt);
@@ -1370,7 +1370,7 @@ int UL_SEARCH::Add_Chain(int i8) {
 	// a défaut une case avec additifs  ligne, puis col, puis bloc en paire
 	// uniquement dans éléments non traités et si pas de double paire
 	// not more than 3 adds except one digit
-	if(nadds > 7 || (cht.QC() > 3 && nadds > 2))
+	if(nadds > 7 || (cht.bitCount() > 3 && nadds > 2))
 		return 0; 
 	if(El_Suite(f.el))
 		return 1;
@@ -1448,7 +1448,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	} // nothing if redundancy with another loop
 
 	// now one digit in excess ++++++++++++
-	if(action == 1 && (cht.QC() == 3)) {
+	if(action == 1 && (cht.bitCount() == 3)) {
 		BF81 zi;
 		zi.SetAll_1();
 		for(int i = 0; i < nadds; i++)
@@ -1771,7 +1771,7 @@ void TEVENT::LoadPairs() { // all rows, columns, and boxes
 void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 	BF16 ch2 = parentpuz->T81t[cell1].v.cand & parentpuz->T81t[cell2].v.cand,
 		chor = parentpuz->T81t[cell1].v.cand | parentpuz->T81t[cell2].v.cand; // pour traiter le cas 1 commun
-	if(ch2.QC() < 2)
+	if(ch2.bitCount() < 2)
 		return; // non il faudrait aussi accepter 1 commun à revoir
 	// nothing to do if box/row and box/col (already done)
 	const CELL_FIX &p1 = cellsFixedData[cell1], &p2=cellsFixedData[cell2];
@@ -2108,7 +2108,7 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len) {
 	if(nth==len)   // not the expected length
 	{ // identify extra digits in hidden locked set
 		BF16 whh=wh-wnh;  // all digits of the assumed locked set
-		if(whh.QC()-(nth+1)) return 0;
+		if(whh.bitCount() - (nth + 1)) return 0;
 		//go for the a hidden set if active
 		int ir1=0;
 		for(int i=0;i<nth;i++)  ir1+=parentpuz->T81t[th[i]].Keepy(*parentpuz, whh); 
@@ -2123,7 +2123,7 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len) {
 			BF16 wa=wh|parentpuz->T81t[tnh[i]].v.cand,wb,wx;
 			for(int j=0;j<nnh;j++) if(j-i) wb|=parentpuz->T81t[tnh[j]].v.cand;
 			wx=wa-wb-wr; // must not be an extra digit included in the UR
-			if(wx.QC()==4) // we got it
+			if(wx.bitCount()==4) // we got it
 			{int ir1=0; ir1+=parentpuz->T81t[tnh[i]].Keepy(*parentpuz, wx);
 			for(int k=0;k<nth;k++)  ir1+=parentpuz->T81t[th[k]].Keepy(*parentpuz, wx); 
 			if(ir1) { EE->E("UR/UL hls wx="); EE->Enl(wx.String());
@@ -2162,12 +2162,12 @@ if(nautres==3 && ntd>2 && len==2)
  }
 
 // second  pattern : directly correct (may be with extra digit)
-if(((ntd+1)==wd.QC())  && (len== ntd))
- { BF81 zwel1=zwel; 
-   for (int i=0;i<ntd;i++)  zwel1.Clear(td[i]);
-   if(parentpuz->T81->Clear(zwel1,wd  ))
-		{ EE->E("UR/UL nacked LS");EE->Enl(ntd+1);return 1;}
- }
+if(((ntd + 1) == wd.bitCount()) && (len == ntd)) {
+	BF81 zwel1=zwel; 
+	for (int i=0;i<ntd;i++)  zwel1.Clear(td[i]);
+	if(parentpuz->T81->Clear(zwel1,wd  ))
+	{ EE->E("UR/UL nacked LS");EE->Enl(ntd+1);return 1;}
+}
 // third  pattern is  "one cell in excess"
 //should cover several situations 
 if(ntd>=nautres && (len==(ntd-1)))
@@ -2175,7 +2175,7 @@ if(ntd>=nautres && (len==(ntd-1)))
 	{BF16 wdx=wr;	 // wr is the minimum fo the nacked lock set
 	 for (int j=0;j<ntd;j++) if(j-i) wdx|=parentpuz->T81t[td[j]].v.cand;
 	 // check if now correct
-	      if(ntd==wdx.QC()) //  one cell less ntd must be number of digits
+	      if(ntd == wdx.bitCount()) //  one cell less ntd must be number of digits
        { BF81 zwel1=zwel; 
         for (int j=0;j<ntd;j++)  if(j-i)zwel1.Clear(td[j]);
 		if(parentpuz->T81->Clear(zwel1,wdx  ))
@@ -2192,7 +2192,7 @@ if(ntd>=(nautres+1) && (len==(ntd-2)))
 	 for (int j=0;j<ntd;j++) if((j-i) && (j-k))
 		    wdx|=parentpuz->T81t[td[j]].v.cand;
 	 // check if now correct
-	if(ntd==(wdx.QC()+1))  
+	if(ntd == (wdx.bitCount() + 1))  
        { BF81 zwel1=zwel; 
         for (int j=0;j<ntd;j++)  if((j-i) && (j-k))
 			 zwel1.Clear(td[j]);
@@ -2206,9 +2206,9 @@ if(ntd>=(nautres+1) && (len==(ntd-2)))
 if(nnh>=nautres && (len==nnh))
  {BF16 wdx; int ir=0;
   for (int i=0;i<nnh;i++) wdx|=parentpuz->T81t[tnh[i]].v.cand;
-  if(nnh==(wdx.QC()-1) && ((wdx&wr).f == wr.f) ) 
+  if(nnh == (wdx.bitCount() - 1) && ((wdx&wr).f == wr.f) ) 
     { for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(*parentpuz, wdx);
-      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
+      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.bitCount());return 1;}
     } 
  }
 
@@ -2218,11 +2218,11 @@ if(nnh>=nautres && (len==(nnh-1)))
   {BF16 wdx; int ir=0;
 	  for (int i=0;i<nnh;i++) if(j-i)  wdx|=parentpuz->T81t[tnh[i]].v.cand;
   if((wdx&wr).f-wr.f) continue;
-  if(nnh==wdx.QC()) 
+  if(nnh == wdx.bitCount()) 
     { BF81 zwel1=zwel; 
       for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(*parentpuz, wdx);
 	  ir+=parentpuz->T81t[tnh[j]].Changey(*parentpuz, wdx);
-      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
+      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.bitCount());return 1;}
     } 
   }
  }
@@ -2234,11 +2234,11 @@ if(nnh>=(nautres+1) && (len==(nnh-2)))
 	  for (int i=0;i<nnh;i++) if((j-i)  && (k-i))
 		     wdx|=parentpuz->T81t[tnh[i]].v.cand;
    if((wdx&wr).f-wr.f) continue;
-   if(nnh==wdx.QC()+1) 
+   if(nnh == wdx.bitCount() + 1) 
     { BF81 zwel1=zwel; 
       for (int i=0;i<nth;i++)  ir+=parentpuz->T81t[th[i]].Changey(*parentpuz, wdx);
 	  ir+=parentpuz->T81t[tnh[j]].Changey(*parentpuz, wdx); ir+=parentpuz->T81t[tnh[k]].Changey(*parentpuz, wdx);
-      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.QC());return 1;}
+      if(ir)  { EE->E("UR/UL nacked LS");EE->Enl(wdx.bitCount());return 1;}
     } 
   }
  }
