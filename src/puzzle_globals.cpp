@@ -452,7 +452,6 @@ int CELL::Change(int ch,PUZZLE * ppuz) {
 }
 
 // obsolete to clean later
-
 int CELL::Changex(PUZZLE &puz, int ch) {
 	if(v.cand.Off(ch))
 		return 0;
@@ -464,6 +463,7 @@ int CELL::Changex(PUZZLE &puz, int ch) {
 	return 1;
 }
 
+
 int CELL::Change (BF16 cb9,PUZZLE * ppuz) {    // clear candidates 
 	   int ir=0;
 	   for(int i=0; i < 9; i++) 
@@ -471,6 +471,7 @@ int CELL::Change (BF16 cb9,PUZZLE * ppuz) {    // clear candidates
 			   ir += Change(i,ppuz);
 	   return ir;
    }
+
 
 // obsolete to clean later
 
@@ -481,6 +482,7 @@ int CELL::Changey (PUZZLE &puz, BF16 cb9) {    // clear candidates
 			   ir += Changex(puz, i);
 	   return ir;
    }
+
 
 int CELL::Keep (BF16 cb9, PUZZLE * ppuz) {       // clear candidates others than
 	   int ir=0;
@@ -1097,7 +1099,10 @@ int TPAIRES::Bug_lock(int el) {
 	EE->E(" wc2=");
 	EE->Enl(wc2.String());
 
-	if(wce2.f-wce1.f) return 0; // must be the same digit
+	// modified 2011 12 23 see puzzle
+	// .....1.23....2.456...6..78...8..3..5.4.....3.6..2..1...27..4...893.7....46.8.....
+	//if(wce2.f-wce1.f) return 0; // must be the same digit
+
 	if((wc1.bitCount() - 2) || (wc2.bitCount() - 2))
 		return 0;	 
 

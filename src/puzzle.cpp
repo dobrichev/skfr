@@ -573,9 +573,11 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	// we look for potential eliminations
 
 	Rbn_Elims(d_nested2.t, 1);
-	if(rbn_elimt.IsEmpty())
+//	if(rbn_elimt.IsEmpty())
+	if(rbn_elimt.Count()<5)
 		Rbn_Elims(d_nested8.t, 2);
-	if(rbn_elimt.IsEmpty())
+//	if(rbn_elimt.IsEmpty())
+  	if(rbn_elimt.Count()<5)
 		Rbn_Elims(d_nested.t, 3);
 
 	if(rbn_elimt.IsEmpty())
@@ -2611,8 +2613,15 @@ Dynamic search in nested mode for a candidate
 
 void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 	opp=0;
-	//if(ntags==2) opp=1; else opp=0;   
-
+	//if(ntags==3 && couprem<9 && target) opp=1; else opp=0;   
+	if(opp){
+		EE.E("\n\nrating nested entry for "); zpln.ImageTag(target);  
+		EE.E( "  through  " );
+		for(int it=0;it<ntags;it++){			 
+		      zpln.ImageTag(ttags[it]);
+		      EE.Esp();
+		}
+	}
 	USHORT ctarg = target >> 1;
 
 	// forget if target already eliminated
@@ -2629,9 +2638,13 @@ void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 
 
 	nested_print_option= 0;
+	if(opp)nested_print_option= 1;
 	tstore_final.Init(); // start with an empty table of used chains
 	for (int i = 0; i < ntags; i++) {
 		USHORT lx = GoNestedCase2_3( ttags[i], target);
+		if(opp){///
+			EE.E("\n\nlength received= "); EE.Enl(lx); 
+		}
 
 		if(stop_rating) 
 			return ;// push back error code 

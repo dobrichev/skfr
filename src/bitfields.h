@@ -211,6 +211,7 @@ public:
         ws[n] = 0;
 		return ws;
 	}
+	
 }; // BF16
 
 /* BIT32 is used mainly in that program as a 27 region bit field
@@ -400,6 +401,7 @@ public:
 			} while(octetValue); //loop until all bits within this octed are processed
 			m ^= octetIndexLSB; //clear the octet processed
 		}
+//		r[n]=0;
 		return n;
 	}
 };
