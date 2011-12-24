@@ -200,9 +200,9 @@ public:
 	 * The string contains letters A-I or figures 1-9.
 	 * \param lettre if 0 use letter A-I, if 1 use figures 1-9
 	 */
-#pragma message ("BF16::String(int) is not thread-safe")
-	char * String(int lettre = 0) {
-		static char ws[10];
+
+	char * String(char * ws,int lettre = 0) {
+		// static char ws[10];
 		int n = 0;
 		for (int i = 0; i < 9; i++) {
 			if(On(i))

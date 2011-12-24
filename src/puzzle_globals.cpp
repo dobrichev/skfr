@@ -331,6 +331,7 @@ int SEARCH_LS_FISH::Tiroirs(int nn,int hid,int sing) {     //recherche normale d
 
 int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked set to accept it
 	int ir=0;
+	char ws[10];
 	if(single) { // will be covered slowly can be any element row, col, box
 		for(int i=0;i<9;i++)  if(wf.Off(i))	{
 			USHORT i8 = cellsInGroup[e27][i];
@@ -365,12 +366,12 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 	char c2= (it2-1)?(char)(ii2+'1'):lc[ii2];
 	EE->E("->");EE->E(gt[in]); 
 	if(e < 27) {
-		EE->E(" cells ");	EE->E( wi.String());EE->E(" digits ");
+		EE->E(" cells ");	EE->E( wi.String(ws));EE->E(" digits ");
 	}
 	else {
-		EE->E(" digits ");EE->E( wi.String());EE->E(" cells ");
+		EE->E(" digits ");EE->E( wi.String(ws));EE->E(" cells ");
 	}
-	EE->E(wf.String());EE->E(" ");EE->E(orig[it2]);EE->E(" ");EE->Enl(c2);
+	EE->E(wf.String(ws));EE->E(" ");EE->E(orig[it2]);EE->E(" ");EE->Enl(c2);
 	return 1;
 }
 
@@ -395,7 +396,8 @@ int SEARCH_LS_FISH::GroupeObjetsChange(int dobj,int ch)
 return ir;}
 //<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
 int SEARCH_LS_FISH::XW(int nn)
-{char *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
+{char ws[10],
+     *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
               "Whale (XW6)","Leviathan (XW7)" };
  BF16 w; rangc=nn;
  for(int i=0;i<9;i++)
@@ -409,8 +411,8 @@ int SEARCH_LS_FISH::XW(int nn)
       if( XW(w,iel,0) )
        { if(GroupeObjetsChange(9,i) )  // action colonnes
 	     {EE->E(gxw[rangv-2]);	 EE->E(" digit ");     EE->E(i+1); 
-	      EE->E( " columns ");   EE->E(wf.String(0));
-		  EE->E(" rows ");  EE->Enl(wi.String());     
+	      EE->E( " columns ");   EE->E(wf.String(ws));
+		  EE->E(" rows ");  EE->Enl(wi.String(ws));     
 		  return 1; 	 }}
        }
 	 regxw=regindchcol;
@@ -421,8 +423,8 @@ int SEARCH_LS_FISH::XW(int nn)
      if( XW(w,iel,0) )
       { if(GroupeObjetsChange(0,i) ) // action lignes
 	   {EE->E(gxw[rangv-2]);	 EE->E(" digit ");
-	    EE->E(i+1); EE->E(" rows ");	EE->E(wf.String());
-		EE->E( " columns ");	  EE->Enl(wi.String(0));     
+	    EE->E(i+1); EE->E(" rows ");	EE->E(wf.String(ws));
+		EE->E( " columns ");	  EE->Enl(wi.String(ws));     
 		return 1; }  	 }
     } // end iel
   }    // end i niv
@@ -912,6 +914,7 @@ void TPAIRES::BugMess(const char * lib) const {
 
 //===================  all cells in the same  element(s )(can be type 2)
 int TPAIRES::Bug3(int el) {
+	char ws[10];
 	if((ntplus == 2) && Bug_lock(el))
 		return 1;
 	if(el < 18)
@@ -955,7 +958,7 @@ int TPAIRES::Bug3(int el) {
 	}	 
 	EE->E("recherche en boite phase 2"); 
 	EE->E(" wpar");
-	EE->Enl(wpar.String());
+	EE->Enl( wpar.String(ws));
 
 	wpar ^= el_par_ch[el];  // adjust parity in the box
 
@@ -969,9 +972,9 @@ int TPAIRES::Bug3(int el) {
 		EE->E(cellsFixedData[tplus[i]].pt);
 		EE->Esp();
 		EE->E(" wpar");
-		EE->E(wpar.String());
+		EE->E( wpar.String(ws));
 		EE->E(" wcx");
-		EE->Enl(wcx.String());
+		EE->Enl(  wcx.String(ws));
 		if((wcx.bitCount() - 2))
 			return 0;
 		welim |= annul;
@@ -981,9 +984,10 @@ int TPAIRES::Bug3(int el) {
 }
 
 int TPAIRES::Nacked_Go(BF16 welim) {
+	char ws[10];
 	//we look now for  "naked locked sets"
 	EE->E("recherche  bug3_4 Nacked ok to go welim= ");
-	EE->Enl(welim.String());
+	EE->Enl( welim.String(ws));
 	int nelim = welim.bitCount(); // look for naked in increasing order
 	if(nelim < 2 || nelim > 5)
 		return 0;
@@ -1068,10 +1072,11 @@ int TPAIRES::Nacked_Go(BF16 welim) {
 
 //===================  all cells in the same  element(s )(can be type 2)
 int TPAIRES::Bug_lock(int el) {
+	char ws[10];
 	EE->Enl("recherche  bug_lock"); 
 	BF16 clock = candnp_or - candp_or;  // locked candidate
 	EE->E(" clock=");
-	EE->Enl(clock.String());
+	EE->Enl(clock.String(ws));
 	if(!clock.f)
 		return 0; 
 	CELL p1 = parentpuz->T81t[tplus[0]], p2 = parentpuz->T81t[tplus[1]];
@@ -1092,12 +1097,12 @@ int TPAIRES::Bug_lock(int el) {
 	EE->E(" el=");
 	EE->E(el1 + 1);
 	EE->E(" wc1=");
-	EE->Enl(wc1.String());
+	EE->Enl(wc1.String(ws));
 	EE->E(p2.f->pt);
 	EE->E(" el=");
 	EE->E(el2 + 1);
 	EE->E(" wc2=");
-	EE->Enl(wc2.String());
+	EE->Enl(wc2.String(ws));
 
 	// modified 2011 12 23 see puzzle
 	// .....1.23....2.456...6..78...8..3..5.4.....3.6..2..1...27..4...893.7....46.8.....
@@ -1299,7 +1304,8 @@ UL_SEARCH::UL_SEARCH(BF16 c, TPAIRES * tpae, PAIRES * pae, USHORT npae,
 	 npa = npae;
 	 chd = cht = c;
 	 nadds = line_count = 0; 
-	 char * st = c.String();
+	 char  st[10];
+	 c.String(st);
 	 c1 = st[0] - '1';
 	 c2 = st[1] - '1';
 	 cells.SetAll_0();
@@ -2109,6 +2115,7 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 
 // look for hidden  
 int SEARCH_UR::T2_el_set_hidden(USHORT len) {
+	char ws[10];
 	// first pattern, take it if direct 
 	if(nth==len)   // not the expected length
 	{ // identify extra digits in hidden locked set
@@ -2117,7 +2124,7 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len) {
 		//go for the a hidden set if active
 		int ir1=0;
 		for(int i=0;i<nth;i++)  ir1+=parentpuz->T81t[th[i]].Keepy(*parentpuz, whh); 
-		if(ir1) { EE->E("UR/UL hls whh="); EE->Enl(whh.String());
+		if(ir1) { EE->E("UR/UL hls whh="); EE->Enl(whh.String(ws));
 		EE->Enl("UR/UL hidden locked set"); return 1;}	
 	}
 	if(nth==2 && len==3) 
@@ -2131,7 +2138,7 @@ int SEARCH_UR::T2_el_set_hidden(USHORT len) {
 			if(wx.bitCount()==4) // we got it
 			{int ir1=0; ir1+=parentpuz->T81t[tnh[i]].Keepy(*parentpuz, wx);
 			for(int k=0;k<nth;k++)  ir1+=parentpuz->T81t[th[k]].Keepy(*parentpuz, wx); 
-			if(ir1) { EE->E("UR/UL hls wx="); EE->Enl(wx.String());
+			if(ir1) { EE->E("UR/UL hls wx="); EE->Enl(wx.String(ws));
 			EE->Enl("UR/UL hidden locked set"); return 1;}	
 			}
 		}
