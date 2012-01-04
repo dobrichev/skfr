@@ -2985,9 +2985,8 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 	for(int ie = 1; ie < zcx.izc; ie++) {
 		const SET &chx = zcx.zc[ie];
 		int nni = chx.ncd, aig2 = 0; 
-		BFTAG zt;
-		zt.SetAll_1();
-		zt = zt.FalseState();
+		BFTAG zt(BFTAG::InitFalseState);
+
 		BFTAG ttt = allsteps;
 		ttt |= elims;
 		zt -= ttt;
@@ -2996,6 +2995,7 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 		// must be  n false 
 		for(int i = 0; i < nni; i++) { // max one free 
 			USHORT cd = chx.tcd[i], j = cd << 1; // candidate in tag form
+			zt.Clear(j^1);    // don't keep eliminations if belonging to the set
 			if(cum->On(j)) {
 				aig2 = 1;
 				break;
