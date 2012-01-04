@@ -3003,11 +3003,13 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 			if(cum->Off(j ^ 1))
 				zt &= dn.t[j];
 		}
-		if(aig2 || zt.IsEmpty())
+		if(aig2 )
 			continue;	// if ok second round for action	
-		for(int i = 3; i < col; i += 2) {
-			if(!zt.On(i))
-				continue;
+
+		USHORT p[640],np;
+		zt.String(p,np);
+		for(int ip = 0; ip < np; ip++) {
+			int i=p[ip];
 			BFTAG bfs;
 			USHORT istored = 0, istoref = 0, tot_count = 0;
 			int era=0; // one error somewhere debugging data
