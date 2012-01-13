@@ -927,13 +927,13 @@ int PUZZLE::Rating_base_85() {
 	zcf.h.dp=zcf.hdp_base; // restore the  basic weak links
 //	zcx.DeriveDirect();  // start with only equivalence to pointing claiming
     zcf.ExpandShort(5);
-	zcf.DeriveCycle(3, 4, 0,4); // one cycle short sets
-	zcf.DeriveCycle(3, 4, 0,4); // one cycle short sets
+	zcf.DeriveCycle(3, 4, 0,8); // one cycle short sets
+	zcf.DeriveCycle(3, 4, 0,8); // one cycle short sets
 	ChainPlus();
 	if(tchain.IsOK(88))      //filter  short paths
         return Rating_end(200);
-	zcf.DeriveCycle(3, 5, 0,4); // one cycle short sets
-	zcf.DeriveCycle(3, 5, 0,4); // one more cycle 
+	zcf.DeriveCycle(3, 5, 0,8); // one cycle short sets
+	zcf.DeriveCycle(3, 5, 0,8); // one more cycle 
 	ChainPlus();
 	if(tchain.IsOK(90))      //filter  short paths
         return Rating_end(200);
@@ -1011,6 +1011,12 @@ int PUZZLE::Rating_base_90() {
 void PUZZLE::ChainPlus() {
 	int godirect = ((rbase + 8) <= ermax);
 	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
+	if(0 && options.ot && rbase==85 && couprem<2) {
+		EE.Enl("\n\nchain plus entry" );
+		Image(zcf.h.d	);
+	}           
+
+
 	for(int i = 2; i < col; i += 2) {
 		int icand = i >> 1;
 		if(dynamic_form1.Off(i)){  
@@ -1061,11 +1067,12 @@ void PUZZLE::ChainPlus() {
 		}// end if zw2
 	} // end for i
 
-	if(rbase < 85 || tchain.elims_done)
+	if(rbase < 85) // || tchain.elims_done)  cancelled to be closer to serate
 		return;
-
+	if(1 && options.ot) {
+		  EE.Enl("\n\ncheck also sets" );
+	}
 	godirect = ((rbase + 10) <= ermax);
-
 	// now check multichains in a similar way but not for nishio
 	int ie;
 	for(ie = 1; ie < zcx.izc; ie++) {
@@ -1091,6 +1098,11 @@ void PUZZLE::ChainPlus() {
 			continue;
 
 		dynamic_sets[ie] |= tbt;  
+		
+		if(1 && options.ot) {
+		  EE.E("set active" );chx.Image(this,&EE);
+		  Image(tbt,"for",0); EE.Enl( );
+		}
 
 
         for(int j = 3; j < col; j += 2) if(tbt.On(j))	
