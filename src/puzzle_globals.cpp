@@ -775,16 +775,119 @@ int TPAIRES::BUG() {
 	aigun = 0;
 	if(ntplus > 6 || aigpmax > 4)
 		return 0;  // maxi a vérifier 6 cases et 4 candidats
-	// set the parity of digits for bivalue cells in all elements
+
+// new code as of april 2012
 	for(int i = 0; i < 27; i++)
 		el_par_ch[i].f = 0;
 	for(int i = 0; i < ip; i++) {
 		CELL p = parentpuz->T81t[zp[i].i8];  
 		el_par_ch[p.f->el] ^= p.v.cand; 
 		el_par_ch[p.f->pl+9] ^= p.v.cand; 
-		el_par_ch[p.f->eb+18] ^= p.v.cand;         }
-	if(ntplus == 1)
-		return Bug1();
+		el_par_ch[p.f->eb+18] ^= p.v.cand;   
+	}
+	int aigspecial=0;
+	//  one special case for 3 cells plus in the same in "L" 
+	if(ntplus>2){
+		for(int iel=0;iel<27;iel++){
+			BF81 ww=zplus-cellsInHouseBM[iel];
+			if(ww.IsNotEmpty()) continue;  // all plus in the same box
+			if(iel<18) break; //standard if all row or column
+
+			if(ntplus>3) return 0; // does not work for more
+
+			// if not "L", it is standard
+			int corner=-1;
+			for(int i=0;i<3;i++){
+				CELL p = parentpuz->T81t[tplus[i]];
+				BF81 wrow(cellsInHouseBM[p.f->el]),wcol(cellsInHouseBM[p.f->pl+9]);
+				int c1=(wrow&zplus).Count(),c2=(wcol&zplus).Count();
+				if(c1==2 && c2==2 ) 	{corner=i;			break;}
+			}
+
+			if(corner<0) break; // Defined in row or col, standard
+			aigspecial=1;
+
+			BF16 wpar=el_par_ch[iel]; // wil be adjusted by wings
+			// now solve the 2 wings of the "L"
+			for(int i=1;i<3;i++){
+				int ii=(corner+i)%3; // the tplus index
+				CELL px = parentpuz->T81t[tplus[ii]];  
+				BF81 wr(cellsInHouseBM[px.f->el]);
+				int elx=((wr&zplus).Count()==1)?px.f->el:px.f->pl+9;
+				BF16 wc = px.v.cand & el_par_ch[elx],
+					 w = px.v.cand - wc;
+				if(wc.bitCount() - 2)return 0;  // must be 2 everywhere
+				tplus_par[ii]=w;
+				tplus_keep[ii]=wc;
+				wpar ^= wc; // adjust parity in the box
+			}
+			// and solve now the corner in 
+			CELL pcorn = parentpuz->T81t[tplus[corner]];  
+			BF16 wc_corn = pcorn.v.cand & wpar,
+				 w_corn = pcorn.v.cand - wc_corn;
+			if(wc_corn.bitCount() - 2)return 0;  // must be 2 as usual
+			tplus_par[corner]=w_corn;
+			tplus_keep[corner]=wc_corn;
+
+		}
+	}
+
+	if(!aigspecial){
+		// check one and only one parity complement par cell with "plus"
+		for(int i = 0; i < ntplus; i++) {
+			tplus_par[i].f=1024;
+			CELL p = parentpuz->T81t[tplus[i]];  
+			USHORT t[3];
+			t[0]=p.f->el; t[1]=p.f->pl+9;t[2]=p.f->eb+18;
+			for(int j=0;j<3;j++){
+				BF81 ww(cellsInHouseBM[t[j]]);
+				if((ww & zplus).Count()-1) continue;
+				BF16 wc = p.v.cand & el_par_ch[t[j]],
+					 w = p.v.cand - wc;
+				if(wc.bitCount() - 2)return 0;  // must be 2 everywhere
+
+				if(tplus_par[i].f-1024){
+					if(tplus_par[i].f-w.f) return 0;
+				}
+				else{
+					tplus_par[i]=w;
+					tplus_keep[i]=wc;
+				}	
+			}
+			if(tplus_par[i].f==1024) return 0; // not find possibility to affect
+		}
+	}
+	// check always  that each region is parity 0
+	if(ntplus>1){
+		for(int iel = 0; iel < 27; iel++) {
+			BF81 ww(cellsInHouseBM[iel]);
+			if((ww&zplus).Count()<2) continue; // only multiple plus
+			BF16 wd=el_par_ch[iel];
+			for(int i = 0; i < ntplus; i++) {
+				if(ww.On(tplus[i]))
+					wd ^= tplus_keep[i];
+			}
+			if(wd.f) return 0;
+		}
+	}
+
+	if(ntplus == 1){
+		parentpuz->T81t[tplus[0]].Keepy(*parentpuz,tplus_par[0]); // eliminate the others
+		BugMess(" 1");
+		return 1;
+	}
+
+
+	// set the parity of digits for bivalue cells in all elements
+//	for(int i = 0; i < 27; i++)
+//		el_par_ch[i].f = 0;
+//	for(int i = 0; i < ip; i++) {
+//		CELL p = parentpuz->T81t[zp[i].i8];  
+//		el_par_ch[p.f->el] ^= p.v.cand; 
+//		el_par_ch[p.f->pl+9] ^= p.v.cand; 
+//		el_par_ch[p.f->eb+18] ^= p.v.cand;         }
+//	if(ntplus == 1)
+//		return Bug1();
 	if(Bug2())
 		return 1; // priority to bug 2
 	if(Bug3a(58))
@@ -826,75 +929,20 @@ int TPAIRES::Bug3a(int rat) {
 	return 0;
 }
 
-//===========================
-int TPAIRES::Bug1() {
-	int i8 = zplus.First();
-	CELL p = parentpuz->T81t[i8];
-	BF16 wc = p.v.cand & el_par_ch[p.f->el],
-		w = p.v.cand - wc;
-	if(wc.bitCount() - 2)
-		return 0; //must be 2 to reach parity
-	parentpuz->T81t[i8].Keepy(*parentpuz, w); // eliminate the others
-	BugMess(" 1");
-	return 1;
-}
 
 //================================ cells in different objects or one digit
 int TPAIRES::Bug2() { // any number of cells, but 6 seems very high
-	if(ntplus > 6 || aigpmax > 3)
-		return 0;  
-	BF16 possible;
-	possible.f = 0x1ff;
-	BF32 b18;
-	b18.f = 0; // find parity of cells in r/c
-	for(int i = 0; i < ntplus; i++) {
-		const CELL_FIX &p1 = cellsFixedData[tplus[i]];
-		b18.f ^= 1 << p1.el;
-		b18.f ^= 1 << (p1.pl + 9);
+// revised code as of april 2012
+	if(tplus_par[0].bitCount() -1) return 0; // must be one digit
+	BF81 zw(cellsFixedData[tplus[0]].z);
+	for(int i=1;i<ntplus;i++){
+		if(tplus_par[0].f - tplus_par[i].f) return 0; // same digit everywhere
+		zw &= cellsFixedData[tplus[i]].z;
 	}
-	BF81 zw;
-	zw.SetAll_1();
-	for(int i = 0; i < ntplus; i++) { // analyse all cells
-		CELL p1 = parentpuz->T81t[tplus[i]];
-		zw &= p1.f->z;
-		BF16 w1;
-		w1.f = 0;
-		if(b18.On(p1.f->el))
-			w1 = p1.v.cand - el_par_ch[p1.f->el];
-		if(!w1.f) { // if nothing comes in row odd cells, try the column
-			if(b18.On(p1.f->el))
-				return 0;
-			else
-				w1 = p1.v.cand - el_par_ch[p1.f->pl + 9];
-		}
-		else if(b18.On(p1.f->pl + 9)) { // check other direction
-			BF16 w2 = p1.v.cand - el_par_ch[p1.f->pl + 9];
-			if(w1.f - w2.f)
-				return 0;
-		}
-		possible &= w1;
-	}
-	if(zw.IsEmpty())
-		return 0;// must have a comon control on some cells
-	if(possible.bitCount() - 1)
-		return 0; // must be one common digit
-	// last check, parity ok everywhere
-	for(int i = 0; i < 27; i++)
-		el_par2_ch[i] = el_par_ch[i];
-	for(int i = 0; i < ntplus; i++) { // change parity for all cells
-		const CELL_FIX &p1 = cellsFixedData[tplus[i]]; 
-		BF16 wch = parentpuz->T81t[tplus[i]].v.cand - possible;
-		el_par2_ch[p1.el] ^= wch;
-		el_par2_ch[p1.pl+9] ^= wch;
-		el_par2_ch[p1.eb+18] ^= wch;
-	}
-	for(int i = 0; i < 27; i++)
-		if(el_par2_ch[i].f)
-			return 0;
+	if(zw.IsEmpty()) return 0; // must have a comon control on some cells
 
 	// ok for bug type 2 clear the commonly controled  cells
-
-	int ir = 0, ch = possible.First(); 
+	int ir = 0, ch = tplus_par[0].First(); 
 	for(int i = 0; i < 81; i++)
 		if(zw.On(i))
 			ir += parentpuz->T81t[i].Changex(*parentpuz, ch);
@@ -914,73 +962,15 @@ void TPAIRES::BugMess(const char * lib) const {
 
 //===================  all cells in the same  element(s )(can be type 2)
 int TPAIRES::Bug3(int el) {
-	char ws[10];
+	// update new code as of april 2012
 	if((ntplus == 2) && Bug_lock(el))
 		return 1;
-	if(el < 18)
-		return Bug3_4_Nacked(el);
-	EE->Enl("recherche en boite"); 
-
-	// we have now a box and not 2 cells with a digit locked
-
-	if(ntplus > 3)
-		return 0; // would not work with that process
-	// look first row and col with only one cell
-	BF16 wrow, wcol;  // on cherche parite de row/col
-	CELL *pp;
-	USHORT elx, phx[5];
-	for(int i = 0; i < ntplus; i++) { // first look for parity
-		pp = &parentpuz->T81t[tplus[i]];
-		phx[i] = 0;
-		BF16 wr(pp->f->el), wc(pp->f->pl);
-		wrow ^= wr;
-		wcol ^= wc; // change parity
-	}
-	BF16 wcx, welim, annul, wpar; 
-
-	EE->Enl("recherche en boite phase 1"); 
-
+	BF16 welim;
 	for(int i = 0; i < ntplus; i++) {
-		pp = &parentpuz->T81t[tplus[i]]; 
-		if(wrow.On(pp->f->el))
-			elx = pp->f->el;    
-		else if(wcol.On(pp->f->pl))
-			elx = pp->f->pl + 9; 
-		else
-			continue;// not processed the 
-		phx[i] = 1;
-		wcx = pp->v.cand & el_par_ch[elx];
-		annul = pp->v.cand - wcx;
-		wpar ^= wcx;  // to adjust parity for the last if needed
-		if((wcx.bitCount() - 2))
-			return 0;
-		welim |= annul;
-	}	 
-	EE->E("recherche en boite phase 2"); 
-	EE->E(" wpar");
-	EE->Enl( wpar.String(ws));
-
-	wpar ^= el_par_ch[el];  // adjust parity in the box
-
-	// finish the task if one has no row/col free
-	for(int i=0;i<ntplus;i++) {
-		if(phx[i])
-			continue;// done
-		pp = &parentpuz->T81t[tplus[i]]; 
-		wcx = pp->v.cand & wpar;
-		annul = pp->v.cand - wcx;
-		EE->E(cellsFixedData[tplus[i]].pt);
-		EE->Esp();
-		EE->E(" wpar");
-		EE->E( wpar.String(ws));
-		EE->E(" wcx");
-		EE->Enl(  wcx.String(ws));
-		if((wcx.bitCount() - 2))
-			return 0;
-		welim |= annul;
-	}	 
-
+		welim|=tplus_par[i];
+	}
 	return Nacked_Go(welim);
+
 }
 
 int TPAIRES::Nacked_Go(BF16 welim) {
@@ -1118,30 +1108,7 @@ int TPAIRES::Bug_lock(int el) {
 	return 1;
 }
 
-//============================================
-int TPAIRES::Bug3_4_Nacked(int el) {
-	EE->Enl("recherche  bug3_4 Nacked"); 
 
-	USHORT ctl = ntplus, aig = 1;  
-	CELL *pp;
-	USHORT elx;
-	BF16 wcx, welim, annul; 
-
-	for(int i = 0; i < ntplus; i++) {
-		pp = &parentpuz->T81t[tplus[i]];
-		elx = pp->f->el;
-		if(el < 9)
-			elx = pp->f->pl + 9; 
-		wcx = pp->v.cand & el_par_ch[elx];
-		annul = pp->v.cand - wcx;
-		//EE->E(cellsFixedData[tplus[i]].pt); EE->E(" el=");EE->E(elx+1);
-		//EE->E(" wc=");EE->Enl(wcx.String());
-		if((wcx.bitCount() - 2))
-			return 0;
-		welim |= annul;
-	}	
-	return Nacked_Go(welim);
-}
 
 //<<<<<<<<<<<<<<<<<<<< // depart deux paires pas objet commun et trio
 int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs

@@ -547,11 +547,10 @@ public:
 	BF16 tp[50],            // collection of different possibilities for bivalues in cells
 		el_par_ch[27],    // parity fo digits in pairs in any elements
 		el_par2_ch[27],   // parity copie for final check
+		tplus_par[10],   // change in tplus to get parity 
+		tplus_keep[10],	 // kept digits in tplus
 		candp_or,         // within an elem parity or for paired cells
 		candnp_or;        // same for non paired cells
-	//BF16 candp_xor;        // parity for paired (redundancy)
-	//BF16 candnp_xor;       // parity for non paired cells
-	//BF16 wplus[10];        // BF16 within the element for non pair cells (virtual clearing)
 
 	BF81 zplus;             // cells with more than 2
 	int tplus[10], ntplus;  // same in table limited to 8
@@ -568,12 +567,10 @@ public:
 	int XYZWing();
 	int UL();   // called in SE for type 1 storing others
 	int BUG();  // process all bugs forms
-	int Bug1();
 	int Bug2();
 	int Bug3a(int rat);
 	int Bug3(int el);
 	int Bug_lock(int el);
-	int Bug3_4_Nacked(int el);
 	int Nacked_Go(BF16 welim);
 	void BugMess(const char * lib) const;
 	void CommunLib(int i, int j, int k, char * lib);
