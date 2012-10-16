@@ -42,10 +42,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SKFR_MD_DLL_EXPORTS"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
-				OpenMP="true"
+				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -62,16 +63,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions=""
-				LinkIncremental="2"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				AssemblyDebug="1"
 				SubSystem="1"
 				StackReserveSize="4000000"
-				StackCommitSize="4000000"
-				LargeAddressAware="2"
-				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -123,12 +116,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/Qopenmp-link:static "
+				AdditionalOptions=""
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -151,18 +145,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions=""
-				LinkIncremental="1"
 				GenerateManifest="false"
-				GenerateDebugInformation="true"
 				SubSystem="1"
 				StackReserveSize="4000000"
 				StackCommitSize="4000000"
-				LargeAddressAware="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				TargetMachine="0"
-				FixedBaseAddress="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -203,6 +191,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fcgi-2.4.0\examples\fastcgiapp.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\src\flog.cpp"
 				>
 			</File>
@@ -225,6 +225,18 @@
 			<File
 				RelativePath="..\src\skfr.cpp"
 				>
+			</File>
+			<File
+				RelativePath="..\src\skfr_fastcgi.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\t_128.cpp"

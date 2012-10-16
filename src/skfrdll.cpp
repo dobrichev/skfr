@@ -47,6 +47,7 @@ extern "C" DLLEXPORT int __stdcall ratePuzzle(char *ze, int * er, int * ep, int 
 extern "C" DLLEXPORT void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer, UINT filt);
 extern "C" DLLEXPORT void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles);
 extern "C" DLLEXPORT int __stdcall setTestMode(int ot, char * logFileName);
+extern "C" DLLEXPORT void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir);
 
 int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig) {
 	return ratePuzzleC(ze, er, ep, ed, aig);
@@ -59,4 +60,7 @@ void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude,
 }
 int __stdcall setTestMode(int ot, char *logFileName) {
 	return setTestModeC(ot, logFileName);
+}
+void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir) {
+	ratePuzzlesC(nPuzzles, ze, er, ep, ed, aig, ir); //parallel rating
 }

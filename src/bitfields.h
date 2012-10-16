@@ -43,10 +43,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 #pragma once
+
+
 #include "skfrtype.h"
 #include "t_128.h"
-extern const int BitCount[512];
 
+namespace skfr {
+
+extern const int BitCount[512];
 
 /* class BIT16 can be used in any case one need a 16 bits field, 
       for example to store options.
@@ -569,3 +573,5 @@ public:
 		USHORT & itt, USHORT relay) const;
 	//void Expand(BFTAG * to, USHORT i); // in nested mode, expansion limited to one tag
 };
+
+} // namespace skfr

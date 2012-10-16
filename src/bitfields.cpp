@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, OWNER: Gérard Penet
+Copyright (c) 2011, OWNER: GÃ©rard Penet
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,6 +29,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "bitfields.h"
 #include <memory.h>
+
+namespace skfr {
 
 //-----
 void BFTAG::SetAll_0() {
@@ -72,9 +74,8 @@ int BFTAG::Count() const {
 //----
 BFTAG BFTAG::Inverse() const {
 	BFTAG w;
-	for(int i = 0; i </*puz.col + 2*/ BFTAG_BitSize; i++)
-		if(On(i))
-			w.Set(i ^ 1);
+	for(int i = 0; i < 5; i++)
+		w.ff[i].alterOddEven(ff[i]);
 	return w;
 }
 
@@ -448,3 +449,5 @@ int BFTAG::TrackBack(const BFTAG *to, USHORT start, USHORT end, USHORT * tt, USH
 //		} // end j
 //	} // end while
 //}
+
+} //namespace skfr

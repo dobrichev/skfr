@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, OWNER: Gérard Penet
+Copyright (c) 2011, OWNER: GÃ©rard Penet
 All rights reserved.stribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met:
 
@@ -29,6 +29,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "opsudo.h"				// storing and managing options
 #include "puzzle.h"				// general class to solve a puzzle
 #include "utilities.h"
+
+namespace skfr {
 
 const int chx_max =9; //max size  for an event set could be a variable parameter?
                    // limit could be 20 in zcx, but must be checked to go over 9
@@ -136,7 +138,7 @@ void PUZZLE::GetCells(BFCAND & zz,BF81 &cells) const {
 }
 
 //------
-void PUZZLE::Image(const BFTAG & zz,char * lib, int mmd) const {
+void PUZZLE::Image(const BFTAG & zz, const char * lib, int mmd) const {
 	if(!options.ot)
 		return;
 	EE.E(lib);   
@@ -159,7 +161,7 @@ void PUZZLE::Image(const SQUARE_BFTAG & zz) const{
 			Image(zz.t[i]," ",i); 
 }
 
-void PUZZLE::Elimite(char * lib)
+void PUZZLE::Elimite(const char * lib) 
    { stop_rating=1;
     if(!options.ot) return;
 	EE.Enl2();
@@ -169,7 +171,7 @@ void PUZZLE::Elimite(char * lib)
 	EE.Enl2();
 }
 
-void PUZZLE::Estop(char * lib) {
+void PUZZLE::Estop(const char * lib) {
 	stop_rating=1;
 	if(!options.ot)
 		return;
@@ -398,7 +400,7 @@ int PUZZLE::FaitDirects(int rating) {
 	int ir = 0;
 	for(int i = 0; i < 81; i++) {
 		char c1 = fix[i], c2 = fixt[i];
-		if(c1 - '0') {     // donc fixée
+		if(c1 - '0') {     // donc fixÃ©e
 			// filter on rating expected
 			int ok = 0;
 			const CELL_FIX &p = cellsFixedData[i];
@@ -1098,7 +1100,7 @@ void PUZZLE::ChainPlus() {
 			continue;
 
 		dynamic_sets[ie] |= tbt;  
-		
+
 		if(1 && options.ot) {
 		  EE.E("set active" );chx.Image(this,&EE);
 		  Image(tbt,"for",0); EE.Enl( );
@@ -1648,7 +1650,7 @@ int PUZZLE::Traite(char * ze) {
 	//=========================================================================	 
 	EE.E("fin traitement stop_rating=");
 	EE.Enl(stop_rating );
-	gg.Image(&EE,"fin");
+	gg.Image(&EE, "fin");
 	return stop_rating;
 }
 
@@ -2790,7 +2792,9 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 
 	for(int ie = 1; ie < zcx.izc; ie++) {
 		const SET &chx = zcx.zc[ie];
-		int n = 0, nni = chx.ncd, aig2 = 0, toff[10]; 
+		int n = 0, nni = chx.ncd, aig2 = 0;
+		//int toff[10];
+		int toff[3] = {0,0,0};
 		switch (chx.type) {
 		case SET_base:  // must be n-1 false or n false (then all is ok)
 			{
@@ -2811,7 +2815,7 @@ void PUZZLE::GoNestedWhile(USHORT tag) {
 						bfw.Set(j ^ 1);
 				}
 
-				USHORT cd1 = toff[0], cd2 = toff[1]; 
+				USHORT cd1 = toff[0], cd2 = toff[1];
 				if(n == 2) {    // this is a new strong link
                   if(rbase>90){  // only for nested
 					if(hdpb[cd1].Off(cd2 ^ 1) || 
@@ -4061,3 +4065,5 @@ void PUZZLE::NestedMultiLevel4(BFTAG & elims) {
 		} // end tag i
 	}// end ie
 }
+
+} //namespace skfr

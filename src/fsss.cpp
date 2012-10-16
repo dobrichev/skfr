@@ -25,7 +25,9 @@ Segment is a combination of first/second/third three rows or columns.
 //may cause other compilers to unroll them. Last resort is manual unrolling.
 //#define __INTEL_COMPILER
 
-#include <STRING.H> //NULL
+#include <string.h> //NULL
+
+namespace skfr {
 
 #define USE_LOCKED_CANDIDATES //a bit slower
 
@@ -656,3 +658,5 @@ extern unsigned long long fsss(const char* in, const unsigned long long maxSolut
 	}
 	return g.nSolutions;
 }
+
+} //namespace skfr

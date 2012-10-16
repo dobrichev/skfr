@@ -31,6 +31,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "ratEnum.h"
 #include "bitfields.h"
 
+namespace skfr {
+
 //! class storing, managing  and testing options of the command line
 
 class OPSUDO
@@ -60,4 +62,4 @@ public:
 
 };	 
 
-
+} //namespace skfr

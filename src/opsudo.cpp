@@ -36,7 +36,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "opsudo.h"
 
-
+namespace skfr {
 
 OPSUDO::OPSUDO()  // constructor, overall initial values for command line
     {   delta=0;		
@@ -46,3 +46,5 @@ OPSUDO::OPSUDO()  // constructor, overall initial values for command line
 		ptime=0;
 		ocopybugs=1;
     }  
+
+} //namespace skfr

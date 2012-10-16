@@ -27,6 +27,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 #pragma once
+
+namespace skfr {
+
 //!brief Codification of solving technics
 /**
  * This codification is also the base rating of this technic 
@@ -77,5 +80,4 @@ enum SolvingTechnique {
 
 };
 
-
-
+} //namespace skfr

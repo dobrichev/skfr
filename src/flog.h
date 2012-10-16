@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, OWNER: Gérard Penet
+Copyright (c) 2011, OWNER: GÃ©rard Penet
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
@@ -55,6 +55,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <fstream>
 #include "skfrtype.h"
 using namespace std;
+
+namespace skfr {
 
 #ifndef _OPENMP
 class FLOG : private ofstream  //no direct access to ofstream  
@@ -158,3 +160,5 @@ public:
 	inline void Enl2() {}
 };
 #endif
+
+} //namespace skfr

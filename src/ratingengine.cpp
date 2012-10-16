@@ -35,6 +35,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "utilities.h"
 #include "ratingengine.h"
 
+namespace skfr {
+
 OPSUDO Op;
 FLOG EE;  //log file as such is one should not be used in multi thread
 
@@ -135,3 +137,30 @@ void ratePuzzlesC(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, i
 	}
 }
 
+//void rateOnePuzzle(char *ze, int * er, int * ep, int * ed)
+void rateOnePuzzle(puzzleToRate &p)
+{
+	//OPSUDO op; //default options
+	PUZZLE puz; //instantiate a puzzle
+	//puz.options = op; //clone the options
+	//do standard processing
+	puz.Traite(p.p);
+	p.er = puz.ermax;
+	p.ep = puz.epmax;
+	p.ed = puz.edmax;
+	//clear ratings on error
+	if(puz.stop_rating || p.er < 10 || p.er > 120)
+		p.er = p.ep = p.ed = 0;
+}
+
+//void rateManyPuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed) {
+void rateManyPuzzles(int nPuzzles, puzzleToRate *p) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1)
+#endif
+	for(int i = 0; i < nPuzzles; i++) {
+		rateOnePuzzle(p[i]);
+	}
+}
+
+} //namespace skfr

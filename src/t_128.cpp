@@ -1,6 +1,8 @@
 #include "t_128.h"
 
-static const t_128 bitSet[128] =
+namespace skfr {
+
+extern const t_128 bitSet[128] =
 {
 	{0x0000000000000001,0x0}, {0x0000000000000002,0x0}, {0x0000000000000004,0x0}, {0x0000000000000008,0x0},
 	{0x0000000000000010,0x0}, {0x0000000000000020,0x0}, {0x0000000000000040,0x0}, {0x0000000000000080,0x0},
@@ -36,7 +38,7 @@ static const t_128 bitSet[128] =
 	{0x0,0x1000000000000000}, {0x0,0x2000000000000000}, {0x0,0x4000000000000000}, {0x0,0x8000000000000000}
 };
 
-static const t_128 maskLSB[129] =
+extern const t_128 maskLSB[129] =
 {
 	{0,0},
 	{0x00000001,0}, {0x00000003,0}, {0x00000007,0}, {0x0000000F,0},
@@ -73,9 +75,9 @@ static const t_128 maskLSB[129] =
 	{0xFFFFFFFFFFFFFFFF,0x1FFFFFFFFFFFFFFF}, {0xFFFFFFFFFFFFFFFF,0x3FFFFFFFFFFFFFFF}, {0xFFFFFFFFFFFFFFFF,0x7FFFFFFFFFFFFFFF}, {0xFFFFFFFFFFFFFFFF,0xFFFFFFFFFFFFFFFF},
 };
 
-static const t_128 maskffff = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFFFFFFFFFF};
-static const t_128 false128 = {0xaaaaaaaaaaaaaaaa,0xaaaaaaaaaaaaaaaa}; //...1010 pattern
-static const t_128 true128 =  {0x5555555555555555,0x5555555555555555}; //...0101 pattern
+extern const t_128 maskffff = {0xFFFFFFFFFFFFFFFF,0xFFFFFFFFFFFFFFFF};
+extern const t_128 false128 = {0xaaaaaaaaaaaaaaaa,0xaaaaaaaaaaaaaaaa}; //...1010 pattern
+extern const t_128 true128 =  {0x5555555555555555,0x5555555555555555}; //...0101 pattern
 
 //http://dalkescientific.blogspot.com/2008/06/molecular-fingerprints.html
 //see also http://bmagic.sourceforge.net/bmsse2opt.html
@@ -217,3 +219,5 @@ increment:
 	return rightmost0;
 }
 ***/
+
+} //namespace skfr

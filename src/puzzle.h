@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, OWNER: Gérard Penet
+Copyright (c) 2011, OWNER: GÃ©rard Penet
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
@@ -36,6 +36,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "bitfields.h"
 #include "ratEnum.h"			// enum list of solving techniques
 #include "bitfields.h"			// bitfields are grouped in this file
+#include "utilities.h"
+
+namespace skfr {
 
 extern unsigned long long fsss(const char* in, const unsigned long long maxSolutions, char* out); //fast simple sudoku solver.
 extern const unsigned int cellsInGroup[27][9];
@@ -296,7 +299,7 @@ public:
 	//! Copy the grid value
 	inline void Copie(const GG & ge) {
 		strcpy_s(pg, 82, ge.pg);
-	} // copie 81 caractères
+	} // copie 81 caractÃ¨res
 	
 	inline void operator =(const GG &ge) {
 		strcpy_s(pg,82,ge.pg);
@@ -312,7 +315,7 @@ public:
 	 * Print on a first line the string passed as parameter. Print 9 more lines
 	 * representing the grid with line numbers.
 	 */
-	void Image(FLOG * EE,char * lib) const;
+	void Image(FLOG * EE, const char * lib) const;
 };
 
 
@@ -573,7 +576,7 @@ public:
 	int Bug_lock(int el);
 	int Nacked_Go(BF16 welim);
 	void BugMess(const char * lib) const;
-	void CommunLib(int i, int j, int k, char * lib);
+	void CommunLib(int i, int j, int k, const char * lib);
 };
 
 
@@ -648,7 +651,7 @@ public:
 		return GetRatingBase(base, lengthe, cand);
 	}
 
-	void LoadChain(USHORT rat, char * lib, USHORT cand);
+	void LoadChain(USHORT rat, const char * lib, USHORT cand);
 
 	int IsOK(USHORT x);
 
@@ -1144,8 +1147,8 @@ public:     //on ne traite que deux communs.
 
 	BF81 GetZ(){BF81 zw(ia,ib);zw.Set(ic);zw.Set(id);return zw;} // le BF81 des 4 points
 
-	void ImageRI(char * lib,USHORT a);
-	void ImageRI(char * lib);
+	void ImageRI(const char * lib, USHORT a);
+	void ImageRI(const char * lib);
 
 	// look for pseudo locked set in a unique loop
 	int StartECbi(USHORT p1, USHORT p2, BF16 com, int action) {
@@ -1232,7 +1235,7 @@ public:
 	int Loop_OK(int action = 0); 
 	int Is_OK_Suite(USHORT i8);
 	int El_Suite(USHORT el);
-	void UL_Mess(char * lib, int pr);
+	void UL_Mess(const char * lib, int pr) const;
 private:
 	// Check if the loop has more than 0 solutions by parity
 	bool ParityCheck(void);
@@ -1499,8 +1502,8 @@ public:
     int CheckChange(int i, int ch);
     int ChangeSauf(int elem,BF16 pos,BF16 chiffres );
     int Keep(int elem,BF16 pos,BF16 chiffres );
-    //int Keep(int ch, const BF81 &zk); // éliminer ailleurs en objets contenant
-    int Keep(int ch, USHORT p1, USHORT p2); // éliminer ailleurs de deux points
+    //int Keep(int ch, const BF81 &zk); // Ã©liminer ailleurs en objets contenant
+    int Keep(int ch, USHORT p1, USHORT p2); // Ã©liminer ailleurs de deux points
     int NonFixesEl(int e);
     void FixerAdd(int i, char c, int elt)
     {
@@ -1566,10 +1569,10 @@ public:
 	void ImagePoints(BF81 & zz) const;  
 	void ImageCand(BFCAND & zz ,char * lib) const;
 	void GetCells(BFCAND & zz,BF81 & cells) const;
-	void Image(const BFTAG & zz,char * lib, int mmd) const;
+	void Image(const BFTAG & zz, const char * lib, int mmd) const;
 	void Image(const SQUARE_BFTAG & zz) const;
- 	void Elimite(char * lib);
-	void Estop(char * lib);
+ 	void Elimite(const char * lib);
+	void Estop(const char * lib);
 
 
 /* redefine here for translation all routines
@@ -1607,3 +1610,5 @@ private:
 
 // global variables for Puzzle
 extern FLOG EE;
+
+} //namespace skfr

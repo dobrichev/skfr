@@ -116,6 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions=""
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -124,6 +125,8 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SKFR_MD_DLL_EXPORTS"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
+				RuntimeTypeInfo="false"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -193,6 +196,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\fsss.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\opsudo.cpp"
 				>
 			</File>
@@ -202,6 +209,10 @@
 			</File>
 			<File
 				RelativePath="..\src\ratingengine.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\skfr.cpp"
 				>
 			</File>
 			<File

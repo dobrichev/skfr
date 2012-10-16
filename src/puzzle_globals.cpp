@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, OWNER: Gérard Penet
+Copyright (c) 2011, OWNER: GÃ©rard Penet
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
@@ -73,7 +73,7 @@ int GG::Nfix() const {
 	return n;
 }
 
-void GG::Image(FLOG * EE,char * lib) const {
+void GG::Image(FLOG * EE, const char * lib) const {
 	EE->E(lib); 
 	EE->Enl(); 
 	char wc[10];
@@ -214,7 +214,7 @@ int TCHAIN::GetRatingBase(USHORT bb,USHORT lengthe,USHORT cand) {
 	if possible, (rating lower than the achived one)
 	do immediate elimination
 */
-void TCHAIN::LoadChain(USHORT rat,char * lib,USHORT cand) {
+void TCHAIN::LoadChain(USHORT rat, const char * lib, USHORT cand) {
 	if(rat>rating)
 		return ;
 	if(rat < rating) {
@@ -261,7 +261,7 @@ void TWO_REGIONS_INDEX::Genere(CELL * tw) {
 		tpobit.el[w.pl + 9].eld[w.el].Genpo(x);
 		tpobit.el[w.eb + 18].eld[w.pb].Genpo(x);
 	}
-	// on génère tch a partir de tpo
+	// on gÃ©nÃ¨re tch a partir de tpo
 	for(i = 0; i < 27; i++) {  // les 27 groupes
 		for(j = 0; j < 9; j++)
 			tchbit.el[i].eld[j].Raz();
@@ -300,7 +300,7 @@ int SEARCH_LS_FISH::Tiroir(BF16 fd,int iold,int irang) { // on progresse sur ind
 		{wf=wx;wi.Set(i);
 		if(nx ==rangv)return 1; else return 0; }
 		// une erreur a tester    on poursuit si <
-		// il peut manquer des tiroirs!!!!! curieux que jamais détecté!!!!
+		// il peut manquer des tiroirs!!!!! curieux que jamais dÃ©tectÃ©!!!!
 		if(Tiroir(wx,i,irang+1)){wi.Set(i); return 1; }
 	}
 	return 0;
@@ -360,7 +360,7 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 	if(!parentpuz->options.ot) return 1; 
 	// describe the LS even if no more eliminations after an assignment
 
-	char *gt[]={"LS2 ","LS3 ","LS4 ","LS5 " };
+	static const char *gt[]={"LS2 ","LS3 ","LS4 ","LS5 " };
 
 	int in=rangv-2,  it2=(e%27)/9,ii2=e%9;
 	char c2= (it2-1)?(char)(ii2+'1'):lc[ii2];
@@ -376,9 +376,9 @@ int SEARCH_LS_FISH::UnTiroir() {// is there a single required after the locked s
 }
 
 //<<<<<<<<<<<<<<<<<<<<<   On cherche XW dans lignes ou cols  boucle recurrente sur i
-int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en élément i chiffre ch
+int SEARCH_LS_FISH::XW(BF16 fd,int iold,int irang)  	// en Ã©lÃ©ment i chiffre ch
 {   // on progresse sur indice et on regarde si fusion n-1  ok
-  for (int i=iold+1;i<9;i++)  // il doit rester des éléments
+  for (int i=iold+1;i<9;i++)  // il doit rester des Ã©lÃ©ments
   { int nn=eld[ch].n;
 	 if(nn<2 ||nn>rangv) continue;
     BF16 wfu=regxw[i].eld[ch].b|fd; 
@@ -394,10 +394,10 @@ int SEARCH_LS_FISH::GroupeObjetsChange(int dobj,int ch)
 {BF16 x(ch); int ir=0;
  for(int i=0;i<9;i++)   if(wf.On(i)) ir+= parentpuz ->ChangeSauf(dobj+i,wi,x);
 return ir;}
-//<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur éléments en mineur
+//<<<<<<<<<<<<<<<<<<<<<<<< ici chiffre en majeur Ã©lÃ©ments en mineur
 int SEARCH_LS_FISH::XW(int nn)
-{char ws[10],
-     *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
+{char ws[10];
+ static const char *gxw[]={"XWing ","SwordFish  ","Jelly (XW4) ","Squid (XW5)  " ,
               "Whale (XW6)","Leviathan (XW7)" };
  BF16 w; rangc=nn;
  for(int i=0;i<9;i++)
@@ -616,7 +616,7 @@ void CELLS::Candidats() {
 	char * pw;       //lcol  largeur maxi colonne
 	EE->Enl("PM map ");  
 	for(i = 0; i < 9; i++) {  // attention ici i indice colonne
-		lcol[i] = 2;    // 2  mini tous chiffres imposés
+		lcol[i] = 2;    // 2  mini tous chiffres imposÃ©s
 		for(j = 0; j < 9; j++) {
 			l = (int)strlen(t81[9 * j + i].strcol()); 
 			if(l > lcol[i])
@@ -774,9 +774,8 @@ int TPAIRES::BUG() {
 	EE->Enl("debut recherche bug");
 	aigun = 0;
 	if(ntplus > 6 || aigpmax > 4)
-		return 0;  // maxi a vérifier 6 cases et 4 candidats
-
-// new code as of april 2012
+		return 0;  // maxi a vÃ©rifier 6 cases et 4 candidats
+	// set the parity of digits for bivalue cells in all elements
 	for(int i = 0; i < 27; i++)
 		el_par_ch[i].f = 0;
 	for(int i = 0; i < ip; i++) {
@@ -968,9 +967,8 @@ int TPAIRES::Bug3(int el) {
 	BF16 welim;
 	for(int i = 0; i < ntplus; i++) {
 		welim|=tplus_par[i];
-	}
+	}	 
 	return Nacked_Go(welim);
-
 }
 
 int TPAIRES::Nacked_Go(BF16 welim) {
@@ -1133,7 +1131,7 @@ int TPAIRES::XYWing() { // troisieme par les isoles  objets  communs
 				//BF81 z1 = t81f[zp[i].i8].z & t81f[zp[j].i8].z,
 				BF81 z1 = cellsFixedData[zp[i].i8].z;
 				z1 &= cellsFixedData[zp[j].i8].z;
-				BF81 z2 = z1 & parentpuz->c[ich];  // z2 est à supprimer
+				BF81 z2 = z1 & parentpuz->c[ich];  // z2 est Ã  supprimer
 				if(z2.IsNotEmpty()) {
 					if(parentpuz->options.ot)
 						CommunLib(i, j, zp[k].i8, "->XY WING pivot= ");
@@ -1168,7 +1166,7 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 				BF81 z1 = cellsFixedData[zp[i].i8].z;
 				z1 &= cellsFixedData[zp[j].i8].z;
 				z1 &= cellsFixedData[k].z;
-				BF81 z2 = z1 & parentpuz->c[ich];  // z2 est à supprimer
+				BF81 z2 = z1 & parentpuz->c[ich];  // z2 est Ã  supprimer
 				if(z2.IsNotEmpty()) {
 					if(parentpuz->options.ot)
 						CommunLib(i, j, k, "->XYZ WING pivot= ");
@@ -1181,7 +1179,7 @@ int TPAIRES::XYZWing() { // troisieme est le trio objets communs
 	return ir;
 }
 
-void TPAIRES::CommunLib(int i, int j, int k, char * lib) {
+void TPAIRES::CommunLib(int i, int j, int k, const char * lib) {
 	if(!parentpuz->options.ot)
 		return;
 	EE->E(lib);
@@ -1335,7 +1333,7 @@ bool UL_SEARCH::ParityCheck(void) {
 int UL_SEARCH::Add_Chain(int i8) {
 	if(line_count > 20)
 		return 0; // securite
-	if(cells.On(i8)) { // terminé on élimine URs et fausses boucles
+	if(cells.On(i8)) { // terminÃ© on Ã©limine URs et fausses boucles
 		//EE->E("UL end ");EE->E(cellsFixedData[i8].pt);EE->Esp();cells.ImagePoints();EE->Enl();
 		if(line_count < 5 || (i8 - tcount[0]))
 			return 0;  
@@ -1345,8 +1343,8 @@ int UL_SEARCH::Add_Chain(int i8) {
 	Set(i8);              // On met le point en place
 	const CELL_FIX &f = cellsFixedData[i8];
 
-	// a défaut une case avec additifs  ligne, puis col, puis bloc en paire
-	// uniquement dans éléments non traités et si pas de double paire
+	// a dÃ©faut une case avec additifs  ligne, puis col, puis bloc en paire
+	// uniquement dans Ã©lÃ©ments non traitÃ©s et si pas de double paire
 	// not more than 3 adds except one digit
 	if(nadds > 7 || (cht.bitCount() > 3 && nadds > 2))
 		return 0; 
@@ -1416,8 +1414,8 @@ int UL_SEARCH::Loop_OK(int action) {
 		}
 		else
 			action++;
-	// les deux ci-dessous sortent en 4.6 et 4.7; voir l'origine de l'écart (nb de pas???)
-	if(action == 1 && nadds < 2) { //one cell with adds rating 4.6 revérifié, c'est bien 4.6
+	// les deux ci-dessous sortent en 4.6 et 4.7; voir l'origine de l'Ã©cart (nb de pas???)
+	if(action == 1 && nadds < 2) { //one cell with adds rating 4.6 revÃ©rifiÃ©, c'est bien 4.6
 		USHORT iu = adds[0];
 		if(parentpuz->T81t[iu].Changey(*parentpuz, chd)) {
 			UL_Mess("one cell with extra digits ", 1);
@@ -1457,7 +1455,7 @@ int UL_SEARCH::Loop_OK(int action) {
 	return 0;
 }
 //-----  
-void UL_SEARCH::UL_Mess(char * lib,int pr) { // et flag des "faits"
+void UL_SEARCH::UL_Mess(const char * lib, int pr) const { // et flag des "faits"
 	EE->Enl();
 	EE->E("UL loop nadds=");
 	EE->E(nadds);
@@ -1578,7 +1576,7 @@ void EVENT::Image(PUZZLE * parentpuz,FLOG * EE) const {
 }
 
 void EVENT::ImageShort(PUZZLE * parentpuz,FLOG * EE) const {
-	char * tlib[]={"pointing rc","pointing b","naked pair","hidden pair","Xwingr","Xwingc"};
+	static const char * tlib[]={"pointing rc","pointing b","naked pair","hidden pair","Xwingr","Xwingc"};
 	if(!parentpuz->options.ot)
 		return;
 	EE->E("\t event   ");
@@ -1750,7 +1748,7 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 	BF16 ch2 = parentpuz->T81t[cell1].v.cand & parentpuz->T81t[cell2].v.cand,
 		chor = parentpuz->T81t[cell1].v.cand | parentpuz->T81t[cell2].v.cand; // pour traiter le cas 1 commun
 	if(ch2.bitCount() < 2)
-		return; // non il faudrait aussi accepter 1 commun à revoir
+		return; // non il faudrait aussi accepter 1 commun Ã  revoir
 	// nothing to do if box/row and box/col (already done)
 	const CELL_FIX &p1 = cellsFixedData[cell1], &p2=cellsFixedData[cell2];
 	if(iel > 17 && ((p1.el == p2.el) || (p1.pl == p2.pl)))
@@ -1915,14 +1913,14 @@ int SEARCH_UR::Jumeau(USHORT a,USHORT b,USHORT ch) {
 	return Jum(el, ch);
 }
 
-void SEARCH_UR::ImageRI(char * lib,USHORT a) {
+void SEARCH_UR::ImageRI(const char * lib,USHORT a) {
 	EE->E(lib);
 	EE->E(tr[a].f->pt);
 	EE->E(" ");
 	EE->E(tr[a].scand);
 }
 
-void SEARCH_UR::ImageRI(char * lib) {
+void SEARCH_UR::ImageRI(const char * lib) {
 	if(!parentpuz->options.ot) return;
 	EE->E( "->UR" );
 	EE->E(lib);
@@ -2610,7 +2608,7 @@ void INFERENCES::LoadBase(USHORT cd1 ,USHORT cd2) {
 	Entrep(cd1 << 1, cd2 << 1);
 }
 
-// entry for bi value  a = b thru a - b and ã - ~b   
+// entry for bi value  a = b thru a - b and Ã£ - ~b   
 void INFERENCES::LoadBivalue(USHORT cd1, USHORT cd2) {
 	load_done=1;
 	Entrep((cd1 << 1) ^ 1, (cd2 << 1) ^ 1);  
@@ -3158,7 +3156,7 @@ int SETS::Interdit_Base80() {
 }
  
 /* look for new weak links from sets
-   in dynamic mode with part of the tags éliminated (allsteps)
+   in dynamic mode with part of the tags Ã©liminated (allsteps)
    return code is o if nothing has been done
 */
 

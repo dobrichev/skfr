@@ -27,16 +27,27 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 // utilities
-#include "utilities.h"
-#include <sys\timeb.h>
+//#include "utilities.h"
+#include <time.h>
+//#include <sys\timeb.h>
 #include <string.h> 
 
+namespace skfr {
+
+void strcpy_s(char *d, int size, const char *s) {
+	strncpy(d, s, size);
+}
+
+void strncpy_s(char *d, int size, const char *s, int n) {
+	strncpy(d, s, size < n ? size : n);
+}
 
 // catching time as seconds+millis  (seconds since year 1970)
 long GetTimeMillis() {
-	struct _timeb tbuf;
-	_ftime64_s(&tbuf); 
-	return ((long)(1000 * tbuf.time) + tbuf.millitm);
+	return (long)(clock() * 1000 / CLOCKS_PER_SEC);
+	//struct _timeb tbuf;
+	//_ftime64_s(&tbuf); 
+	//return ((long)(1000 * tbuf.time) + tbuf.millitm);
 }
 
 //=============================
@@ -55,3 +66,4 @@ char const * Blancs(int n,int pastrait) {
 		return &(wt[20 - n]);
 }
 
+} //namespace skfr

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, OWNER: Gérard Penet
+Copyright (c) 2011, OWNER: GÃ©rard Penet
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
@@ -26,7 +26,7 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABI
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
-// skfr.cpp : main file for sudoku fast rating
+// skfr.cppÂ : main file for sudoku fast rating
 // processing exclusively a batch file 
 // output = input valid + rating   default input="puz.txt"  
 // default output1="puz_rat.txt"  default output1="puz_N_rat.txt"
@@ -35,11 +35,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 using namespace std;
 
 #include "skfrtype.h"
 #include "ratingengine.h"
 #include "utilities.h"
+
+namespace skfr {
 
 //! a class for bitfield (limited to 32 bits) and set of functions and operators
 class BF32
@@ -121,7 +124,7 @@ public:
 	OPSUDOCMD(); // constructor to put all values to 0;
 	//void Init();  // overall initial values for command line
 
-	int  pctl();  // contrôle print on console for test purpose
+	int  pctl();  // contrÃ´le print on console for test purpose
 	// also check command line compatibility
 	
 };
@@ -135,7 +138,7 @@ OPSUDOCMD::OPSUDOCMD()  // constructor, overall initial values for command line
 		logFileName[0]=0;
     }
 int  OPSUDOCMD::pctl()  
-	// contrôle print on console for test purpose
+	// contrÃ´le print on console for test purpose
 	// evaluate filters bitfield if min or max required
 	// also check command line compatibility (between min and max)
 	{
@@ -181,7 +184,7 @@ class FINPUT: private ifstream
 		endf; 
 public:
 	//!Input file name (without file type).
-	static char * namex; 
+	const static char * namex; 
 	FINPUT();
 	//! Set the name of the input file.
 	/**
@@ -278,7 +281,7 @@ FINPUT::FINPUT(){open=endf=0;}
 void FINPUT::SetName(char * nn){namex=nn;}
 
 
-char * FINPUT::namex="puz";
+const char * FINPUT::namex="puz";
 
 int FINPUT::OpenFI()
 {
@@ -341,16 +344,16 @@ int FOUTPUT::OpenFO1()
 		strcpy_s(zn,198,FINPUT::namex); 
 		int ll=(int)strlen(zn);
         strcpy_s(&zn[ll],30,"_rat.txt");
-	    return OpenFO(zn); 
+	    return OpenFO(zn);
 	}
 
 int FOUTPUT::OpenFO2() 
 {
-	char zn[200]; 
-	strcpy_s(zn,198,FINPUT::namex); 
+	char zn[200];
+	strcpy_s(zn,198,FINPUT::namex);
 	int ll=(int)strlen(zn);
     strcpy_s(&zn[ll],30,"_N_rat.txt");
-	return OpenFO(zn); 
+	return OpenFO(zn);
 }
 
 int FOUTPUT::OpenFO(char * nam)
@@ -377,11 +380,11 @@ void FOUTPUT::PrintErEpEd(int er,int ep,int ed)
 // global variables
 FINPUT finput;
 FOUTPUT foutput,se_refus;
-OPSUDOCMD Op;
+OPSUDOCMD Opc;
 
 //==== specific data
 char finput_name[128]; // string file names if given
-char * version="V2.0.0 dated December 1th 2011";
+const char * version="V2.0.1 dated October 16th 2012";
 
 // =====================functions written below
 
@@ -419,8 +422,8 @@ int Batch_Start(int argc, char *argv[])
 		int ir=Search_ccd(ww,3);	// look for 3 char command
 		if(ir>=0)
 		{
-			if(Op.o1 && Op.o1<3) continue; // ignored if -d -p
-			Op.o1=3; // special filter on
+			if(Opc.o1 && Opc.o1<3) continue; // ignored if -d -p
+			Opc.o1=3; // special filter on
 			if(ir<5) 
 			{
 				val1=GetRating(&ww[3]); // get rating threshold
@@ -428,11 +431,11 @@ int Batch_Start(int argc, char *argv[])
 			}
 			switch (ir)
 			{
-			case 0:Op.maxed=val1; break;  //-d<
-			case 1:Op.mined=val1; break;  //-d>
-			case 2:Op.maxep=val1; break;  //-p<
-			case 3:Op.minep=val1; break;  //-p>
-			case 4:Op.maxer=val1; break;  //-r<
+			case 0:Opc.maxed=val1; break;  //-d<
+			case 1:Opc.mined=val1; break;  //-d>
+			case 2:Opc.maxep=val1; break;  //-p<
+			case 3:Opc.minep=val1; break;  //-p>
+			case 4:Opc.maxer=val1; break;  //-r<
 			case 5:Filter_quasi_ed(ww);   break;  // -n(?)>
 			}
 			continue;// don't try command 2
@@ -443,41 +446,41 @@ int Batch_Start(int argc, char *argv[])
 			if(ir==6)
 				{ir=Search_long(&ww[2]);  //"--" 
 				 if(ir>5) // this is a command to limit the process
-				 {Op.oexclude= ir-5; continue;}
+				 {Opc.oexclude= ir-5; continue;}
 			    }
 			if(ir>=0)
 				switch (ir)
 				{
-				case 0:Op.o1=1; break;  //-d
-				case 1:if(Op.o1-1)Op.o1=2; break;  //-p
+				case 0:Opc.o1=1; break;  //-d
+				case 1:if(Opc.o1-1)Opc.o1=2; break;  //-p
 				case 2: 
 					if(ww[1]=='-')strcpy_s(finput_name,128,&ww[8]);  
 					else  strcpy_s(finput_name,128,&ww[2]); 
 					finput.SetName(finput_name);
 					cout <<"input asked   "<<finput_name<<endl;
 					break;  //-i
-				case 3: Op.os=1; break;  //-s
-				case 4: Op.ptime=1; break;  //-e
-				case 5: Op.ot=1; break;  //-t
-				case 7: Op.o1=1;Op.delta=2; break;  //-D
-				case 8: if(Op.o1-1)Op.o1=2;Op.delta=2; break;  //-P
-				case 9: Op.oq=1; break; //-Q 
+				case 3: Opc.os=1; break;  //-s
+				case 4: Opc.ptime=1; break;  //-e
+				case 5: Opc.ot=1; break;  //-t
+				case 7: Opc.o1=1;Opc.delta=2; break;  //-D
+				case 8: if(Opc.o1-1)Opc.o1=2;Opc.delta=2; break;  //-P
+				case 9: Opc.oq=1; break; //-Q 
 				}
 		}// end command 2 bytes
 	}// end loop on options
 	// output options parsing on console and verify coherence between min and max
-	if(Op.pctl()) return 0;	//return if incoherence in options
+	if(Opc.pctl()) return 0;	//return if incoherence in options
 	// open input and outputs files (rated and non rated files)
 	if(finput.OpenFI()) return 0; // 1 if error open
 	if(foutput.OpenFO1()) return 0; // 1 if error open
 	if(se_refus.OpenFO2()) return 0; // 1 if error open
 	// if debugging option is on, call open ficlog with the appropriate name
-	if(Op.ot) {finput.GetLogName(Op.logFileName); 
-	           if(CallOpenLog(Op.logFileName)) return 0;
+	if(Opc.ot) {finput.GetLogName(Opc.logFileName); 
+	           if(CallOpenLog(Opc.logFileName)) return 0;
 			   cout << "open log fait"<<endl;}
 	// set option to the rating engine
-   setParamC (Op.o1, Op.delta, Op.os,Op.oq,Op.ot , Op.oexclude, Op.edcycles);
-   setMinMaxC(Op.mined,Op.maxed, Op.minep, Op.maxep, Op.miner, Op.maxer,Op.filters.f);
+   setParamC (Opc.o1, Opc.delta, Opc.os,Opc.oq,Opc.ot , Opc.oexclude, Opc.edcycles);
+   setMinMaxC(Opc.mined,Opc.maxed, Opc.minep, Opc.maxep, Opc.miner, Opc.maxer,Opc.filters.f);
  //  if(PrintOptionsOpsudo()) return 0;
    return 1;
 } 
@@ -494,9 +497,9 @@ int Batch_Start(int argc, char *argv[])
 int Search_ccd(char * ww,int n)
 {
 	// List of 3 char command, 6 commands
-	char * ccd3[]={"-d<" , "-d>" , "-p<" , "-p>" , "-r<" , "-n("  };
+	const char * ccd3[]={"-d<" , "-d>" , "-p<" , "-p>" , "-r<" , "-n("  };
 	// List of 2 char command, 9 commands
-	char * ccd2[]={"-d" ,  "-p" , "-i" , "-s" ,  "-e" , "-t" ,"--", 
+	const char * ccd2[]={"-d" ,  "-p" , "-i" , "-s" ,  "-e" , "-t" ,"--", 
 	               "-D" , "-P", "-Q"  };
 	char wt[4]; 
 	strncpy_s(wt,4,ww,n);
@@ -515,7 +518,7 @@ int Search_ccd(char * ww,int n)
  */
 int Search_long(char * ww)
 {
-	char * cc[]={"diamond" ,  "pearl" , "input=" , "split" ,
+	const char * cc[]={"diamond" ,  "pearl" , "input=" , "split" ,
                "elapsed" , "test",  "NoMul",
 			   "NoDyn", "NoDPlus","NoLevel2","NoLevel3","NoLevel4"};
 	char wt[20]; 
@@ -586,9 +589,9 @@ void Filter_quasi_ed(char * z) // finish command  command -n(?)
 	if(z[3]<'2' || z[3]>'9') return ;
 	int w=GetRating(&z[5]);
 	if(w<40 || w>110) return;
-	Op.edcycles=z[3]-'0';
-	Op.miner=w; 
-	Op.os=1;
+	Opc.edcycles=z[3]-'0';
+	Opc.miner=w; 
+	Opc.os=1;
 }
 
 // loop to process the batch and puzzles verifications
@@ -603,17 +606,17 @@ if(cons)
 	 if(dth || dtm) cout <<dtm<<"m "; 
      cout	<<dts <<"s ";
 	 if(dtmil<10) cout << "00"; else  if(dtmil<100) cout << '0';
-	 cout <<dtmil<<"ms ";   return;
+	 cout <<dtmil<<"ms " <<endl;   return;
     }
   foutput	 <<";"<<dts <<".";
   if(dtmil<10) foutput << "00"; else  if(dtmil<100) foutput << '0';
-  foutput <<dtmil<<"s ";  
+  foutput <<dtmil<<"s "<<endl;  
 }
 
 //! Evaluation loop of puzzle and print the result for each puzzle
 #ifdef _OPENMP
 void batchGoParallel() { //currently unused
-	const int maxChunkSize = 100;
+	const int maxChunkSize = 3 * 64 * 10;
 	const int chunkSize = maxChunkSize; //one might want to control the actual chunk size via parameter
 	int nPuzzles = 0;
 	int tER[maxChunkSize], tEP[maxChunkSize], tED[maxChunkSize], tAIG[maxChunkSize], tIR[maxChunkSize];
@@ -628,7 +631,7 @@ void batchGoParallel() { //currently unused
 		//output chunk ratings
 		for(int i = 0; i < nPuzzles; i++) {
 			foutput.Setzpuz(tZE[i]);		// prepare to output the puzzle string
-			if(Op.os) {   // split option
+			if(Opc.os) {   // split option
 				if(tIR[i] < 4)
 					se_refus << tZE[i] << endl;
 				else
@@ -664,7 +667,7 @@ void batchGoSequential() {
 		int er, ep, ed, aig;
 
 		int ir=ratePuzzleC(ze, & er, & ep, & ed, & aig); 
-		if(Op.os)    // split option
+		if(Opc.os)    // split option
         {
 			if(ir<4) se_refus<< ze 
 		//		<< " " << Op.ermax << " " << Op.epmax<< " " << Op.edmax
@@ -679,7 +682,7 @@ void batchGoSequential() {
 			bool refus = (er<10) || (er>120);
 			if(refus)se_refus.PrintErEpEd(er,ep,ed);
 			else  foutput.PrintErEpEd(er,ep,ed);
-			if(Op.ptime && !refus ) 
+			if(Opc.ptime && !refus ) 
 			{
 				long tpuz_end=GetTimeMillis();
 				PrintTime(tpuz_start, tpuz_end, 0);
@@ -703,9 +706,14 @@ void Batch_Go() {
 	long tend=GetTimeMillis();
 	PrintTime(tstart,tend,1);
 }
+
+
+} //namespace skfr
+
+#if 1
 int main(int argc, char *argv[]) {
-	if(Batch_Start(argc, argv)) 
-		Batch_Go();
+	if(skfr::Batch_Start(argc, argv)) 
+		skfr::Batch_Go();
 	return 0;
 }
-
+#endif

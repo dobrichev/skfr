@@ -29,7 +29,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 // utili
 # pragma once
 
+namespace skfr {
+
 long GetTimeMillis();
 char * stpcpy(char * d, char * o);
 char const * Blancs(int n,int pastrait);
+void strcpy_s(char *d, int size, const char *s);
+void strncpy_s(char *d, int size, const char *s, int n);
 
+} //namespace skfr

@@ -3,12 +3,26 @@
 #define T_128_H_INCLUDED
 
 #include <emmintrin.h>
+#ifndef _MSC_VER
+	//assume every compiler but MS is C99 compliant and has inttypes
+	#include <inttypes.h>
+#else
+   //typedef signed __int8     int8_t;
+   //typedef signed __int16    int16_t;
+   //typedef signed __int32    int32_t;
+   typedef unsigned __int8   uint8_t;
+   //typedef unsigned __int16  uint16_t;
+   typedef unsigned __int32  uint32_t;
+   //typedef signed __int64       int64_t;
+   typedef unsigned __int64     uint64_t;
+#endif
+namespace skfr {
 
-typedef union __declspec(intrin_type) _CRT_ALIGN(16) t_128 {
-    unsigned __int64    m128i_u64[2];
-    unsigned __int8     m128i_u8[16];
+typedef union t_128 {
+    uint64_t    m128i_u64[2];
+    uint8_t     m128i_u8[16];
     //unsigned __int16    m128i_u16[8];
-    unsigned __int32    m128i_u32[4];
+    uint32_t    m128i_u32[4];
 	__m128i				m128i_m128i;
     //__int64             m128i_i64[2];
 	//__m128d				m128i_m128d;
@@ -45,7 +59,6 @@ public:
 	//inline void operator-= (const bm128& r) {bitmap128.m128i_m128i = _mm_andnot_si128(r.bitmap128.m128i_m128i, maskLSB[81].m128i_m128i);}; //complementary
 	inline void operator-= (const bm128& r) {bitmap128.m128i_m128i = _mm_andnot_si128(r.bitmap128.m128i_m128i, bitmap128.m128i_m128i);}; //andnot
 	inline void operator<<= (const int bits) {bitmap128.m128i_m128i = _mm_slli_epi16(bitmap128.m128i_m128i, bits);};
-	//inline bool isDisjoint(const bm128& r) const {return equals(andnot(r.bitmap128.m128i_m128i, bitmap128.m128i_m128i), bitmap128.m128i_m128i);};
 	inline bool isDisjoint(const bm128& r) const {return equals(_mm_and_si128(r.bitmap128.m128i_m128i, bitmap128.m128i_m128i), _mm_setzero_si128());};
 	inline int mask8() const {return _mm_movemask_epi8(bitmap128.m128i_m128i);};
 	inline int toInt32() const {return _mm_cvtsi128_si32(bitmap128.m128i_m128i);};
@@ -66,6 +79,14 @@ public:
 	inline static bool isZero(const __m128i &r) {return equals(r, _mm_setzero_si128());};
 	inline bool isZero() const {return equals(bitmap128.m128i_m128i, _mm_setzero_si128());};
 
+	inline void alterOddEven(const bm128& w) {
+		//*this = ((w & true128) << 1) | ((w & false128) >> 1); The bits lost in the shifting process are always 0 after applying the mask
+		bitmap128.m128i_m128i = _mm_or_si128(
+			_mm_slli_epi16(_mm_and_si128(w.bitmap128.m128i_m128i, true128.m128i_m128i), 1),
+			_mm_srli_epi16(_mm_and_si128(w.bitmap128.m128i_m128i, false128.m128i_m128i), 1)
+			);
+	};
+
 	inline int nonzeroOctets() const {return 0x0000ffff ^ _mm_movemask_epi8(_mm_cmpeq_epi8(bitmap128.m128i_m128i, _mm_setzero_si128()));}
 
 	inline static bm128* allocate(const int size) {return (bm128*)_mm_malloc(size * sizeof(bm128), 16);};
@@ -76,4 +97,7 @@ public:
 	void toMask81(char* r) const {for(int i = 0; i < 81; i++) r[i] = isBitSet(i) ? '1' : '.';}
 };
 
+} //namespace skfr
+
 #endif // T_128_H_INCLUDED
+
