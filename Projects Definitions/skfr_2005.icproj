@@ -18,6 +18,17 @@
 				UseProcessorExtensions="6"
 				LoopUnrolling=""/>
 		</Configuration>
+		<Configuration
+			Name="Release|x64">
+			<Tool
+				Name="GeneralTool"
+				InterproceduralOptimization="true"/>
+			<Tool
+				Name="CppCmplrTool"
+				GlobalOptimizations="true"
+				UseProcessorExtensions="6"
+				LoopUnrolling=""/>
+		</Configuration>
 	</Configurations>
 	<Files/>
 </VisualStudioProject>

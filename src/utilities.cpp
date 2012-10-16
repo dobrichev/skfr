@@ -27,6 +27,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 */
 // utilities
+
+#define _CRT_SECURE_NO_DEPRECATE
+
 //#include "utilities.h"
 #include <time.h>
 //#include <sys\timeb.h>
@@ -40,6 +43,7 @@ void strcpy_s(char *d, int size, const char *s) {
 
 void strncpy_s(char *d, int size, const char *s, int n) {
 	strncpy(d, s, size < n ? size : n);
+	d[n] = 0;
 }
 
 // catching time as seconds+millis  (seconds since year 1970)
