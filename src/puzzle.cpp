@@ -635,6 +635,11 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 	if(rbn_elims1.IsNotEmpty()) {  // some case 1 to apply
 		for(int i = 2; i < col; i += 2) {
 			if(rbn_elims1.On(i)) {
+			if(0 && rbase>90){
+				EE.Enl("call case1 for");
+				zpln.ImageTag(i);EE.Esp();
+				EE.Enl();
+			}
 				GoNestedCase1(i >> 1);
             if(stop_rating) return 1;// push back error code
 			}
@@ -2475,7 +2480,7 @@ Dynamic search in nested mode for a candidate
 
 int PUZZLE::GoNestedCase1(USHORT cand) {
 	opp = 0; 
-	//if(Op.ot && rbase>100)opp=1;
+	//if(1 && rbase>90)opp=1;
 	USHORT tag = cand << 1; 
 	if(rbase>90){
 	   zcf.StartNestedOne();
@@ -2552,7 +2557,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 		for(int i = 0; i < itx[npas]; i++) {
 			USHORT tgx = tb[i];
 			if(allsteps.On(tgx) && allsteps.On(tgx ^ 1)) {
-				if(1 && opp) {
+				if(0 && opp) {
 					EE.E("\n\nfound active a -> x and a -> ~x");
 					zpln.ImageTag(tgx);
 					EE.E(" step=");
@@ -2564,7 +2569,7 @@ int PUZZLE::GoNestedCase1(USHORT cand) {
 				if(maxpas > pasmax)
 					maxpas = pasmax;
 				nested_print_option = 0;
-				//if(couprem==25)nested_print_option=1; 
+				//if(couprem==3)nested_print_option=1; 
 
 				tstore_final.Init(); // start with an empty table of chains used
 				int l1 = GoBackNested(tgx), 
@@ -2688,6 +2693,7 @@ void PUZZLE::Rating_Nested( USHORT * ttags, USHORT ntags, USHORT target) {
 	        for (int i = 0; i < ntags; i++) {		
 		         GoNestedCase2_3( ttags[i], target);		 
 	        }
+	        nested_print_option=0;
 		}
 		tchain.LoadChain(ratch, "chain plus through set", target >> 1);
 	}// end if
@@ -3164,7 +3170,7 @@ void PUZZLE::Gen_dpn(USHORT tag)
 
 //--------------------------------------------------
 int PUZZLE::GoBackNested(USHORT tag) {
-	if(0 && nested_print_option ) {
+	if(nested_print_option && options.ot ) {
 		EE.E("goback");zpln.ImageTag(tag);
 		EE.E(" npas=");EE.Enl(npas);
 	}
@@ -3177,7 +3183,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 	while(itret1 < itret && itret < 300) { // solve each entry back
 		USHORT x = tret[itret1], aig = 1; // first locate where x has been loaded
 		int index = tsets[x];
-		if(0 && nested_print_option) {  
+		if(0&&nested_print_option && options.ot ) {  
 			EE.E("go back look for ");
 			zpln.ImageTag(x);
 			EE.E(" index= ");EE.E( index);
@@ -3263,7 +3269,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						// we take the shortest size giving that candidate 
 						//   using found candidates (false)  (to code)
 						SET chx = zcx.zc[tsets[x]];
-						if(0 && nested_print_option) {
+						if(0&&nested_print_option && options.ot ) {
 							EE.E("set");
 							chx.Image(this,&EE);
 							EE.Enl();
@@ -3286,13 +3292,19 @@ int PUZZLE::GoBackNested(USHORT tag) {
 										continue;
 									if(y == x)
 										aig = 1; // must be 'x' onece
-									else
+									else{
 										aig = 0;
 									    break;
+									}
 								}
 								if(aig) {
 									n = nj;    // replace the set by the new one
 									chx = chxj;
+									if(0&&nested_print_option && options.ot ) {
+										EE.E("replacementset");
+										chx.Image(this,&EE);
+										EE.Enl();
+									}
 									if(n == 3)
 										break;  // stop at first 3 cand reached
 								}
@@ -3319,7 +3331,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						int ir=tstore_final.Use(tstore,w.index);
 						if(ir){
 							nestedlength += w.count;
-							if(0){///nested_print_option && options.ot && couprem==7){
+							if(nested_print_option && options.ot ){
 								EE.E("counted as new ir=");EE.Enl( ir);	
 								tstore.Print(this,&EE,w.index);
 								if(ir>100){
@@ -3328,7 +3340,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 							}
 						}
 						else {
-							if(0){///nested_print_option && options.ot&& couprem==7){
+							if(nested_print_option && options.ot){
 								EE.Enl("counted for 0");	
 								tstore.Print(this,&EE,w.index);
 							}
@@ -3339,7 +3351,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 						bfn.String(&tret[itret], newCount);// put them in the list "to explain"
 						itret += newCount; // and adjust the count
 						bf |= bfn;  // update the list of tags icluded
-						if(nested_print_option && options.ot&& couprem==7){ 
+						if(nested_print_option && options.ot){ 
 							EE.Enl("nested elimination");	
                             tstore.Print(this,&EE,w.index);
 							Image(bfn,"new tags needed",0);
