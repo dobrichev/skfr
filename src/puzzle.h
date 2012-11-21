@@ -1330,7 +1330,7 @@ public:
   */
   
 class  CHAINSTORE {
-#define Size_Store 80000 
+#define Size_Store 150000 
 public:
 	USHORT buf[Size_Store],         
 		ise,

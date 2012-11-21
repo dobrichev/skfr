@@ -183,10 +183,10 @@ bool BFTAG::substract(const BFTAG &z2) {
 */
 int BFTAG::SearchChain(const BFTAG *to, USHORT start, USHORT end) {
 	int npas = 0; 
-	// to be safe in nested mode, dimension increased to 200
-	USHORT tta[200], ttb[200], *told = tta, *tnew = ttb, itold, itnew;
+	// dimension increased to 400  and npas to 40 for nested mode
+	USHORT tta[400], ttb[400], *told = tta, *tnew = ttb, itold, itnew;
 	(*this).String(tta, itold);
-	while(npas++ < 30) {
+	while(npas++ < 40) {
 		tnew = (told == tta) ? ttb : tta; // new the second table
 		itnew = 0;
 		// EE.E("cycle");zpln.PrintListe(told,itold,1); 

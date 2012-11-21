@@ -652,7 +652,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 		for(int i = 0; i < rbn_it2; i++) {
 			BFTAG * ptg = & rbn_elimst2[i];
 			USHORT ttt[] = {rbn_t2[i], rbn_t2[i] ^ 1};
-			if(options.ot && rbase>100){
+			if(0 && rbase>90){
 				EE.Enl("call rat nest a ~a for");
 				zpln.ImageTag(ttt[0]);EE.Esp();
 				zpln.ImageTag(ttt[1]);EE.Enl();
@@ -2480,7 +2480,7 @@ Dynamic search in nested mode for a candidate
 
 int PUZZLE::GoNestedCase1(USHORT cand) {
 	opp = 0; 
-	//if(1 && rbase>90)opp=1;
+	//if(1 && rbase>95)opp=1;
 	USHORT tag = cand << 1; 
 	if(rbase>90){
 	   zcf.StartNestedOne();
@@ -2965,21 +2965,29 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 		if( dn.Is(i, i ^ 1)) {  // a forcing chain found, find the length
 			BFTAG wch = dpn.t[i], bfs; 
 			int era=0;
-			USHORT tt[100], itt ; 
+			USHORT tt[200], itt ; 
 			int npasch = wch.SearchChain(dpn.t, i, i ^ 1);
 			if((!npasch)|| npasch > 40){
 				era=1;
-				continue; // never seen so far
 			}
 			
 			else{// 
                itt = npasch + 2;
 			   if(wch.TrackBack(dpn.t, i, i ^ 1, tt, itt, i ^ 1))
-			       era=1;   // intercept error for debugging	
+			       era=2;   // intercept error for debugging	
 			}
 			
-			if(era){// never seen so far
-					continue; // just skip it
+			if(era){// never seen so far more for debugging
+				EE.E("nested forcing chain era="); EE.E(era);
+				EE.E(" npasch="); EE.E(npasch);EE.Esp();
+				EE.E( " search "); zpln.ImageTag(i); EE.Esp();
+				EE.E( " => "); zpln.ImageTag(i^1); EE.Enl();
+				Image((*cum),"cum ",0);
+				Image(dpn.t[i],"dpn (i)",0);
+				Image(dn.t[i],"dn (i)",0);
+				EE.Enl();
+				stop_rating=1;
+				continue; // just skip it
 			}
 			  //must add the source of the new strong links
 			for(int j = 1; j < itt - 1; j++) { // all strong links 
