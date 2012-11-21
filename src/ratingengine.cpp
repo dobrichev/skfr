@@ -138,7 +138,7 @@ void ratePuzzlesC(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, i
 }
 
 //void rateOnePuzzle(char *ze, int * er, int * ep, int * ed)
-void rateOnePuzzle(puzzleToRate &p)
+extern void rateOnePuzzle(puzzleToRate &p)
 {
 	//OPSUDO op; //default options
 	PUZZLE puz; //instantiate a puzzle

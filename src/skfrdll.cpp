@@ -50,17 +50,17 @@ extern "C" DLLEXPORT int __stdcall setTestMode(int ot, char * logFileName);
 extern "C" DLLEXPORT void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir);
 
 int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig) {
-	return ratePuzzleC(ze, er, ep, ed, aig);
+	return skfr::ratePuzzleC(ze, er, ep, ed, aig);
 }
 void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer, UINT filt) {
-	setMinMaxC(mined, maxed,  minep,  maxep,  miner,  maxer, filt);
+	skfr::setMinMaxC(mined, maxed,  minep,  maxep,  miner,  maxer, filt);
 }
 void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles) {
-	setParamC(o1, delta, os, oq, ot, oexclude, edcycles);
+	skfr::setParamC(o1, delta, os, oq, ot, oexclude, edcycles);
 }
 int __stdcall setTestMode(int ot, char *logFileName) {
-	return setTestModeC(ot, logFileName);
+	return skfr::setTestModeC(ot, logFileName);
 }
 void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir) {
-	ratePuzzlesC(nPuzzles, ze, er, ep, ed, aig, ir); //parallel rating
+	skfr::ratePuzzlesC(nPuzzles, ze, er, ep, ed, aig, ir); //parallel rating
 }

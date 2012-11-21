@@ -46,6 +46,7 @@ struct puzzleToRate {
 	char p[81];
 };
 
+extern void rateOnePuzzle(puzzleToRate &p);
 extern void rateManyPuzzles(int nPuzzles, puzzleToRate *p);
 
 } //namespace skfr
