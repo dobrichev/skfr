@@ -183,10 +183,10 @@ bool BFTAG::substract(const BFTAG &z2) {
 */
 int BFTAG::SearchChain(const BFTAG *to, USHORT start, USHORT end) {
 	int npas = 0; 
-	// dimension increased to 400  and npas to 40 for nested mode
+	// dimension increased to 400  and npas to 60 for nested mode
 	USHORT tta[400], ttb[400], *told = tta, *tnew = ttb, itold, itnew;
 	(*this).String(tta, itold);
-	while(npas++ < 40) {
+	while(npas++ < 60) {
 		tnew = (told == tta) ? ttb : tta; // new the second table
 		itnew = 0;
 		// EE.E("cycle");zpln.PrintListe(told,itold,1); 
@@ -312,21 +312,10 @@ int BFTAG::SearchCycleChain(const BFTAG *to, USHORT i, USHORT relay, const BFTAG
  */
 int BFTAG::TrackBack(const BFTAG *to, USHORT start, USHORT end, USHORT * tt, USHORT & itt, USHORT relay) const {
 	// first we have to build forward step by step 
-	if(itt > 40) {
-		/*  debugging infromation to be relocated in the calling sequence
-		EE.E("trackback to many steps=");
-		EE.E(itt);
-		EE.E(" start=");
-		zpln.ImageTag(start); 
-		EE.E(" end=");
-		zpln.ImageTag(end); 
-		EE.E(" relay=");
-		zpln.ImageTag(relay);
-		EE.Enl();*/
+	if(itt >60) 
 		return 1;
-	}
-	BFTAG steps[50], allsteps; // surely never so many
-	USHORT tx[50][200], itx[50], npas = 0;
+	BFTAG steps[60], allsteps; //size set to accepted limit
+	USHORT tx[60][200], itx[60], npas = 0;
 	steps[0].SetAll_0();
 	steps[0].Set(start); 
 	allsteps = steps[0]; // one way to force weak link at the start in loop mode
@@ -368,29 +357,9 @@ int BFTAG::TrackBack(const BFTAG *to, USHORT start, USHORT end, USHORT * tt, USH
 		//   EE.E("passe npas=");EE.E(npas); EE.Esp();
 		//   zpln.PrintListe(tb,itb,1);
 	}// end while
-	if((npas + 2) - itt) {
-		/* debugging code to relocate
-		if(1 && Op.ot) {
-			EE.E("invalid trackback end phase 1 npas==");
-			EE.E(npas);
-			EE.E(" itt=");
-			EE.Enl(itt);
-			EE.E(" start=");
-			zpln.ImageTag(start); 
-			EE.E(" end=");
-			zpln.ImageTag(end); 
-			EE.E(" relay=");
-			zpln.ImageTag(relay);
-			EE.Enl();
-			for(int iw = 0; iw <= npas; iw++) {
-				EE.E("step iw=");
-				EE.E(iw);
-				steps[iw].Image("",0);
-			}
-		}
-		 end of debugging code to relocate*/ 
+	if((npas + 2) - itt) 
 		return 1;
-	}
+	
 	//second phase, goback using the tx[] tables
 
 	tt[0] = start;
@@ -408,46 +377,11 @@ int BFTAG::TrackBack(const BFTAG *to, USHORT start, USHORT end, USHORT * tt, USH
 			break; // should always find one the first is ok
 		}
 		// error in the process this is a debugging message
-		if(!tt[i]) {
-			/* debugging code to relocate
-			EE.E("invalid trackback step=");
-			EE.E(i); 
-			EE.E(" last=");
-			zpln.ImageTag(last); 
-			EE.E(" start=");
-			zpln.ImageTag(start); 
-			EE.E(" end=");
-			zpln.ImageTag(end); 
-			EE.E(" relay=");
-			zpln.ImageTag(relay);
-			EE.Enl();
-			allsteps.Image("allsteps", 0);
-			 end of debugging code to relocate */
-			return 1;
-		}
+		if(!tt[i]) 
+			return 1;		
 	}
 	return 0;
 }
 
-// GP 2011 10 9  <<<<<<<<<<<<<<<<<<<<<<<  suggested to move that in PUZZLE
-// this is more sensitive in performance that the previous ones
-/* final expansion in nested mode of a specific BFTAG */
-//void BFTAG::Expand(BFTAG * to, USHORT i) {
-//	int n = 1;
-//	while(n) {
-//		n = 0;
-//		for(int j = 2; j < /*puz.col + 2*/ BFTAG_BitSize; j++) {
-//			if((j - i) && (*this).On(j)) {
-//				BFTAG x = to[j];
-//				x -= (*this);
-//				if(x.IsNotEmpty()) {
-//					(*this) |= x;
-//					//n++;
-//					n = 1;
-//				}
-//			}
-//		} // end j
-//	} // end while
-//}
 
 } //namespace skfr

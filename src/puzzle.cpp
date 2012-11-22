@@ -2967,8 +2967,8 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 			int era=0;
 			USHORT tt[200], itt ; 
 			int npasch = wch.SearchChain(dpn.t, i, i ^ 1);
-			if((!npasch)|| npasch > 40){
-				era=1;
+			if((!npasch)|| npasch > 50){
+				era=1+npasch;
 			}
 			
 			else{// 
@@ -2977,16 +2977,18 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 			       era=2;   // intercept error for debugging	
 			}
 			
-			if(era){// never seen so far more for debugging
-				EE.E("nested forcing chain era="); EE.E(era);
-				EE.E(" npasch="); EE.E(npasch);EE.Esp();
-				EE.E( " search "); zpln.ImageTag(i); EE.Esp();
-				EE.E( " => "); zpln.ImageTag(i^1); EE.Enl();
-				Image((*cum),"cum ",0);
-				Image(dpn.t[i],"dpn (i)",0);
-				Image(dn.t[i],"dn (i)",0);
-				EE.Enl();
-				stop_rating=1;
+			if(era){//  more for debugging
+				if(era<3){
+					EE.E("nested forcing chain era="); EE.E(era);
+					EE.E(" npasch="); EE.E(npasch);EE.Esp();
+					EE.E( " search "); zpln.ImageTag(i); EE.Esp();
+					EE.E( " => "); zpln.ImageTag(i^1); EE.Enl();
+					Image((*cum),"cum ",0);
+					Image(dpn.t[i],"dpn (i)",0);
+					Image(dn.t[i],"dn (i)",0);
+					EE.Enl();
+					stop_rating=1;
+				}
 				continue; // just skip it
 			}
 			  //must add the source of the new strong links
@@ -3063,7 +3065,7 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 					int erb=0,  // to catch an error in that sequence
 					npasch = wch.SearchChain(dpn.t, j, i);	
 					if((!npasch) || (npasch > 40))
-						erb=1;  // should never happen  debug later
+						erb=1+npasch;  //  debug later if 0
 
 					else{
 
@@ -3073,16 +3075,19 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 					}
 
 					if(erb) { // add some debugging code
-						EE.E("nested multi erb="); EE.E(erb);
-						EE.E(" npasch="); EE.E(npasch);EE.Esp();
-						chx.Image(this,&EE);
-						EE.E( " search "); zpln.ImageTag(j); EE.Esp();
-						EE.E( " => "); zpln.ImageTag(i); EE.Enl();
-						Image((*cum),"cum ",0);
-						Image(dpn.t[j],"dpn (j)",0);
-						Image(dn.t[j],"dn (j)",0);
-						EE.Enl();
-						era=1;
+						if(erb<3){
+							EE.E("nested multi erb="); EE.E(erb);
+							EE.E(" npasch="); EE.E(npasch);EE.Esp();
+							chx.Image(this,&EE);
+							EE.E( " search "); zpln.ImageTag(j); EE.Esp();
+							EE.E( " => "); zpln.ImageTag(i); EE.Enl();
+							Image((*cum),"cum ",0);
+							Image(dpn.t[j],"dpn (j)",0);
+							Image(dn.t[j],"dn (j)",0);
+							EE.Enl();
+							era=1;
+						}
+						else era=3;
 					}
 
 					else {
