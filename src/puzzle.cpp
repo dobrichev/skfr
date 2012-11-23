@@ -2968,7 +2968,7 @@ void PUZZLE::NestedForcing(BFTAG & elims) {
 			USHORT tt[200], itt ; 
 			int npasch = wch.SearchChain(dpn.t, i, i ^ 1);
 			if((!npasch)|| npasch > 50){
-				era=1+npasch;
+				era=3;//1+npasch; ignore that long chain
 			}
 			
 			else{// 
@@ -3065,7 +3065,7 @@ void PUZZLE::NestedMulti(BFTAG & elims) {
 					int erb=0,  // to catch an error in that sequence
 					npasch = wch.SearchChain(dpn.t, j, i);	
 					if((!npasch) || (npasch > 40))
-						erb=1+npasch;  //  debug later if 0
+						erb=3;// ignore long chains 1+npasch;  //  debug later if 0
 
 					else{
 
