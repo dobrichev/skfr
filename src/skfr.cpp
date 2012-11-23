@@ -384,7 +384,7 @@ OPSUDOCMD Opc;
 
 //==== specific data
 char finput_name[128]; // string file names if given
-const char * version="V2.0.1 dated October 16th 2012";
+const char * version="V2.0.2 dated November 23, 2012";
 
 // =====================functions written below
 
