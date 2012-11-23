@@ -69,7 +69,7 @@ PUZZLE::PUZZLE() {
    */
 void PUZZLE::ImagePoints(BF81 & zz) const {
 	char s0[5], s1[5];
-	int ns = 0, mode = 0;
+	int  mode = 0;
 	for(int i = 0; i < 81; i++) {
 		if(zz.On(i)) {
 			strcpy_s(s1, 5, cellsFixedData[i].pt);
@@ -228,13 +228,14 @@ int PUZZLE::Is_ed_ep_go() {  // is the ed or  condition fullfilled
 	// now, we have no -d no -p command but at least one filter is on	
 	// give priority to the -n() command
 
-	if(options.filters.On(3))// -n() command
+	if(options.filters.On(3)){// -n() command
 		if(ermax >= options.miner) {
 			ermax = 0;
 			return 3;
 		} // finished
 		else if(cycle > options.edcycles)
 			return 4;
+	}
 
 	//then all max conditions
 	if(edmax >= options.maxed || epmax >= options.maxep || ermax >= options.maxer) {
@@ -444,7 +445,7 @@ int PUZZLE::FaitGo(int i, char c1, char c2) { // function also called if single 
 	EE.E(c1);
 	EE.E(" ");
 	if(c2 < 4)
-		EE.Enl(orig1[c2]);
+		EE.Enl(orig1[(int)c2]);
 	else EE.Enl(" assigned");
 	if((solution[i] - c1) && (!stop_rating)) { // validite  fixation
 		stop_rating=1;
@@ -688,7 +689,7 @@ int PUZZLE::Rating_baseNest(USHORT base, int quick) {
 				EE.Enl(); 
 				Image((*ptg),"for targets ",0);
 			}
-			int n = 0, nni = chx.ncd; 
+			int  nni = chx.ncd; 
 			USHORT ttt[20];
 			for(int j = 0; j < nni; j++)
 				ttt[j] = chx.tcd[j] << 1;
@@ -741,7 +742,7 @@ void PUZZLE::Rbn_Elims( BFTAG * tsquare,int nn){
 	rbn_itch = 0;
 	for(int ie = 1; ie < zcx.izc; ie++) {
 		SET chx = zcx.zc[ie];
-		int n = 0, nni = chx.ncd; 
+		int nni = chx.ncd; 
 		if(chx.type - SET_base)
 			continue;
 		BFTAG bfw(BFTAG::InitFalseState);
@@ -791,8 +792,6 @@ void PUZZLE::Chaining(int opt, int level, int base) {
 	TaggingInit();
 	tchain.SetMaxLength(base);
 	rbase=base;
-	// long tta,ttc;// provisoire, pour test de temps
-	int ir = 0;   
 	if(options.ot) {
 		EE.E("entree chaining opt=");
 		EE.E(opt);
@@ -1017,7 +1016,7 @@ int PUZZLE::Rating_base_90() {
 
 void PUZZLE::ChainPlus() {
 	int godirect = ((rbase + 8) <= ermax);
-	BFTAG *t = zcf.h.d.t, *tp = zcf.h.dp.t; 
+	BFTAG *t = zcf.h.d.t; 
 	if(0 && options.ot && rbase==85 && couprem<2) {
 		EE.Enl("\n\nchain plus entry" );
 		Image(zcf.h.d	);
@@ -1112,11 +1111,13 @@ void PUZZLE::ChainPlus() {
 		}
 
 
-        for(int j = 3; j < col; j += 2) if(tbt.On(j))	
+        for(int j = 3; j < col; j += 2) if(tbt.On(j)){	
 			if(godirect)  
 				tchain.ClearImmediate(j>>1);
 			else
 				Rating_Nested(ttt,n,j);
+		}
+			
 
 	}// end for ie
 }
@@ -2199,8 +2200,7 @@ void PUZZLE::GoNestedTag(USHORT tag) {
 void PUZZLE::GoNestedWhileShort(USHORT tag) {
 	USHORT aignl = 1;
 	//const BFTAG &cum_here = *cum;
-	BFTAG * tdpn = dpn.t,  // new set of direct links
-	    * hdpb =hdp_base_nested.t; // to receive new strong links
+	BFTAG * hdpb =hdp_base_nested.t; // to receive new strong links
 
 	// look first for direct 
 	for(int it = 0; it < ita; it++) {
@@ -3207,7 +3207,7 @@ int PUZZLE::GoBackNested(USHORT tag) {
 				aig=0; 
 				if(i) {  // not initial assumption
 	              if(!index) { // this is a direct step
-	                 int z=0,ia=i-1;
+	                 int z=0;
 
 		             // take a parent already there in priority
 		             // note  this should be extended to SET_sets
@@ -3545,8 +3545,7 @@ int PUZZLE::CaseNestedLevel4Case1( USHORT tag )  {
 		USHORT totlength=10000;
 	    for(int iw=0;iw<ittw;iw++){
 			USHORT y=ttw[iw]^1; // start with false for forcing chain
-			USHORT itt=NestedChainGoBack(y),
-				   *tt=chain4_result;
+			USHORT itt=NestedChainGoBack(y);
 			if(itt<2) continue; // should always be ok if 1, target already false, don't do
 			chain4_bf=back4_bfsource;
 

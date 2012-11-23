@@ -44,7 +44,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
             <<<<<<<   TCANDGO  >>>>>>>>>>>>>
             <<<<<<< CHAINSTORE   >>>>>>>>>>
 
-/*    <<<<< GG >>>>>>>>>>>>>> 
+		    <<<<< GG >>>>>>>>>>>>>> 
 
 raw puzzle stored
 
@@ -1407,13 +1407,14 @@ int UL_SEARCH::Loop_OK(int action) {
 		return 0; // must be even number everywhere
 	if(!ParityCheck()) // check for more than 0 solutions
 		return 0;
-	if(!action) // split processing depending on size of the loop
+	if(!action){ // split processing depending on size of the loop
 		if(line_count>7) {
 			parentpuz->tult.Store(*this);
 			return 0;
 		}
 		else
 			action++;
+	}
 	// les deux ci-dessous sortent en 4.6 et 4.7; voir l'origine de l'écart (nb de pas???)
 	if(action == 1 && nadds < 2) { //one cell with adds rating 4.6 revérifié, c'est bien 4.6
 		USHORT iu = adds[0];
@@ -1714,17 +1715,19 @@ void TEVENT::LoadXW() {
 void TEVENT::LoadXWD(USHORT ch, USHORT el1, USHORT el2, USHORT p1, USHORT p2, EVENTLOT & eva, EVENTLOT & evx) {
 	REGION_CELL el1d = parentpuz->alt_index.tchbit.el[el1].eld[ch], el2d = parentpuz->alt_index.tchbit.el[el2].eld[ch];
 	for(int i = 0; i < 9; i++)
-		if(el1d.b.On(i))
+		if(el1d.b.On(i)){
 			if((i - p1) && (i - p2))
 				eva.AddCand(parentpuz, EE, cellsInGroup[el1][i], ch);
 			else
 				evx.AddCand(parentpuz, EE, cellsInGroup[el1][i], ch);
+		}
 	for(int i = 0; i < 9; i++)
-		if(el2d.b.On(i))
+		if(el2d.b.On(i)){
 			if((i - p1) && (i - p2))
 				eva.AddCand(parentpuz, EE, cellsInGroup[el2][i], ch);
 			else
 				evx.AddCand(parentpuz, EE, cellsInGroup[el2][i], ch);
+		}
 }
 
 void TEVENT::LoadPairs() { // all rows, columns, and boxes  
@@ -1765,16 +1768,18 @@ void TEVENT::LoadPairsD(USHORT cell1, USHORT cell2, USHORT iel) {
 				     hid2,  evx; 
 			BF16 com(i1, i2), v1 = parentpuz->T81t[cell1].v.cand, v2 = parentpuz->T81t[cell2].v.cand;
 			for(int j = 0; j < 9; j++) {
-				if(v1.On(j))
+				if(v1.On(j)){
 					if(com.On(j))
 						evx.AddCand(parentpuz,EE,cell1, j);
 					else
 						nack.AddCand(parentpuz,EE,cell1, j);
-				if(v2.On(j))
+				}
+				if(v2.On(j)){
 					if(com.On(j))
 						evx.AddCand(parentpuz,EE,cell2, j);
 					else
 						nack.AddCand(parentpuz,EE,cell2, j);
+				}
 			}
 			// build the set for hidden pair in el and generate the event
 			PairHidSet(cell1, cell2, iel, com, hid1);
@@ -2008,7 +2013,6 @@ int SEARCH_UR::T2_el(USHORT el, USHORT action) {
 	}
 
 	// first look  for cells having a potential for hidden/direct locked sets
-	int ir = 0;
 	aig_hid = 0;
 	nth = ntd = nnh = 0;
 	wh = wc;
@@ -2270,11 +2274,12 @@ int SEARCH_UR::RIDx(int i1,int i2,int c1,int c2) {
 	}// type 1
 	Setwou();
 	GenCh(); 
-	if((ndeux - 2) || IsDiag())
+	if((ndeux - 2) || IsDiag()){
 		if(ndeux == 1)
 			return RID3();
 		else
 			return 0; // not processed
+	}
 
 	// if one digit active, do it now 4.5
 	if(nautres == 1) { // un chiffre en lig/col  ou diagonal
@@ -3251,14 +3256,14 @@ int SETS::DeriveDynamicShort(BFTAG & allsteps,SQUARE_BFTAG & dpn,SQUARE_BFTAG & 
 }
 
 void SETS::Derive(int min,int max,int maxs) {
-	maxs; // adjust to add the event pointer
+	//maxs   adjust to add the event pointer
 	if(max > nmmax)
 		max = nmmax;
 	if(min < nmmin)
 		min = nmmin;
 	if(maxs > nmmax)
 		maxs = nmmax;
-	int maxt = (max > maxs) ? max : maxs;
+//	int maxt = (max > maxs) ? max : maxs; // unused
 
 	if(parentpuz->options.ot && 0) {
 		EE->E("debut Derive izc= ");
@@ -3675,7 +3680,7 @@ int CHAINSTORE::Use(CHAINSTORE & store_source,USHORT index){
 			return 0;
 	}
 	// nothing matches, store it and return 1;
-	int idn,ien;
+	int idn=0,ien=0; // initial to avoid a warning under linux
 	for(int i = id; i <= ie; i++) {
 		USHORT * tx = &store_source.buf[store_source.starts[i]];
 		USHORT 	n = store_source.ends[i] - store_source.starts[i];		
