@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2011, OWNER: Gérard Penet
 All rights reserved.stribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met:
@@ -1463,6 +1463,19 @@ int PUZZLE::Traite(char * ze) {
 
 	EE.Enl(); // new line in case test is done
 
+	//MD: non-minimals dump
+//#define DUMP_NON_MINIMALS 97
+	//output the non-assigned cells after latest step rated 9.7+
+#ifdef DUMP_NON_MINIMALS
+	//MD: non-minimals dump
+	int nUnknowns = 81 - gg.NBlancs();
+	int numCellSolvingSteps = 0;
+	GG knownCellsStates[81-16];
+	int knownCellsStateRating[81-16];
+	knownCellsStateRating[0] = 0;
+	knownCellsStates[0] = gg; //structure copy
+#endif
+
 	//===========================================================
 	while (cycle++ < 150) {
 		if(cycle > 148) {
@@ -1483,6 +1496,25 @@ int PUZZLE::Traite(char * ze) {
 			Seterr(6);
 			break;
 		}
+		//MD 22.5.2013 start
+		//dump here cycle, difficulty, gg.pg
+#ifdef DUMP_NON_MINIMALS
+		int newUnknowns = gg.NBlancs();
+		if(nUnknowns != newUnknowns) {
+			//Some cells have been solved in the last cycle
+			knownCellsStates[numCellSolvingSteps] = gg; //structure copy
+			knownCellsStateRating[numCellSolvingSteps] = difficulty;
+			numCellSolvingSteps++;
+		}
+		else {
+			if(knownCellsStateRating[numCellSolvingSteps] < difficulty) {
+				knownCellsStateRating[numCellSolvingSteps] = difficulty;
+			}
+		}
+		//printf("%d\t%d\t%81.81s\n", cycle, difficulty, gg.pg); //debug
+#endif
+		//MD 22.5.2013 end
+
 		if(!gg.NBlancs())
 			break; // finished
 		// processing 1.0 to <6.2
@@ -1657,6 +1689,19 @@ int PUZZLE::Traite(char * ze) {
 	EE.E("fin traitement stop_rating=");
 	EE.Enl(stop_rating );
 	gg.Image(&EE, "fin");
+
+#ifdef DUMP_NON_MINIMALS
+	//MD
+	//dump solved cells at "singles to the end" state
+	for(int i = numCellSolvingSteps - 1; i >= 0; i--) {
+		if(knownCellsStateRating[i] < DUMP_NON_MINIMALS) {
+			continue;
+		}
+		printf("%81.81s\t%d\n", knownCellsStates[i].pg, knownCellsStateRating[i]);
+		break;
+	}
+#endif
+
 	return stop_rating;
 }
 
