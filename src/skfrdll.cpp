@@ -40,27 +40,34 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }
 
 #include "ratingengine.h"
-
+/*
 #define DLLEXPORT __declspec(dllexport)
 
-extern "C" DLLEXPORT int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig);
-extern "C" DLLEXPORT void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer, UINT filt);
-extern "C" DLLEXPORT void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles);
-extern "C" DLLEXPORT int __stdcall setTestMode(int ot, char * logFileName);
-extern "C" DLLEXPORT void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir);
-
+extern "C" {
+	DLLEXPORT int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig);
+	DLLEXPORT void __stdcall setMinMax(int mined, int maxed, int minep, int maxep, int miner, int maxer, UINT filt);
+	DLLEXPORT void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles);
+	DLLEXPORT int __stdcall setTestMode(int ot, char * logFileName);
+	DLLEXPORT void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir);
+}
+*/
 int __stdcall ratePuzzle(char *ze, int * er, int * ep, int * ed, int * aig) {
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 	return skfr::ratePuzzleC(ze, er, ep, ed, aig);
 }
 void __stdcall setMinMax(int mined,int maxed, int minep, int maxep, int miner, int maxer, UINT filt) {
-	skfr::setMinMaxC(mined, maxed,  minep,  maxep,  miner,  maxer, filt);
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+	skfr::setMinMaxC(mined, maxed, minep, maxep, miner, maxer, filt);
 }
 void __stdcall setParam(int o1, int delta, int os, int oq, int ot, int oexclude, int edcycles) {
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 	skfr::setParamC(o1, delta, os, oq, ot, oexclude, edcycles);
 }
 int __stdcall setTestMode(int ot, char *logFileName) {
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 	return skfr::setTestModeC(ot, logFileName);
 }
 void __stdcall ratePuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, int *ir) {
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 	skfr::ratePuzzlesC(nPuzzles, ze, er, ep, ed, aig, ir); //parallel rating
 }

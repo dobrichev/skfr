@@ -117,14 +117,16 @@ int setTestModeC (int ot, char * logFileName){
  */
 int ratePuzzleC(char *ze, int * er, int * ep, int * ed, int * aig)
 {
-	PUZZLE puz; //instantiate a puzzle
-	puz.options = Op; //clone the options
+	//*er = 1; *ep = 2; *ed = 3; *aig = 4; return 0; //debug
+	PUZZLE* puz = new PUZZLE(); //instantiate a puzzle //28.2.2018 MD: use heap for 32-bit dll, else stack overflows in the calling application
+	puz->options = Op; //clone the options
 	// do standard processing
-	int rc = puz.Traite(ze);
-	*er = puz.ermax;
-	*ep = puz.epmax;
-	*ed = puz.edmax;
-	*aig = puz.stop_rating;
+	int rc = puz->Traite(ze);
+	*er = puz->ermax;
+	*ep = puz->epmax;
+	*ed = puz->edmax;
+	*aig = puz->stop_rating;
+	delete puz;
 	return  rc;
 }
 
@@ -141,16 +143,18 @@ void ratePuzzlesC(int nPuzzles, char *ze, int *er, int *ep, int *ed, int *aig, i
 extern void rateOnePuzzle(puzzleToRate &p)
 {
 	//OPSUDO op; //default options
-	PUZZLE puz; //instantiate a puzzle
+	PUZZLE* puz = new PUZZLE(); 
+	//PUZZLE puz; //instantiate a puzzle
 	//puz.options = op; //clone the options
 	//do standard processing
-	puz.Traite(p.p);
-	p.er = puz.ermax;
-	p.ep = puz.epmax;
-	p.ed = puz.edmax;
+	puz->Traite(p.p);
+	p.er = puz->ermax;
+	p.ep = puz->epmax;
+	p.ed = puz->edmax;
 	//clear ratings on error
-	if(puz.stop_rating || p.er < 10 || p.er > 120)
+	if(puz->stop_rating || p.er < 10 || p.er > 120)
 		p.er = p.ep = p.ed = 0;
+	delete puz;
 }
 
 //void rateManyPuzzles(int nPuzzles, char *ze, int *er, int *ep, int *ed) {
